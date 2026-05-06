@@ -338,6 +338,11 @@ html, body {
   border-radius: 8px;
 }
 
+/* One-off: shrink only the Personalization card image by 8px */
+.node.node--imageCard[data-id="personalization"] .node__comboLogo {
+  width: 142px;
+}
+
 .node__logoWrap {
   width: 28px;
   height: 28px;

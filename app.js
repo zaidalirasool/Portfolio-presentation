@@ -30,7 +30,16 @@ const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
 // Legacy keys from earlier iterations (for backwards compatibility)
 const LEGACY_PERSONALIZATION_IMAGE_KEY = "personalizationCardImageDataUrl";
 const LEGACY_PERSONALIZATION_IMAGE_CLEANED_KEY = "personalizationCardImageCleaned";
-const AB_DEFAULT_IMAGE_SRC = "./assets/ab-testing.svg";
+const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
+  personalization: "./assets/cards/personalization.svg",
+  ab: "./assets/cards/ab-testing.svg",
+  loyalty: "./assets/cards/loyalty.svg",
+  referral: "./assets/cards/referral.svg",
+  mail: "./assets/cards/mailing-sms.svg",
+  chat: "./assets/cards/customer-chat.svg",
+  ads: "./assets/cards/advertising.svg",
+  affiliates: "./assets/cards/affiliates.svg"
+};
 
 function getMerchantLogoDataUrl() {
   try {
@@ -528,8 +537,7 @@ function render(graph) {
       btn.appendChild(row);
     } else if (!isMerchant) {
       const cardImageSrc =
-        getNodeCardImageDataUrl(n.id) ||
-        (n.id === "ab" ? AB_DEFAULT_IMAGE_SRC : null);
+        getNodeCardImageDataUrl(n.id) || DEFAULT_CARD_IMAGE_BY_NODE_ID[n.id] || null;
       const isBuiltInImageCard =
         n.id === "personalization" ||
         n.id === "ab" ||
