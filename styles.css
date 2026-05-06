@@ -266,7 +266,7 @@ html, body {
 .node.node--merchant {
   width: fit-content;
   max-width: 320px;
-  padding: 14px 34px;
+  padding: 14px 8px;
 }
 
 .node.node--merchant .node__meta {
