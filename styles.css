@@ -264,7 +264,20 @@ html, body {
 
 /* Merchant node: slightly more premium surface for the avatar treatment */
 .node.node--merchant {
-  width: 210px;
+  width: fit-content;
+  max-width: 320px;
+  padding: 14px 16px;
+}
+
+.node.node--merchant .node__meta {
+  display: none;
+}
+
+.node.node--merchant .node__title {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.1em;
+  -webkit-line-clamp: 1;
 }
 
 .node__avatarImg {
