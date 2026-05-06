@@ -228,8 +228,8 @@ html, body {
   text-overflow: ellipsis;
 }
 .node__title {
-  font-weight: 500;
-  font-size: 14px;
+  font-weight: 650;
+  font-size: 16px;
   letter-spacing: -0.3px;
   line-height: 1.2em;
   text-align: left;
@@ -274,15 +274,10 @@ html, body {
 }
 
 .node.node--merchant .node__title {
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 600;
-  line-height: 1.1em;
+  line-height: 1.2em;
   -webkit-line-clamp: 1;
-}
-
-/* One-off: A/B Testing title uses medium weight */
-.node[data-id="ab"] .node__title {
-  font-weight: 500;
 }
 
 .node__avatarImg {
