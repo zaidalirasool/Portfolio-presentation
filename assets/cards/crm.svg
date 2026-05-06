@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="560" viewBox="0 0 680 560" role="img" aria-label="CRM">
+  <rect x="20" y="20" width="640" height="520" rx="48" fill="#0B1220"/>
+  <rect x="56" y="76" width="568" height="56" rx="20" fill="#111B2E"/>
+  <text x="92" y="114" font-size="22" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" fill="#E6EDF7">CRM</text>
+
+  <!-- Simple contacts + pipeline -->
+  <circle cx="250" cy="260" r="42" fill="#34D399" opacity="0.9"/>
+  <path d="M186 354c18-32 44-48 64-48s46 16 64 48" fill="none" stroke="#34D399" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+
+  <circle cx="430" cy="252" r="34" fill="#60A5FA" opacity="0.9"/>
+  <path d="M382 326c14-24 32-36 48-36s34 12 48 36" fill="none" stroke="#60A5FA" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+
+  <rect x="470" y="200" width="120" height="24" rx="12" fill="#111B2E"/>
+  <rect x="470" y="244" width="90" height="24" rx="12" fill="#111B2E"/>
+  <rect x="470" y="288" width="110" height="24" rx="12" fill="#111B2E"/>
+
+  <text x="340" y="470" text-anchor="middle" font-size="18" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" fill="#E6EDF7" opacity="0.85">
+    Leads " Stages " Lifecycle
+  </text>
+</svg>
+
