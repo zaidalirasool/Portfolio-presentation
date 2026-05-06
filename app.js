@@ -622,6 +622,75 @@ function render(graph) {
 
   // Progressive reveal state
   const visibleIds = new Set(["merchant"]);
+  let hasCried = false;
+
+  const stageWrapEl = els.stage?.closest?.(".stageWrap");
+  const startEmojiRain = () => {
+    if (!stageWrapEl) return;
+    const wrapRect = stageWrapEl.getBoundingClientRect();
+    const rain = document.createElement("div");
+    rain.className = "emojiRain";
+    stageWrapEl.appendChild(rain);
+
+    const count = 48;
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement("span");
+      s.textContent = Math.random() < 0.65 ? "😭" : "😢";
+      const left = Math.random() * Math.max(0, wrapRect.width - 24);
+      const delay = Math.random() * 700;
+      const dx = (Math.random() - 0.5) * 120;
+      const rot = (Math.random() - 0.5) * 220;
+      s.style.left = `${left}px`;
+      s.style.animationDelay = `${delay}ms`;
+      s.style.setProperty("--dx", `${dx.toFixed(1)}px`);
+      s.style.setProperty("--rot", `${rot.toFixed(1)}deg`);
+      rain.appendChild(s);
+    }
+
+    // Cleanup after the last emojis are done.
+    window.setTimeout(() => rain.remove(), 2400);
+  };
+
+  const isWholeMapOnScreen = () => {
+    // Only trigger once the entire map is revealed.
+    if (visibleIds.size !== graph.nodes.length) return false;
+
+    const stageRect = els.stage.getBoundingClientRect();
+    const pad = 18;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of graph.nodes) {
+      if (!visibleIds.has(n.id)) continue;
+      const s = approxNodeSize(n.id);
+      minX = Math.min(minX, n.pos.x - s.w / 2);
+      maxX = Math.max(maxX, n.pos.x + s.w / 2);
+      minY = Math.min(minY, n.pos.y - s.h / 2);
+      maxY = Math.max(maxY, n.pos.y + s.h / 2);
+    }
+    if (!isFinite(minX) || !isFinite(minY)) return false;
+
+    // Convert world bounds to screen bounds using current transform.
+    const t = transformRef.current;
+    const left = stageRect.left + t.x + minX * t.scale;
+    const right = stageRect.left + t.x + maxX * t.scale;
+    const top = stageRect.top + t.y + minY * t.scale;
+    const bottom = stageRect.top + t.y + maxY * t.scale;
+
+    return (
+      left >= stageRect.left + pad &&
+      top >= stageRect.top + pad &&
+      right <= stageRect.right - pad &&
+      bottom <= stageRect.bottom - pad
+    );
+  };
+
+  const maybeCry = () => {
+    if (hasCried) return;
+    if (!isWholeMapOnScreen()) return;
+    hasCried = true;
+    startEmojiRain();
+  };
+
   const reveal = (ids) => {
     let changed = false;
     for (const id of ids) {
@@ -631,6 +700,7 @@ function render(graph) {
       }
     }
     if (changed) applyFiltering();
+    maybeCry();
   };
 
   // Dragging nodes
@@ -802,6 +872,7 @@ function render(graph) {
 
   resetView(false);
   applyFiltering();
+  maybeCry();
 
   let isPanning = false;
   /** @type {{x:number,y:number} | null} */
@@ -860,6 +931,7 @@ function render(graph) {
       y: panStartTransform.y + dy
     };
     applyTransform(els.viewport, transformRef.current);
+    maybeCry();
   });
 
   const endPan = () => {
@@ -907,6 +979,7 @@ function render(graph) {
 
       transformRef.current = { x: nextX, y: nextY, scale: nextScale };
       applyTransform(els.viewport, transformRef.current);
+      maybeCry();
     },
     { passive: false }
   );
