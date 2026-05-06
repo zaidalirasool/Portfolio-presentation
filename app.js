@@ -26,7 +26,8 @@ const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
   ads: "./assets/cards/advertising.svg",
   affiliates: "./assets/cards/affiliates.svg",
   data: "./assets/cards/customer-data.svg",
-  crm: "./assets/cards/crm.png"
+  crm: "./assets/cards/crm.png",
+  subscriptions: "./assets/cards/recharge.jpg"
 };
 
 function getSavedNodePositions() {
@@ -235,6 +236,7 @@ function approxNodeSize(nodeId) {
   if (nodeId === "chat") return { w: 170, h: 140 };
   if (nodeId === "ads") return { w: 170, h: 140 };
   if (nodeId === "affiliates") return { w: 170, h: 140 };
+  if (nodeId === "subscriptions") return { w: 170, h: 140 };
   return { w: 170, h: 72 };
 }
 
@@ -565,7 +567,8 @@ function render(graph) {
         n.id === "ads" ||
         n.id === "affiliates" ||
         n.id === "data" ||
-        n.id === "crm";
+        n.id === "crm" ||
+        n.id === "subscriptions";
       const isImageCard = Boolean(cardImageSrc) || isBuiltInImageCard;
       // Default chip (skip for image cards per design).
       if (!isImageCard) {
@@ -602,6 +605,8 @@ function render(graph) {
                             ? "Customer data"
                             : n.id === "crm"
                               ? "CRM"
+                              : n.id === "subscriptions"
+                                ? "Recharge"
                   : "Personalization tools";
           img.loading = "lazy";
           img.decoding = "async";

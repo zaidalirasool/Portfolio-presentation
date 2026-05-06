@@ -49,7 +49,7 @@
       "pos": { "x": 760, "y": 230 }
     },
 
-    { "id": "subscriptions", "title": "Subscriptions (Recharge)", "category": "repeat", "description": "Subscription management and recurring orders.", "pos": { "x": 500, "y": 120 } },
+    { "id": "subscriptions", "title": "Recharge", "category": "repeat", "description": "Subscription management and recurring orders.", "pos": { "x": 500, "y": 120 } },
     { "id": "reorder", "title": "Upsell & Cross-sell", "category": "repeat", "description": "Post-purchase re-order flows and cross-sell recommendations.", "pos": { "x": 200, "y": 120 } },
     { "id": "upsell", "title": "Post-purchase", "category": "repeat", "tagLabel": "Post-purchase", "description": "One-click offers after checkout to increase AOV.", "pos": { "x": 350, "y": 200 } },
     { "id": "ab", "title": "A/B testing", "category": "pre", "description": "Experimentation for on-site experiences and merchandising.", "pos": { "x": 420, "y": 460 } },
