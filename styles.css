@@ -275,7 +275,7 @@ html, body {
 
 .node.node--merchant .node__title {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2em;
   -webkit-line-clamp: 1;
 }
