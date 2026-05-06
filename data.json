@@ -63,7 +63,7 @@
 
     { "id": "quant", "title": "Quant Analytics (Amplitude / Google Analytics)", "category": "quant", "description": "Event-based and web analytics for performance measurement.", "pos": { "x": 680, "y": 90 } },
     { "id": "qual", "title": "Qual Analytics (Hotjar / FullStory)", "category": "qual", "description": "Session replay and behavior insights to diagnose UX issues.", "pos": { "x": 850, "y": 90 } },
-    { "id": "data", "title": "Customer Data (Segment)", "category": "data", "description": "Customer data platform for collecting and routing events/traits.", "pos": { "x": 1000, "y": 130 } },
+    { "id": "data", "title": "Customer Data (Segment)", "category": "data", "description": "Customer data platform for collecting and routing events/traits.", "pos": { "x": 1115, "y": 14 } },
     { "id": "crm", "title": "CRM (HubSpot)", "category": "crm", "description": "Customer relationship management, lead tracking, and lifecycle operations.", "pos": { "x": 995, "y": 240 } },
     { "id": "affiliates", "title": "Affiliates", "category": "pre", "description": "Affiliate links, influencer management, and partner attribution.", "pos": { "x": 980, "y": 360 } }
   ],
