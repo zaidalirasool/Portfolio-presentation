@@ -113,14 +113,14 @@ html, body {
   font-size: 22px;
   opacity: 0;
   will-change: transform, opacity;
-  animation: emoji-fall 1400ms linear forwards;
+  animation: emoji-fall var(--dur, 2200ms) linear forwards;
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
 }
 
 @keyframes emoji-fall {
   0%   { transform: translate3d(0, -10px, 0) rotate(0deg); opacity: 0; }
   10%  { opacity: 1; }
-  100% { transform: translate3d(var(--dx, 0px), 820px, 0) rotate(var(--rot, 160deg)); opacity: 0; }
+  100% { transform: translate3d(var(--dx, 0px), 900px, 0) rotate(var(--rot, 160deg)); opacity: 0; }
 }
 
 .stage {

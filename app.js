@@ -622,33 +622,69 @@ function render(graph) {
 
   // Progressive reveal state
   const visibleIds = new Set(["merchant"]);
-  let hasCried = false;
+  let rainActive = false;
+  /** @type {HTMLDivElement | null} */
+  let rainEl = null;
+  /** @type {number | null} */
+  let rainTimer = null;
 
   const stageWrapEl = els.stage?.closest?.(".stageWrap");
-  const startEmojiRain = () => {
+  const ensureRainEl = () => {
     if (!stageWrapEl) return;
-    const wrapRect = stageWrapEl.getBoundingClientRect();
-    const rain = document.createElement("div");
-    rain.className = "emojiRain";
-    stageWrapEl.appendChild(rain);
+    if (rainEl && rainEl.isConnected) return;
+    rainEl = document.createElement("div");
+    rainEl.className = "emojiRain";
+    stageWrapEl.appendChild(rainEl);
+  };
 
-    const count = 48;
-    for (let i = 0; i < count; i++) {
+  const spawnEmoji = () => {
+    if (!stageWrapEl) return;
+    ensureRainEl();
+    if (!rainEl) return;
+    const wrapRect = stageWrapEl.getBoundingClientRect();
       const s = document.createElement("span");
       s.textContent = Math.random() < 0.65 ? "😭" : "😢";
       const left = Math.random() * Math.max(0, wrapRect.width - 24);
-      const delay = Math.random() * 700;
+      const delay = Math.random() * 250;
       const dx = (Math.random() - 0.5) * 120;
       const rot = (Math.random() - 0.5) * 220;
+      const dur = 2400 + Math.random() * 1400; // slower fall
       s.style.left = `${left}px`;
       s.style.animationDelay = `${delay}ms`;
+      s.style.setProperty("--dur", `${dur.toFixed(0)}ms`);
       s.style.setProperty("--dx", `${dx.toFixed(1)}px`);
       s.style.setProperty("--rot", `${rot.toFixed(1)}deg`);
-      rain.appendChild(s);
-    }
+      rainEl.appendChild(s);
 
-    // Cleanup after the last emojis are done.
-    window.setTimeout(() => rain.remove(), 2400);
+      // Remove the node after animation completes to avoid DOM buildup.
+      const cleanupAfter = delay + dur + 200;
+      window.setTimeout(() => s.remove(), cleanupAfter);
+  };
+
+  const startEmojiRain = () => {
+    if (rainActive) return;
+    rainActive = true;
+    ensureRainEl();
+    // Spawn rate: steady drizzle
+    rainTimer = window.setInterval(() => {
+      // sprinkle a couple per tick for density
+      spawnEmoji();
+      if (Math.random() < 0.6) spawnEmoji();
+    }, 220);
+  };
+
+  const stopEmojiRain = () => {
+    rainActive = false;
+    if (rainTimer != null) {
+      window.clearInterval(rainTimer);
+      rainTimer = null;
+    }
+    // Let existing emojis finish; remove the container after a short grace period.
+    if (rainEl) {
+      const el = rainEl;
+      rainEl = null;
+      window.setTimeout(() => el.remove(), 3500);
+    }
   };
 
   const isWholeMapOnScreen = () => {
@@ -684,11 +720,10 @@ function render(graph) {
     );
   };
 
-  const maybeCry = () => {
-    if (hasCried) return;
-    if (!isWholeMapOnScreen()) return;
-    hasCried = true;
-    startEmojiRain();
+  const maybeRain = () => {
+    const shouldRain = state.selectedId == null && isWholeMapOnScreen();
+    if (shouldRain) startEmojiRain();
+    else stopEmojiRain();
   };
 
   const reveal = (ids) => {
@@ -700,7 +735,7 @@ function render(graph) {
       }
     }
     if (changed) applyFiltering();
-    maybeCry();
+    maybeRain();
   };
 
   // Dragging nodes
@@ -831,6 +866,8 @@ function render(graph) {
   function setSelected(id) {
     state.selectedId = id;
     applyFiltering();
+    // Start raining only after you've unselected (no node selected).
+    maybeRain();
   }
 
   els.nodes.addEventListener("click", (e) => {
@@ -872,7 +909,7 @@ function render(graph) {
 
   resetView(false);
   applyFiltering();
-  maybeCry();
+  maybeRain();
 
   let isPanning = false;
   /** @type {{x:number,y:number} | null} */
@@ -931,7 +968,7 @@ function render(graph) {
       y: panStartTransform.y + dy
     };
     applyTransform(els.viewport, transformRef.current);
-    maybeCry();
+    maybeRain();
   });
 
   const endPan = () => {
@@ -979,7 +1016,7 @@ function render(graph) {
 
       transformRef.current = { x: nextX, y: nextY, scale: nextScale };
       applyTransform(els.viewport, transformRef.current);
-      maybeCry();
+      maybeRain();
     },
     { passive: false }
   );
