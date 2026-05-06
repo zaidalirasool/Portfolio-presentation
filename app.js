@@ -222,7 +222,7 @@ function edgePath(a, b) {
 
 function approxNodeSize(nodeId) {
   // Must stay in sync with CSS sizes.
-  if (nodeId === "merchant") return { w: 140, h: 140 };
+  if (nodeId === "merchant") return { w: 170, h: 72 };
   if (nodeId === "pre" || nodeId === "repeat" || nodeId === "measure") return { w: 220, h: 56 };
   // Any node with a custom card image becomes an "image card" size.
   if (getNodeCardImageDataUrl(nodeId)) return { w: 170, h: 140 };
@@ -519,23 +519,13 @@ function render(graph) {
     btn.dataset.category = n.category;
     btn.setAttribute("aria-label", `${n.title} node`);
 
-    // Merchant can become a logo card (preferred) when a logo is set.
     const isMerchant = n.id === "merchant";
-    if (isMerchant) {
-      btn.classList.add("node--merchant");
-      const logo = getMerchantLogoDataUrl();
-      btn.classList.add("node--merchantLogo");
-      const img = /** @type {HTMLImageElement} */ (document.createElement("img"));
-      img.className = "merchantLogo";
-      img.alt = sentenceCaseSmart(n.title);
-      img.src = logo || MERCHANT_DEFAULT_LOGO_SRC;
-      btn.appendChild(img);
-    } else {
-      // Remove all trailing parenthetical contents per design.
-      const displayTitle = stripTrailingParenthetical(n.title);
-      const title = el("div", "node__title", sentenceCaseSmart(displayTitle));
-      btn.appendChild(title);
-    }
+    if (isMerchant) btn.classList.add("node--merchant");
+
+    // Remove all trailing parenthetical contents per design.
+    const displayTitle = stripTrailingParenthetical(n.title);
+    const title = el("div", "node__title", sentenceCaseSmart(displayTitle));
+    btn.appendChild(title);
 
     // Treat these as section hubs (bigger, cleaner style; no chips).
     const isHubSection = n.id === "pre" || n.id === "repeat" || n.id === "measure";
@@ -562,7 +552,7 @@ function render(graph) {
       const text = el("div", "hubText", sentenceCaseSmart(n.emojiLabel ?? n.title));
       row.appendChild(text);
       btn.appendChild(row);
-    } else if (!isMerchant) {
+    } else {
       const cardImageSrc =
         getNodeCardImageDataUrl(n.id) || DEFAULT_CARD_IMAGE_BY_NODE_ID[n.id] || null;
       const isBuiltInImageCard =
@@ -619,8 +609,6 @@ function render(graph) {
           btn.appendChild(img);
         }
       }
-    } else {
-      // Merchant: no chips (avatar acts as the secondary cue).
     }
 
     els.nodes.appendChild(btn);
