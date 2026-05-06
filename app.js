@@ -13,13 +13,15 @@ const MERCHANT_DEFAULT_LOGO_SRC = "./assets/merchant-logo.svg";
 const NODE_CARD_IMAGE_KEY = "nodeCardImageDataUrlById";
 const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
 const NODE_POSITIONS_KEY = "nodePositionsById";
+/** v2: ignore legacy v1 so prior dev sessions do not force “Recharge-only” on every load. */
+const LOYALTY_MAIN_STRIPPED_KEY = "loyaltyMainStrippedV2";
 // Legacy keys from earlier iterations (for backwards compatibility)
 const LEGACY_PERSONALIZATION_IMAGE_KEY = "personalizationCardImageDataUrl";
 const LEGACY_PERSONALIZATION_IMAGE_CLEANED_KEY = "personalizationCardImageCleaned";
 const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
   personalization: "./assets/cards/personalization.svg",
   ab: "./assets/cards/ab-testing.svg",
-  loyalty: "./assets/cards/loyalty.svg",
+  loyalty: "./assets/cards/loyalty.svg?v=2",
   referral: "./assets/cards/referral.svg",
   mail: "./assets/cards/mailing-sms.svg",
   chat: "./assets/cards/customer-chat.svg",
@@ -27,7 +29,7 @@ const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
   affiliates: "./assets/cards/affiliates.svg",
   data: "./assets/cards/customer-data.svg",
   crm: "./assets/cards/crm.png",
-  subscriptions: "./assets/cards/recharge.jpg"
+  subscriptions: "./assets/cards/recharge.jpg?v=3"
 };
 
 function getSavedNodePositions() {
@@ -129,6 +131,69 @@ function migrateLegacyPersonalizationImageIfNeeded() {
   }
 }
 
+/** Drop stale uploads so the bundled Recharge logo wins (stored card used to override defaults). */
+function migrateSubscriptionsCardToBundledAsset() {
+  try {
+    const flag = "subscriptionsBundledRechargeV1";
+    if (localStorage.getItem(flag) === "1") return;
+    setNodeCardImageDataUrl("subscriptions", null);
+    const raw = localStorage.getItem(NODE_CARD_IMAGE_CLEANED_KEY);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      if (obj && typeof obj === "object" && "subscriptions" in obj) {
+        delete obj.subscriptions;
+        localStorage.setItem(NODE_CARD_IMAGE_CLEANED_KEY, JSON.stringify(obj));
+      }
+    }
+    localStorage.setItem(flag, "1");
+  } catch {
+    // ignore
+  }
+}
+
+/** @param {HTMLElement} anchorEl */
+function burstRechargeConfetti(anchorEl) {
+  const rect = anchorEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const colors = [
+    "#2563eb",
+    "#4f46e5",
+    "#7c3aed",
+    "#c026d3",
+    "#db2777",
+    "#ea580c",
+    "#ca8a04",
+    "#16a34a",
+    "#0d9488",
+    "#0891b2"
+  ];
+  const count = 52;
+  for (let i = 0; i < count; i++) {
+    const bit = document.createElement("span");
+    bit.className = "confettiBit";
+    bit.style.background = colors[Math.floor(Math.random() * colors.length)];
+    const w = 3 + Math.random() * 6;
+    const h = w * (0.35 + Math.random() * 0.55);
+    const theta = Math.random() * Math.PI * 2;
+    const spread = 160 + Math.random() * 200;
+    const dx = Math.cos(theta) * spread;
+    const dy = Math.sin(theta) * spread - (90 + Math.random() * 140);
+    const rot = (Math.random() - 0.5) * 1080;
+    const ms = 880 + Math.floor(Math.random() * 420);
+    bit.style.width = `${w}px`;
+    bit.style.height = `${h}px`;
+    bit.style.left = `${cx - w / 2}px`;
+    bit.style.top = `${cy - h / 2}px`;
+    bit.style.setProperty("--cdx", `${dx.toFixed(1)}px`);
+    bit.style.setProperty("--cdy", `${dy.toFixed(1)}px`);
+    bit.style.setProperty("--crot", `${rot.toFixed(1)}deg`);
+    bit.style.animationDuration = `${ms}ms`;
+    document.body.appendChild(bit);
+    window.setTimeout(() => bit.remove(), ms + 60);
+  }
+}
+
 /** @typedef {{id:string,label:string,color:string}} Category */
 /** @typedef {{x:number,y:number}} Vec2 */
 /** @typedef {{name:string,src:string}} Logo */
@@ -226,17 +291,19 @@ function approxNodeSize(nodeId) {
   if (nodeId === "merchant") return { w: 170, h: 72 };
   if (nodeId === "pre" || nodeId === "repeat" || nodeId === "measure") return { w: 220, h: 56 };
   // Any node with a custom card image becomes an "image card" size.
-  if (getNodeCardImageDataUrl(nodeId)) return { w: 170, h: 140 };
+  if (getNodeCardImageDataUrl(nodeId)) return { w: 146, h: 116 };
   // Built-in image cards (some have defaults).
-  if (nodeId === "personalization") return { w: 170, h: 140 };
-  if (nodeId === "ab") return { w: 170, h: 140 };
-  if (nodeId === "loyalty") return { w: 170, h: 140 };
-  if (nodeId === "referral") return { w: 170, h: 140 };
-  if (nodeId === "mail") return { w: 170, h: 140 };
-  if (nodeId === "chat") return { w: 170, h: 140 };
-  if (nodeId === "ads") return { w: 170, h: 140 };
-  if (nodeId === "affiliates") return { w: 170, h: 140 };
-  if (nodeId === "subscriptions") return { w: 170, h: 140 };
+  if (nodeId === "personalization") return { w: 146, h: 116 };
+  if (nodeId === "ab") return { w: 146, h: 116 };
+  if (nodeId === "loyalty") return { w: 146, h: 116 };
+  if (nodeId === "referral") return { w: 146, h: 116 };
+  if (nodeId === "mail") return { w: 146, h: 116 };
+  if (nodeId === "chat") return { w: 146, h: 116 };
+  if (nodeId === "ads") return { w: 146, h: 116 };
+  if (nodeId === "affiliates") return { w: 146, h: 116 };
+  if (nodeId === "data") return { w: 146, h: 116 };
+  if (nodeId === "crm") return { w: 146, h: 116 };
+  if (nodeId === "subscriptions") return { w: 146, h: 116 };
   return { w: 170, h: 72 };
 }
 
@@ -511,6 +578,18 @@ function render(graph) {
 
   /** @type {Map<string, HTMLButtonElement>} */
   const nodeEls = new Map();
+
+  let loyaltyMainStripped = false;
+  try {
+    loyaltyMainStripped = localStorage.getItem(LOYALTY_MAIN_STRIPPED_KEY) === "1";
+    localStorage.removeItem("loyaltyMainStrippedV1");
+  } catch {
+    /* ignore */
+  }
+  // Reveal is not persisted: Recharge stays hidden until rain + Loyalty click this session.
+  // If main was already stripped (solo card), show Recharge without replaying pop/confetti.
+  let loyaltyRechargeRevealUnlocked = loyaltyMainStripped;
+
   for (const n of graph.nodes) {
     const cat = categoryById.get(n.category);
     const btn = /** @type {HTMLButtonElement} */ (el("button", "node"));
@@ -555,8 +634,10 @@ function render(graph) {
       row.appendChild(text);
       btn.appendChild(row);
     } else {
+      const bundled = DEFAULT_CARD_IMAGE_BY_NODE_ID[n.id] || null;
+      const stored = getNodeCardImageDataUrl(n.id);
       const cardImageSrc =
-        getNodeCardImageDataUrl(n.id) || DEFAULT_CARD_IMAGE_BY_NODE_ID[n.id] || null;
+        n.id === "subscriptions" ? bundled || stored : stored || bundled;
       const isBuiltInImageCard =
         n.id === "personalization" ||
         n.id === "ab" ||
@@ -584,13 +665,35 @@ function render(graph) {
       if (isImageCard) {
         btn.classList.add("node--imageCard");
         if (cardImageSrc) {
-          const img = /** @type {HTMLImageElement} */ (document.createElement("img"));
-          img.className = "node__comboLogo";
-          img.alt =
-            n.id === "ab"
-              ? "A/B testing tools"
-              : n.id === "loyalty"
-                ? "Loyalty tools"
+          if (n.id === "loyalty") {
+            const stack = el("div", "node__imageStack");
+            const rechargeBundled = DEFAULT_CARD_IMAGE_BY_NODE_ID.subscriptions;
+            const rechargeImg = /** @type {HTMLImageElement} */ (document.createElement("img"));
+            rechargeImg.className = "node__comboLogo node__comboLogo--recharge";
+            rechargeImg.src = rechargeBundled ?? "";
+            rechargeImg.alt = "Recharge";
+            rechargeImg.loading = "lazy";
+            rechargeImg.decoding = "async";
+            rechargeImg.hidden = true;
+            rechargeImg.setAttribute("aria-hidden", "true");
+            const mainImg = /** @type {HTMLImageElement} */ (document.createElement("img"));
+            mainImg.className = "node__comboLogo";
+            mainImg.alt = "Yotpo, Smile.io, and LoyaltyLion";
+            mainImg.loading = "lazy";
+            mainImg.decoding = "async";
+            mainImg.src = cardImageSrc;
+            mainImg.classList.add("node__comboLogo--loyaltyMain");
+            stack.appendChild(rechargeImg);
+            if (!loyaltyMainStripped) {
+              stack.appendChild(mainImg);
+            }
+            btn.appendChild(stack);
+          } else {
+            const img = /** @type {HTMLImageElement} */ (document.createElement("img"));
+            img.className = "node__comboLogo";
+            img.alt =
+              n.id === "ab"
+                ? "A/B testing tools"
                 : n.id === "referral"
                   ? "Referral tools"
                   : n.id === "mail"
@@ -607,11 +710,12 @@ function render(graph) {
                               ? "CRM"
                               : n.id === "subscriptions"
                                 ? "Recharge"
-                  : "Personalization tools";
-          img.loading = "lazy";
-          img.decoding = "async";
-          img.src = cardImageSrc;
-          btn.appendChild(img);
+                                : "Personalization tools";
+            img.loading = "lazy";
+            img.decoding = "async";
+            img.src = cardImageSrc;
+            btn.appendChild(img);
+          }
         }
       }
     }
@@ -629,6 +733,15 @@ function render(graph) {
   const visibleIds = new Set(["merchant"]);
   let rainActive = false;
   let rainDismissed = false;
+  /** After emoji rain fully tears down, user may unlock Recharge by clicking Loyalty. */
+  let emojiRainEndedForLoyalty = false;
+  /** Tracks visible state so we only run pop + confetti on false → true. */
+  let loyaltyRechargeRevealWasVisible = loyaltyMainStripped;
+  /** @type {number | null} */
+  let rainTeardownTimerId = null;
+  /** Container waiting for delayed removal (cleared if rain restarts). */
+  /** @type {HTMLDivElement | null} */
+  let rainPendingRemoveEl = null;
   /** @type {HTMLDivElement | null} */
   let rainEl = null;
   /** @type {number | null} */
@@ -670,8 +783,18 @@ function render(graph) {
   const startEmojiRain = () => {
     if (rainDismissed) return;
     if (rainActive) return;
+    if (rainTeardownTimerId != null) {
+      window.clearTimeout(rainTeardownTimerId);
+      rainTeardownTimerId = null;
+    }
+    if (rainPendingRemoveEl) {
+      rainPendingRemoveEl.remove();
+      rainPendingRemoveEl = null;
+    }
+    emojiRainEndedForLoyalty = false;
     rainActive = true;
     ensureRainEl();
+    syncLoyaltyRechargeStack();
     // Spawn rate: steady drizzle
     rainTimer = window.setInterval(() => {
       // sprinkle a couple per tick for density
@@ -681,6 +804,7 @@ function render(graph) {
   };
 
   const stopEmojiRain = () => {
+    const wasRaining = rainActive || Boolean(rainEl);
     rainActive = false;
     if (rainTimer != null) {
       window.clearInterval(rainTimer);
@@ -690,7 +814,22 @@ function render(graph) {
     if (rainEl) {
       const el = rainEl;
       rainEl = null;
-      window.setTimeout(() => el.remove(), 3500);
+      if (rainTeardownTimerId != null) {
+        window.clearTimeout(rainTeardownTimerId);
+        rainTeardownTimerId = null;
+      }
+      rainPendingRemoveEl = el;
+      rainTeardownTimerId = window.setTimeout(() => {
+        rainTeardownTimerId = null;
+        el.remove();
+        rainPendingRemoveEl = null;
+        syncLoyaltyRechargeStack();
+      }, 3500);
+    }
+    // "Rain concluded" for Loyalty/Recharge as soon as falling stops — not after the DOM delay.
+    if (wasRaining) {
+      emojiRainEndedForLoyalty = true;
+      syncLoyaltyRechargeStack();
     }
   };
 
@@ -841,6 +980,84 @@ function render(graph) {
     search: ""
   };
 
+  function persistLoyaltyMainStripped() {
+    loyaltyMainStripped = true;
+    try {
+      localStorage.setItem(LOYALTY_MAIN_STRIPPED_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function exitLoyaltyMainArtwork(loyaltyBtn) {
+    if (!(loyaltyBtn instanceof HTMLElement)) return;
+    const main = loyaltyBtn.querySelector(".node__comboLogo--loyaltyMain");
+    if (!(main instanceof HTMLElement)) return;
+    if (main.dataset.loyaltyMainExiting === "1") return;
+    main.dataset.loyaltyMainExiting = "1";
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      main.remove();
+      persistLoyaltyMainStripped();
+      return;
+    }
+    main.classList.add("node__comboLogo--loyaltyMainExit");
+    main.addEventListener(
+      "animationend",
+      () => {
+        main.remove();
+        persistLoyaltyMainStripped();
+      },
+      { once: true }
+    );
+  }
+
+  function syncLoyaltyRechargeStack() {
+    const btn = nodeEls.get("loyalty");
+    if (!btn) return;
+    const recharge = btn.querySelector(".node__comboLogo--recharge");
+    if (!(recharge instanceof HTMLImageElement)) return;
+    const show = loyaltyRechargeRevealUnlocked;
+
+    if (!show) {
+      recharge.hidden = true;
+      recharge.setAttribute("aria-hidden", "true");
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      loyaltyRechargeRevealWasVisible = false;
+      return;
+    }
+
+    recharge.hidden = false;
+    recharge.setAttribute("aria-hidden", "false");
+
+    if (!loyaltyRechargeRevealWasVisible) {
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      void recharge.offsetWidth;
+      recharge.classList.add("node__comboLogo--recharge--pop");
+      const reducedMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+      if (!reducedMotion) {
+        burstRechargeConfetti(recharge);
+      }
+      // After Recharge pops in, animate out the default brand stack so only Recharge remains.
+      if (!loyaltyMainStripped) {
+        const loyaltyBtn = btn;
+        if (reducedMotion) {
+          window.setTimeout(() => exitLoyaltyMainArtwork(loyaltyBtn), 200);
+        } else {
+          const mainExitFallbackId = window.setTimeout(() => exitLoyaltyMainArtwork(loyaltyBtn), 1400);
+          recharge.addEventListener(
+            "animationend",
+            () => {
+              window.clearTimeout(mainExitFallbackId);
+              window.setTimeout(() => exitLoyaltyMainArtwork(loyaltyBtn), 200);
+            },
+            { once: true }
+          );
+        }
+      }
+    }
+    loyaltyRechargeRevealWasVisible = true;
+  }
+
   function connectedSet(id) {
     const set = new Set([id]);
     for (const v of neighbors.get(id) ?? []) set.add(v);
@@ -880,6 +1097,7 @@ function render(graph) {
 
     // Edges only react to selection (keep search/category lightweight).
     setEdgeClasses(activeIds);
+    syncLoyaltyRechargeStack();
   }
 
   function setSelected(id) {
@@ -905,6 +1123,11 @@ function render(graph) {
       reveal(kids);
     }
     setSelected(id);
+    // Loyalty click after rain: Recharge pops + confetti; main artwork exits automatically after the pop.
+    if (id === "loyalty" && emojiRainEndedForLoyalty && !loyaltyRechargeRevealUnlocked) {
+      loyaltyRechargeRevealUnlocked = true;
+      syncLoyaltyRechargeStack();
+    }
   });
 
   function resetView(animate = true) {
@@ -1347,6 +1570,8 @@ function bindSlideDeck() {
 
   show(0);
 }
+
+migrateSubscriptionsCardToBundledAsset();
 
 initSlideshowPagination();
 bindSlideDeck();
