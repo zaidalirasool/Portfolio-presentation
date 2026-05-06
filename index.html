@@ -20,67 +20,6 @@
             </div>
           </div>
         </section>
-
-        <aside class="side" aria-label="Details panel">
-          <div class="side__inner">
-            <div class="side__header">
-              <div class="side__kicker" id="detailKicker">Select a node</div>
-              <h2 class="side__title" id="detailTitle">Nothing selected</h2>
-              <div class="side__actions">
-                <button id="focusBtn" class="btn btn--small" type="button" disabled>Focus</button>
-              </div>
-            </div>
-
-            <div class="side__body">
-              <div class="field">
-                <div class="field__label">Category</div>
-                <div class="field__value" id="detailCategory">—</div>
-              </div>
-
-              <div class="field" id="merchantLogoField" hidden>
-                <div class="field__label">Merchant logo</div>
-                <div class="field__value">
-                  <div class="logoRow">
-                    <button id="uploadLogoBtn" class="btn btn--ghost btn--small" type="button">Upload logo</button>
-                    <button id="clearLogoBtn" class="btn btn--ghost btn--small" type="button">Clear logo</button>
-                    <input id="logoFileInput" type="file" accept="image/*" hidden />
-                  </div>
-                  <div class="hint" style="margin-top: 8px;">Uploads are stored locally in your browser for this page.</div>
-                </div>
-              </div>
-
-              <div class="field" id="nodeLogosField" hidden>
-                <div class="field__label">Card image</div>
-                <div class="field__value">
-                  <div class="logoRow">
-                    <button id="uploadNodeLogosBtn" class="btn btn--ghost btn--small" type="button">Upload image</button>
-                    <button id="clearNodeLogosBtn" class="btn btn--ghost btn--small" type="button">Clear</button>
-                    <input id="nodeLogosFileInput" type="file" accept="image/*" hidden />
-                  </div>
-                  <div class="hint" style="margin-top: 8px;">
-                    Upload the combined image for this card. Stored locally in your browser.
-                  </div>
-                </div>
-              </div>
-
-              <div class="field">
-                <div class="field__label">What it does</div>
-                <div class="field__value" id="detailDescription">Click a tool or a hub in the map to see details and connected items.</div>
-              </div>
-
-              <div class="field">
-                <div class="field__label">Connected to</div>
-                <div class="chips" id="detailConnections"></div>
-              </div>
-            </div>
-
-            <div class="side__footer">
-              <div class="hint">
-                Tip: search to highlight matches, then click to drill in. Selecting a hub highlights all related tools.
-              </div>
-            </div>
-          </div>
-        </aside>
       </main>
     </div>
 

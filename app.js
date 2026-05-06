@@ -3,20 +3,6 @@ const els = {
   viewport: document.getElementById("viewport"),
   edges: document.getElementById("edges"),
   nodes: document.getElementById("nodes"),
-  focusBtn: document.getElementById("focusBtn"),
-  merchantLogoField: document.getElementById("merchantLogoField"),
-  uploadLogoBtn: document.getElementById("uploadLogoBtn"),
-  clearLogoBtn: document.getElementById("clearLogoBtn"),
-  logoFileInput: document.getElementById("logoFileInput"),
-  nodeLogosField: document.getElementById("nodeLogosField"),
-  uploadNodeLogosBtn: document.getElementById("uploadNodeLogosBtn"),
-  clearNodeLogosBtn: document.getElementById("clearNodeLogosBtn"),
-  nodeLogosFileInput: document.getElementById("nodeLogosFileInput"),
-  detailKicker: document.getElementById("detailKicker"),
-  detailTitle: document.getElementById("detailTitle"),
-  detailCategory: document.getElementById("detailCategory"),
-  detailDescription: document.getElementById("detailDescription"),
-  detailConnections: document.getElementById("detailConnections")
 };
 
 // Defensive: remove any stale hint element if present (e.g., old cached HTML).
@@ -24,7 +10,6 @@ document.getElementById("stageHint")?.remove();
 
 const MERCHANT_LOGO_KEY = "merchantLogoDataUrl";
 const MERCHANT_DEFAULT_LOGO_SRC = "./assets/merchant-logo.svg";
-const NODE_LOGOS_KEY = "nodeLogosDataUrlById";
 const NODE_CARD_IMAGE_KEY = "nodeCardImageDataUrlById";
 const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
 const NODE_POSITIONS_KEY = "nodePositionsById";
@@ -78,30 +63,6 @@ function setMerchantLogoDataUrl(v) {
   try {
     if (!v) localStorage.removeItem(MERCHANT_LOGO_KEY);
     else localStorage.setItem(MERCHANT_LOGO_KEY, v);
-  } catch {
-    // ignore
-  }
-}
-
-function getNodeLogosDataUrl(nodeId) {
-  try {
-    const raw = localStorage.getItem(NODE_LOGOS_KEY);
-    if (!raw) return null;
-    const obj = JSON.parse(raw);
-    const arr = obj?.[nodeId];
-    return Array.isArray(arr) ? arr : null;
-  } catch {
-    return null;
-  }
-}
-
-function setNodeLogosDataUrl(nodeId, arr) {
-  try {
-    const raw = localStorage.getItem(NODE_LOGOS_KEY);
-    const obj = raw ? JSON.parse(raw) : {};
-    if (!arr || arr.length === 0) delete obj[nodeId];
-    else obj[nodeId] = arr;
-    localStorage.setItem(NODE_LOGOS_KEY, JSON.stringify(obj));
   } catch {
     // ignore
   }
@@ -811,49 +772,7 @@ function render(graph) {
 
   function setSelected(id) {
     state.selectedId = id;
-    els.focusBtn.disabled = !id;
     applyFiltering();
-    renderDetails(id);
-  }
-
-  function renderDetails(id) {
-    if (!id) {
-      els.detailKicker.textContent = "Select a node";
-      els.detailTitle.textContent = "Nothing selected";
-      els.detailCategory.textContent = "—";
-      els.detailDescription.textContent =
-        "Click a tool or a hub in the map to see details and connected items.";
-      els.detailConnections.innerHTML = "";
-      if (els.merchantLogoField) els.merchantLogoField.hidden = true;
-      if (els.nodeLogosField) els.nodeLogosField.hidden = true;
-      return;
-    }
-
-    const n = nodeById.get(id);
-    if (!n) return;
-    const cat = categoryById.get(n.category);
-    els.detailKicker.textContent = "Selected";
-    els.detailTitle.textContent = stripTrailingParenthetical(n.title);
-    els.detailCategory.textContent = cat?.label ?? n.category;
-    els.detailDescription.textContent = n.description || "—";
-    if (els.merchantLogoField) els.merchantLogoField.hidden = n.id !== "merchant";
-    if (els.nodeLogosField) els.nodeLogosField.hidden = n.id === "merchant";
-
-    els.detailConnections.innerHTML = "";
-    const conn = [...(neighbors.get(id) ?? [])].map((x) => nodeById.get(x)).filter(Boolean);
-    conn.sort((a, b) => a.title.localeCompare(b.title));
-    if (conn.length === 0) {
-      els.detailConnections.appendChild(el("div", "hint", "No connections in this dataset."));
-      return;
-    }
-
-    for (const c of conn) {
-      const chip = el("button", "chip", c.title);
-      chip.type = "button";
-      chip.dataset.id = c.id;
-      chip.addEventListener("click", () => setSelected(c.id));
-      els.detailConnections.appendChild(chip);
-    }
   }
 
   els.nodes.addEventListener("click", (e) => {
@@ -889,112 +808,12 @@ function render(graph) {
     }
   }
 
-  function focusNode(id) {
-    const n = nodeById.get(id);
-    if (!n) return;
-    const r = els.stage.getBoundingClientRect();
-    const targetScale = clamp(transformRef.current.scale, 0.95, 1.35);
-    const next = centerToTransform({
-      canvas: graph.canvas,
-      stageRect: r,
-      targetWorld: n.pos,
-      scale: targetScale
-    });
-    animateTo(transformRef, els.viewport, next, 420);
-  }
-
-  els.focusBtn.addEventListener("click", () => {
-    if (state.selectedId) focusNode(state.selectedId);
-  });
-
   // Initial sizing: make viewport match canvas world size.
   els.viewport.style.width = `${graph.canvas.width}px`;
   els.viewport.style.height = `${graph.canvas.height}px`;
 
   resetView(false);
-  renderDetails(null);
   applyFiltering();
-
-  // Merchant logo upload controls
-  const rerenderMerchantAvatar = () => {
-    const merchantEl = nodeEls.get("merchant");
-    if (!merchantEl) return;
-    const logo = getMerchantLogoDataUrl();
-    merchantEl.innerHTML = "";
-    merchantEl.classList.add("node--merchantLogo");
-    const img = /** @type {HTMLImageElement} */ (document.createElement("img"));
-    img.className = "merchantLogo";
-    img.alt = "Merchant";
-    img.src = logo || MERCHANT_DEFAULT_LOGO_SRC;
-    merchantEl.appendChild(img);
-  };
-
-  const openFilePicker = () => {
-    if (els.logoFileInput) els.logoFileInput.click();
-  };
-
-  els.uploadLogoBtn?.addEventListener("click", openFilePicker);
-  els.clearLogoBtn?.addEventListener("click", () => {
-    setMerchantLogoDataUrl(null);
-    rerenderMerchantAvatar();
-  });
-
-  els.logoFileInput?.addEventListener("change", async () => {
-    const f = els.logoFileInput.files?.[0];
-    if (!f) return;
-    // Keep it lightweight for localStorage. Target <= ~250KB.
-    const dataUrl = await fileToDataUrlScaled(f, 160, 0.82);
-    setMerchantLogoDataUrl(dataUrl);
-    rerenderMerchantAvatar();
-    els.logoFileInput.value = "";
-  });
-
-  // Node logos upload (for Personalization right now)
-  const rerenderNode = (nodeId) => {
-    // simplest: re-run the whole render with the same graph
-    // but keep selection if possible
-    const prevSelected = state.selectedId;
-    render(graph);
-    if (prevSelected) setTimeout(() => {
-      // selection wiring is recreated in render(); ignore if not available
-    }, 0);
-  };
-
-  const openNodeLogoPicker = () => {
-    if (els.nodeLogosFileInput) els.nodeLogosFileInput.click();
-  };
-
-  els.uploadNodeLogosBtn?.addEventListener("click", openNodeLogoPicker);
-  let cardImageTargetId = "personalization";
-  const setCardImageTarget = (nodeId) => {
-    cardImageTargetId = nodeId;
-  };
-  // keep target in sync with selection
-  const originalRenderDetails = renderDetails;
-  renderDetails = (id) => {
-    originalRenderDetails(id);
-    if (!id) return;
-    if (id === "merchant") return;
-    setCardImageTarget(id);
-  };
-
-  els.clearNodeLogosBtn?.addEventListener("click", () => {
-    setNodeCardImageDataUrl(cardImageTargetId, null);
-    setNodeCardImageCleaned(cardImageTargetId, false);
-    window.location.reload();
-  });
-
-  els.nodeLogosFileInput?.addEventListener("change", async () => {
-    const f = els.nodeLogosFileInput.files?.[0];
-    if (!f) return;
-    const dataUrl = await fileToDataUrlScaled(f, 600, 0.9);
-    const cleaned = await normalizeBackgroundToWhite(dataUrl, { threshold: 42 });
-    const enhanced = await enhanceForCrispDisplay(cleaned, { sharpenStrength: 0.55, maxLongEdge: 1200 });
-    setNodeCardImageDataUrl(cardImageTargetId, enhanced);
-    setNodeCardImageCleaned(cardImageTargetId, true);
-    els.nodeLogosFileInput.value = "";
-    window.location.reload();
-  });
 
   let isPanning = false;
   /** @type {{x:number,y:number} | null} */
@@ -1108,10 +927,6 @@ function render(graph) {
   els.stage.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       setSelected(null);
-      return;
-    }
-    if (e.key === "Enter" && state.selectedId) {
-      focusNode(state.selectedId);
       return;
     }
     if (e.key === "0" && (e.ctrlKey || e.metaKey)) {
@@ -1309,12 +1124,7 @@ async function enhanceForCrispDisplay(dataUrl, opts = {}) {
 loadGraph()
   .then((g) => render(g))
   .catch((err) => {
-    // Render a lightweight error in the details panel.
-    els.detailKicker.textContent = "Error";
-    els.detailTitle.textContent = "Failed to load the interactive map";
-    els.detailCategory.textContent = "—";
-    els.detailDescription.textContent = String(err?.message ?? err);
-    els.detailConnections.innerHTML = "";
+    alert(`Failed to load the interactive map: ${String(err?.message ?? err)}`);
     console.error(err);
   });
 
