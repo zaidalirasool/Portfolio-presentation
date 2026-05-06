@@ -459,6 +459,32 @@ function render(graph) {
     }
   }
 
+  // Constraint: move Subscriptions section down by 88px (and keep its connected
+  // Repeat Purchase cluster together).
+  {
+    const ids = ["repeat", "subscriptions", "reorder", "upsell"];
+    let changed = false;
+    for (const id of ids) {
+      const n = nodeById.get(id);
+      if (!n) continue;
+      n.pos.y += 88;
+      changed = true;
+    }
+    if (changed) {
+      layoutNoOverlap(graph, {
+        padding: 34,
+        iterations: 120,
+        stiffness: 0.01,
+        locks: {
+          repeat: { lockY: true },
+          subscriptions: { lockY: true },
+          reorder: { lockY: true },
+          upsell: { lockY: true }
+        }
+      });
+    }
+  }
+
   // SVG canvas space matches "world" space.
   els.edges.setAttribute("viewBox", `0 0 ${graph.canvas.width} ${graph.canvas.height}`);
   els.edges.setAttribute("preserveAspectRatio", "xMinYMin meet");
