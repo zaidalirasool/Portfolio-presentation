@@ -1233,6 +1233,56 @@ async function enhanceForCrispDisplay(dataUrl, opts = {}) {
   return canvas.toDataURL("image/png");
 }
 
+function initSlideshowPagination() {
+  const nav = document.querySelector(".slideshowPagination");
+  const list = document.getElementById("slideshowDots");
+  if (!nav || !list) return;
+
+  const count = Math.max(1, Number.parseInt(nav.dataset.slideCount || "1", 10) || 1);
+  list.replaceChildren();
+
+  let current = 0;
+
+  const setActive = (index) => {
+    if (index < 0 || index >= count) return;
+    current = index;
+    const buttons = list.querySelectorAll(".slideshowPagination__dot");
+    buttons.forEach((b, j) => {
+      const on = j === index;
+      b.classList.toggle("is-active", on);
+      if (on) b.setAttribute("aria-current", "true");
+      else b.removeAttribute("aria-current");
+    });
+    document.dispatchEvent(
+      new CustomEvent("slideshow:change", { detail: { index, count } })
+    );
+  };
+
+  for (let i = 0; i < count; i++) {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `slideshowPagination__dot${i === 0 ? " is-active" : ""}`;
+    btn.setAttribute("aria-label", `Slide ${i + 1} of ${count}`);
+    if (i === 0) btn.setAttribute("aria-current", "true");
+    btn.addEventListener("click", () => setActive(i));
+    li.appendChild(btn);
+    list.appendChild(li);
+  }
+
+  window.slideshowPagination = {
+    goTo: setActive,
+    get index() {
+      return current;
+    },
+    get count() {
+      return count;
+    }
+  };
+}
+
+initSlideshowPagination();
+
 loadGraph()
   .then((g) => render(g))
   .catch((err) => {
