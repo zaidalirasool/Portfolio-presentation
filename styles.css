@@ -176,7 +176,7 @@ html, body {
   width: auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
