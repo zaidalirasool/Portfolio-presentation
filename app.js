@@ -173,7 +173,7 @@ function migrateLegacyPersonalizationImageIfNeeded() {
 
 /** @returns {Promise<Graph>} */
 async function loadGraph() {
-  const res = await fetch("./data.json", { cache: "no-store" });
+  const res = await fetch("./data.json");
   if (!res.ok) throw new Error(`Failed to load data.json (${res.status})`);
   return /** @type {Graph} */ (await res.json());
 }
@@ -1248,20 +1248,39 @@ loadGraph()
   });
 
 // One-time migration: clean existing saved card images.
-(async () => {
-  migrateLegacyPersonalizationImageIfNeeded();
-  try {
-    for (const nodeId of ["personalization", "ab", "loyalty", "referral", "mail", "chat", "ads", "affiliates"]) {
-      const img = getNodeCardImageDataUrl(nodeId);
-      if (!img) continue;
-      if (getNodeCardImageCleaned(nodeId)) continue;
-      const cleaned = await normalizeBackgroundToWhite(img, { threshold: 42 });
-      const enhanced = await enhanceForCrispDisplay(cleaned, { sharpenStrength: 0.55, maxLongEdge: 1200 });
-      setNodeCardImageDataUrl(nodeId, enhanced);
-      setNodeCardImageCleaned(nodeId, true);
+(() => {
+  const run = async () => {
+    migrateLegacyPersonalizationImageIfNeeded();
+
+    // If there are no user-uploaded card images, skip entirely.
+    let raw;
+    try {
+      raw = localStorage.getItem(NODE_CARD_IMAGE_KEY);
+    } catch {
+      raw = null;
     }
-  } catch {
-    // If it fails, don't block anything.
+    if (!raw) return;
+
+    try {
+      for (const nodeId of ["personalization", "ab", "loyalty", "referral", "mail", "chat", "ads", "affiliates"]) {
+        const img = getNodeCardImageDataUrl(nodeId);
+        if (!img) continue;
+        if (getNodeCardImageCleaned(nodeId)) continue;
+        const cleaned = await normalizeBackgroundToWhite(img, { threshold: 42 });
+        const enhanced = await enhanceForCrispDisplay(cleaned, { sharpenStrength: 0.55, maxLongEdge: 1200 });
+        setNodeCardImageDataUrl(nodeId, enhanced);
+        setNodeCardImageCleaned(nodeId, true);
+      }
+    } catch {
+      // If it fails, don't block anything.
+    }
+  };
+
+  // Defer heavy work until after initial render.
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => run(), { timeout: 1500 });
+  } else {
+    setTimeout(() => run(), 0);
   }
 })();
 
