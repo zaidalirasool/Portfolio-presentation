@@ -41,7 +41,7 @@ const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
   ads: "./assets/cards/advertising.svg",
   affiliates: "./assets/cards/affiliates.svg",
   data: "./assets/cards/customer-data.svg",
-  crm: "./assets/cards/crm.svg"
+  crm: "./assets/cards/crm.png"
 };
 
 function getSavedNodePositions() {
