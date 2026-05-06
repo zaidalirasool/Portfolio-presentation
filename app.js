@@ -925,6 +925,17 @@ function render(graph) {
   applyFiltering();
   maybeRain();
 
+  // Map initializes while slide 2 may be hidden — rect is 0×0. Re-measure when that slide is shown.
+  const refreshStageLayout = () => {
+    requestAnimationFrame(() => {
+      resetView(false);
+    });
+  };
+  document.addEventListener("slideshow:change", (e) => {
+    const ce = /** @type {CustomEvent<{ index: number }>} */ (e);
+    if (ce.detail.index === 1) refreshStageLayout();
+  });
+
   let isPanning = false;
   /** @type {{x:number,y:number} | null} */
   let panStartClient = null;

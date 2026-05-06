@@ -78,15 +78,17 @@ html, body {
   display: none !important;
 }
 
-.slide--intro {
+.stageWrap--intro {
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 24px 24px;
+  min-height: 0;
 }
 
 .introSlide {
   max-width: min(1100px, 92vw);
   text-align: center;
+  padding: 48px 32px;
 }
 
 .introSlide__title {
