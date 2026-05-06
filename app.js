@@ -27,6 +27,7 @@ const MERCHANT_DEFAULT_LOGO_SRC = "./assets/merchant-logo.svg";
 const NODE_LOGOS_KEY = "nodeLogosDataUrlById";
 const NODE_CARD_IMAGE_KEY = "nodeCardImageDataUrlById";
 const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
+const NODE_POSITIONS_KEY = "nodePositionsById";
 // Legacy keys from earlier iterations (for backwards compatibility)
 const LEGACY_PERSONALIZATION_IMAGE_KEY = "personalizationCardImageDataUrl";
 const LEGACY_PERSONALIZATION_IMAGE_CLEANED_KEY = "personalizationCardImageCleaned";
@@ -40,6 +41,28 @@ const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
   ads: "./assets/cards/advertising.svg",
   affiliates: "./assets/cards/affiliates.svg"
 };
+
+function getSavedNodePositions() {
+  try {
+    const raw = localStorage.getItem(NODE_POSITIONS_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return obj && typeof obj === "object" ? obj : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveNodePositionsFromGraph(graph) {
+  try {
+    /** @type {Record<string, {x:number,y:number}>} */
+    const out = {};
+    for (const n of graph.nodes) out[n.id] = { x: n.pos.x, y: n.pos.y };
+    localStorage.setItem(NODE_POSITIONS_KEY, JSON.stringify(out));
+  } catch {
+    // ignore
+  }
+}
 
 function getMerchantLogoDataUrl() {
   try {
@@ -373,115 +396,129 @@ function render(graph) {
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
   const neighbors = computeNeighbors(graph.edges);
 
-  // Normalize the layout so cards are evenly spaced with no overlaps.
-  layoutNoOverlap(graph, { padding: 34, iterations: 220, stiffness: 0.012 });
-  // Constraint: align Repeat Purchase and Measure Performance horizontally.
-  {
-    const repeat = nodeById.get("repeat");
-    const measure = nodeById.get("measure");
-    if (repeat && measure) {
-      const targetY = (repeat.pos.y + measure.pos.y) / 2;
-      repeat.pos.y = targetY;
-      measure.pos.y = targetY;
-      layoutNoOverlap(graph, {
-        padding: 34,
-        iterations: 140,
-        stiffness: 0.01,
-        locks: { repeat: { lockY: true }, measure: { lockY: true } }
-      });
-    }
-  }
-  // Constraint: align Re-order & Cross-sell with CRM horizontally.
-  {
-    const reorder = nodeById.get("reorder");
-    const crm = nodeById.get("crm");
-    const repeat = nodeById.get("repeat");
-    if (reorder && crm) {
-      // Prefer: left of and slightly above Repeat Purchase, while staying visually near CRM.
-      const baseY = repeat ? repeat.pos.y : crm.pos.y;
-      reorder.pos.x = repeat ? repeat.pos.x - 260 : reorder.pos.x - 120;
-      reorder.pos.y = Math.min(crm.pos.y - 60, baseY - 80) + (156 - 88);
-      layoutNoOverlap(graph, {
-        padding: 34,
-        iterations: 140,
-        stiffness: 0.01,
-        locks: { reorder: { lockY: true, lockX: true } }
-      });
-    }
-  }
-  // Constraint: nudge Post‑Purchase Upsell to the left.
-  {
-    const upsell = nodeById.get("upsell");
-    if (upsell) {
-      upsell.pos.x -= 140;
-      upsell.pos.y -= 24;
-      layoutNoOverlap(graph, {
-        padding: 34,
-        iterations: 120,
-        stiffness: 0.01,
-        locks: { upsell: { lockX: true, lockY: true } }
-      });
-    }
-  }
-  // Constraint: move Subscriptions left by 64px.
-  {
-    const subscriptions = nodeById.get("subscriptions");
-    if (subscriptions) {
-      subscriptions.pos.x -= 64;
-      layoutNoOverlap(graph, {
-        padding: 34,
-        iterations: 120,
-        stiffness: 0.01,
-        locks: { subscriptions: { lockX: true } }
-      });
-    }
-  }
-  // Constraint: keep Advertising spaced below Customer chat.
-  {
-    const chat = nodeById.get("chat");
-    const ads = nodeById.get("ads");
-    if (chat && ads) {
-      const a = approxNodeSize("chat");
-      const b = approxNodeSize("ads");
-      const gap = 28; // desired padding between cards
-      const minDy = (a.h + b.h) / 2 + gap;
-      if (ads.pos.y - chat.pos.y < minDy) {
-        ads.pos.y = chat.pos.y + minDy;
-      }
-      // Nudge a bit further down for visual breathing room.
-      ads.pos.y += 12;
-      layoutNoOverlap(graph, {
-        padding: 34,
-        iterations: 140,
-        stiffness: 0.01,
-        locks: { ads: { lockY: true } }
-      });
+  const savedPositions = getSavedNodePositions();
+  let hasCustomLayout = false;
+  if (savedPositions) {
+    for (const n of graph.nodes) {
+      const p = savedPositions[n.id];
+      if (!p || typeof p.x !== "number" || typeof p.y !== "number") continue;
+      n.pos.x = p.x;
+      n.pos.y = p.y;
+      hasCustomLayout = true;
     }
   }
 
-  // Constraint: move Subscriptions section down by 88px (and keep its connected
-  // Repeat Purchase cluster together).
-  {
-    const ids = ["repeat", "subscriptions", "reorder", "upsell"];
-    let changed = false;
-    for (const id of ids) {
-      const n = nodeById.get(id);
-      if (!n) continue;
-      n.pos.y += 88;
-      changed = true;
+  if (!hasCustomLayout) {
+    // Normalize the layout so cards are evenly spaced with no overlaps.
+    layoutNoOverlap(graph, { padding: 34, iterations: 220, stiffness: 0.012 });
+    // Constraint: align Repeat Purchase and Measure Performance horizontally.
+    {
+      const repeat = nodeById.get("repeat");
+      const measure = nodeById.get("measure");
+      if (repeat && measure) {
+        const targetY = (repeat.pos.y + measure.pos.y) / 2;
+        repeat.pos.y = targetY;
+        measure.pos.y = targetY;
+        layoutNoOverlap(graph, {
+          padding: 34,
+          iterations: 140,
+          stiffness: 0.01,
+          locks: { repeat: { lockY: true }, measure: { lockY: true } }
+        });
+      }
     }
-    if (changed) {
-      layoutNoOverlap(graph, {
-        padding: 34,
-        iterations: 120,
-        stiffness: 0.01,
-        locks: {
-          repeat: { lockY: true },
-          subscriptions: { lockY: true },
-          reorder: { lockY: true },
-          upsell: { lockY: true }
+    // Constraint: align Re-order & Cross-sell with CRM horizontally.
+    {
+      const reorder = nodeById.get("reorder");
+      const crm = nodeById.get("crm");
+      const repeat = nodeById.get("repeat");
+      if (reorder && crm) {
+        // Prefer: left of and slightly above Repeat Purchase, while staying visually near CRM.
+        const baseY = repeat ? repeat.pos.y : crm.pos.y;
+        reorder.pos.x = repeat ? repeat.pos.x - 260 : reorder.pos.x - 120;
+        reorder.pos.y = Math.min(crm.pos.y - 60, baseY - 80) + (156 - 88);
+        layoutNoOverlap(graph, {
+          padding: 34,
+          iterations: 140,
+          stiffness: 0.01,
+          locks: { reorder: { lockY: true, lockX: true } }
+        });
+      }
+    }
+    // Constraint: nudge Post‑Purchase Upsell to the left.
+    {
+      const upsell = nodeById.get("upsell");
+      if (upsell) {
+        upsell.pos.x -= 140;
+        upsell.pos.y -= 24;
+        layoutNoOverlap(graph, {
+          padding: 34,
+          iterations: 120,
+          stiffness: 0.01,
+          locks: { upsell: { lockX: true, lockY: true } }
+        });
+      }
+    }
+    // Constraint: move Subscriptions left by 64px.
+    {
+      const subscriptions = nodeById.get("subscriptions");
+      if (subscriptions) {
+        subscriptions.pos.x -= 64;
+        layoutNoOverlap(graph, {
+          padding: 34,
+          iterations: 120,
+          stiffness: 0.01,
+          locks: { subscriptions: { lockX: true } }
+        });
+      }
+    }
+    // Constraint: keep Advertising spaced below Customer chat.
+    {
+      const chat = nodeById.get("chat");
+      const ads = nodeById.get("ads");
+      if (chat && ads) {
+        const a = approxNodeSize("chat");
+        const b = approxNodeSize("ads");
+        const gap = 28; // desired padding between cards
+        const minDy = (a.h + b.h) / 2 + gap;
+        if (ads.pos.y - chat.pos.y < minDy) {
+          ads.pos.y = chat.pos.y + minDy;
         }
-      });
+        // Nudge a bit further down for visual breathing room.
+        ads.pos.y += 12;
+        layoutNoOverlap(graph, {
+          padding: 34,
+          iterations: 140,
+          stiffness: 0.01,
+          locks: { ads: { lockY: true } }
+        });
+      }
+    }
+
+    // Constraint: move Subscriptions section down by 88px (and keep its connected
+    // Repeat Purchase cluster together).
+    {
+      const ids = ["repeat", "subscriptions", "reorder", "upsell"];
+      let changed = false;
+      for (const id of ids) {
+        const n = nodeById.get(id);
+        if (!n) continue;
+        n.pos.y += 88;
+        changed = true;
+      }
+      if (changed) {
+        layoutNoOverlap(graph, {
+          padding: 34,
+          iterations: 120,
+          stiffness: 0.01,
+          locks: {
+            repeat: { lockY: true },
+            subscriptions: { lockY: true },
+            reorder: { lockY: true },
+            upsell: { lockY: true }
+          }
+        });
+      }
     }
   }
 
@@ -620,6 +657,66 @@ function render(graph) {
     nodeEls.set(n.id, btn);
   }
 
+  // Pan / zoom (also used for drag calculations)
+  const transformRef = { current: { x: 0, y: 0, scale: 1 } };
+  const minScale = 0.55;
+  const maxScale = 2.0;
+
+  // Dragging nodes
+  let draggingNodeId = /** @type {string | null} */ (null);
+  let draggingPointerId = /** @type {number | null} */ (null);
+  let dragOffset = /** @type {{x:number,y:number} | null} */ (null);
+  let dragStartClient = /** @type {{x:number,y:number} | null} */ (null);
+  let didDrag = false;
+  let suppressNextClick = false;
+
+  const updateAllEdges = () => {
+    for (const p of /** @type {NodeListOf<SVGPathElement>} */ (els.edges.querySelectorAll(".edge"))) {
+      const aId = p.dataset.a;
+      const bId = p.dataset.b;
+      if (!aId || !bId) continue;
+      const a = nodeById.get(aId);
+      const b = nodeById.get(bId);
+      if (!a || !b) continue;
+      p.setAttribute("d", edgePath(a.pos, b.pos));
+    }
+  };
+
+  const startNodeDrag = (nodeId, e) => {
+    const n = nodeById.get(nodeId);
+    if (!n) return;
+    draggingNodeId = nodeId;
+    draggingPointerId = e.pointerId;
+    dragStartClient = { x: e.clientX, y: e.clientY };
+    didDrag = false;
+
+    const world = worldFromClient(els.stage, transformRef.current, e.clientX, e.clientY);
+    dragOffset = { x: world.x - n.pos.x, y: world.y - n.pos.y };
+
+    els.stage.setPointerCapture(e.pointerId);
+  };
+
+  const endNodeDrag = () => {
+    if (!draggingNodeId) return;
+    if (didDrag) {
+      suppressNextClick = true;
+      saveNodePositionsFromGraph(graph);
+    }
+    draggingNodeId = null;
+    draggingPointerId = null;
+    dragOffset = null;
+    dragStartClient = null;
+    didDrag = false;
+  };
+
+  for (const [id, btn] of nodeEls.entries()) {
+    btn.addEventListener("pointerdown", (e) => {
+      if (!(e instanceof PointerEvent)) return;
+      if (e.button !== 0) return;
+      startNodeDrag(id, e);
+    });
+  }
+
   const state = {
     selectedId: /** @type {string | null} */ (null),
     activeCategory: "all",
@@ -711,16 +808,15 @@ function render(graph) {
   }
 
   els.nodes.addEventListener("click", (e) => {
+    if (suppressNextClick) {
+      suppressNextClick = false;
+      return;
+    }
     const t = /** @type {HTMLElement | null} */ (e.target instanceof HTMLElement ? e.target : null);
     const btn = t?.closest?.(".node");
     if (!(btn instanceof HTMLButtonElement)) return;
     setSelected(btn.dataset.id || null);
   });
-
-  // Pan / zoom
-  const transformRef = { current: { x: 0, y: 0, scale: 1 } };
-  const minScale = 0.55;
-  const maxScale = 2.0;
 
   function resetView(animate = true) {
     const r = els.stage.getBoundingClientRect();
@@ -861,6 +957,25 @@ function render(graph) {
   });
 
   els.stage.addEventListener("pointermove", (e) => {
+    if (draggingNodeId && draggingPointerId === e.pointerId && dragOffset) {
+      const n = nodeById.get(draggingNodeId);
+      const btn = nodeEls.get(draggingNodeId);
+      if (!n || !btn) return;
+
+      const world = worldFromClient(els.stage, transformRef.current, e.clientX, e.clientY);
+      n.pos.x = world.x - dragOffset.x;
+      n.pos.y = world.y - dragOffset.y;
+      btn.style.left = `${n.pos.x}px`;
+      btn.style.top = `${n.pos.y}px`;
+      updateAllEdges();
+
+      if (dragStartClient) {
+        const dx = e.clientX - dragStartClient.x;
+        const dy = e.clientY - dragStartClient.y;
+        if (Math.hypot(dx, dy) > 3) didDrag = true;
+      }
+      return;
+    }
     if (!isPanning || !panStartClient || !panStartTransform) return;
     const dx = e.clientX - panStartClient.x;
     const dy = e.clientY - panStartClient.y;
@@ -881,6 +996,16 @@ function render(graph) {
   els.stage.addEventListener("pointerup", endPan);
   els.stage.addEventListener("pointercancel", endPan);
   els.stage.addEventListener("lostpointercapture", endPan);
+
+  els.stage.addEventListener("pointerup", (e) => {
+    if (draggingNodeId && draggingPointerId === e.pointerId) endNodeDrag();
+  });
+  els.stage.addEventListener("pointercancel", (e) => {
+    if (draggingNodeId && draggingPointerId === e.pointerId) endNodeDrag();
+  });
+  els.stage.addEventListener("lostpointercapture", (e) => {
+    if (draggingNodeId && draggingPointerId === e.pointerId) endNodeDrag();
+  });
 
   els.stage.addEventListener(
     "wheel",
