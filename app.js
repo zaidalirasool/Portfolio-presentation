@@ -623,6 +623,7 @@ function render(graph) {
   // Progressive reveal state
   const visibleIds = new Set(["merchant"]);
   let rainActive = false;
+  let rainDismissed = false;
   /** @type {HTMLDivElement | null} */
   let rainEl = null;
   /** @type {number | null} */
@@ -662,6 +663,7 @@ function render(graph) {
   };
 
   const startEmojiRain = () => {
+    if (rainDismissed) return;
     if (rainActive) return;
     rainActive = true;
     ensureRainEl();
@@ -721,10 +723,22 @@ function render(graph) {
   };
 
   const maybeRain = () => {
+    if (rainDismissed) return;
     const shouldRain = state.selectedId == null && isWholeMapOnScreen();
     if (shouldRain) startEmojiRain();
     else stopEmojiRain();
   };
+
+  // Any click on the canvas stops the rain and prevents it from starting again.
+  els.stage.addEventListener(
+    "pointerdown",
+    () => {
+      if (!rainActive) return;
+      rainDismissed = true;
+      stopEmojiRain();
+    },
+    { capture: true }
+  );
 
   const reveal = (ids) => {
     let changed = false;
