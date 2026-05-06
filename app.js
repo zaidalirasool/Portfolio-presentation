@@ -1277,16 +1277,19 @@ function initSlideshowPagination() {
     return el.isContentEditable;
   };
 
-  document.addEventListener("keydown", (e) => {
-    if (isTypingTarget(/** @type {HTMLElement} */ (e.target))) return;
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-      e.preventDefault();
-      setActive((current + 1) % count);
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-      e.preventDefault();
-      setActive((current - 1 + count) % count);
-    }
-  });
+  const onSlideshowArrowKey = (e) => {
+    const key = e.key;
+    if (key !== "ArrowRight" && key !== "ArrowLeft" && key !== "ArrowUp" && key !== "ArrowDown") return;
+    const t = e.target;
+    if (t instanceof HTMLElement && isTypingTarget(t)) return;
+    e.preventDefault();
+    if (key === "ArrowRight" || key === "ArrowDown") setActive((current + 1) % count);
+    else setActive((current - 1 + count) % count);
+  };
+
+  // Capture on window so arrows work even when focus is on role="application" (stage)
+  // or when bubbling would otherwise miss document.
+  window.addEventListener("keydown", onSlideshowArrowKey, true);
 
   window.slideshowPagination = {
     goTo: setActive,
