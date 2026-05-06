@@ -1270,8 +1270,28 @@ function initSlideshowPagination() {
     list.appendChild(li);
   }
 
+  const isTypingTarget = (el) => {
+    if (!(el instanceof HTMLElement)) return false;
+    const tag = el.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+    return el.isContentEditable;
+  };
+
+  document.addEventListener("keydown", (e) => {
+    if (isTypingTarget(/** @type {HTMLElement} */ (e.target))) return;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((current + 1) % count);
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((current - 1 + count) % count);
+    }
+  });
+
   window.slideshowPagination = {
     goTo: setActive,
+    next: () => setActive((current + 1) % count),
+    prev: () => setActive((current - 1 + count) % count),
     get index() {
       return current;
     },
