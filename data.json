@@ -13,7 +13,7 @@
   "nodes": [
     {
       "id": "merchant",
-      "title": "Merchant",
+      "title": "Tiege Hanley",
       "category": "hub",
       "description": "The ecommerce brand/operator orchestrating the tools across acquisition, conversion, retention, and measurement.",
       "pos": { "x": 520, "y": 290 }

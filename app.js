@@ -397,6 +397,7 @@ function render(graph) {
   const categoryById = new Map(graph.categories.map((c) => [c.id, c]));
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
   const neighbors = computeNeighbors(graph.edges);
+  const HUB_IDS = new Set(["repeat", "pre", "measure"]);
 
   const savedPositions = getSavedNodePositions();
   let hasCustomLayout = false;
@@ -670,6 +671,19 @@ function render(graph) {
   const minScale = 0.55;
   const maxScale = 2.0;
 
+  // Progressive reveal state
+  const visibleIds = new Set(["merchant"]);
+  const reveal = (ids) => {
+    let changed = false;
+    for (const id of ids) {
+      if (!visibleIds.has(id)) {
+        visibleIds.add(id);
+        changed = true;
+      }
+    }
+    if (changed) applyFiltering();
+  };
+
   // Dragging nodes
   let draggingNodeId = /** @type {string | null} */ (null);
   let draggingPointerId = /** @type {number | null} */ (null);
@@ -741,9 +755,11 @@ function render(graph) {
     for (const p of /** @type {NodeListOf<SVGPathElement>} */ (els.edges.querySelectorAll(".edge"))) {
       const a = p.dataset.a;
       const b = p.dataset.b;
+      const hidden = (a && !visibleIds.has(a)) || (b && !visibleIds.has(b));
       const active = activeIds && a && b && activeIds.has(a) && activeIds.has(b);
       p.classList.toggle("edge--active", Boolean(active));
       p.classList.toggle("edge--muted", Boolean(activeIds) && !active);
+      p.classList.toggle("edge--hidden", Boolean(hidden));
     }
   }
 
@@ -756,10 +772,12 @@ function render(graph) {
     for (const n of graph.nodes) {
       const eln = nodeEls.get(n.id);
       if (!eln) continue;
+      const hidden = !visibleIds.has(n.id);
+      eln.dataset.hidden = String(hidden);
       const matchesCat = cat === "all" ? true : n.category === cat;
       const matchesSearch = !q ? true : normText(n.title).includes(q);
       const matchesSelection = activeIds ? activeIds.has(n.id) : true;
-      const muted = !(matchesCat && matchesSearch && matchesSelection);
+      const muted = hidden ? true : !(matchesCat && matchesSearch && matchesSelection);
       eln.dataset.muted = String(muted);
       eln.dataset.selected = String(n.id === selected);
     }
@@ -823,7 +841,14 @@ function render(graph) {
     const t = /** @type {HTMLElement | null} */ (e.target instanceof HTMLElement ? e.target : null);
     const btn = t?.closest?.(".node");
     if (!(btn instanceof HTMLButtonElement)) return;
-    setSelected(btn.dataset.id || null);
+    const id = btn.dataset.id || null;
+    if (id === "merchant") {
+      reveal(["repeat", "pre", "measure"]);
+    } else if (id && HUB_IDS.has(id)) {
+      const kids = [...(neighbors.get(id) ?? [])].filter((x) => x !== "merchant");
+      reveal(kids);
+    }
+    setSelected(id);
   });
 
   function resetView(animate = true) {
