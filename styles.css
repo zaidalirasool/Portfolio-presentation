@@ -228,7 +228,7 @@ html, body {
   text-overflow: ellipsis;
 }
 .node__title {
-  font-weight: 650;
+  font-weight: 500;
   font-size: 16px;
   letter-spacing: -0.3px;
   line-height: 1.2em;
