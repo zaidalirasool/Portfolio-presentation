@@ -6,23 +6,43 @@
     <!-- Dev-friendly: ensure refresh picks up latest JS/CSS without hard-reload -->
     <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
-    <title>Merchant Stack Map (Interactive)</title>
+    <title>Crafting loyalty that delivers</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="app">
-      <main class="main">
-        <section class="stageWrap" aria-label="Interactive map">
-          <div id="stage" class="stage" tabindex="0" role="application" aria-roledescription="interactive diagram">
-            <div id="viewport" class="viewport" aria-hidden="false">
-              <svg id="edges" class="edges" aria-hidden="true"></svg>
-              <div id="nodes" class="nodes" aria-hidden="false"></div>
-            </div>
+      <div class="slidesDeck">
+        <section
+          class="slide slide--intro is-active"
+          data-slide-index="0"
+          aria-labelledby="intro-title"
+        >
+          <div class="introSlide">
+            <p class="introSlide__eyebrow">Case study</p>
+            <h1 class="introSlide__title" id="intro-title">Crafting loyalty that delivers</h1>
           </div>
         </section>
-      </main>
 
-      <nav class="slideshowPagination" aria-label="Slide pagination" data-slide-count="3">
+        <section
+          class="slide slide--map"
+          data-slide-index="1"
+          aria-label="Merchant stack map"
+          hidden
+        >
+          <main class="main">
+            <section class="stageWrap" aria-label="Interactive map">
+              <div id="stage" class="stage" tabindex="0" role="application" aria-roledescription="interactive diagram">
+                <div id="viewport" class="viewport" aria-hidden="false">
+                  <svg id="edges" class="edges" aria-hidden="true"></svg>
+                  <div id="nodes" class="nodes" aria-hidden="false"></div>
+                </div>
+              </div>
+            </section>
+          </main>
+        </section>
+      </div>
+
+      <nav class="slideshowPagination" aria-label="Slide pagination" data-slide-count="2">
         <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
       </nav>
     </div>
