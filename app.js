@@ -175,7 +175,7 @@ function migrateLegacyPersonalizationImageIfNeeded() {
 
 /** @returns {Promise<Graph>} */
 async function loadGraph() {
-  const res = await fetch("./data.json");
+  const res = await fetch("./data.json", { cache: "no-cache" });
   if (!res.ok) throw new Error(`Failed to load data.json (${res.status})`);
   return /** @type {Graph} */ (await res.json());
 }
