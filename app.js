@@ -691,6 +691,10 @@ function render(graph) {
   let dragStartClient = /** @type {{x:number,y:number} | null} */ (null);
   let didDrag = false;
   let suppressNextClick = false;
+  let pendingDragNodeId = /** @type {string | null} */ (null);
+  let pendingDragPointerId = /** @type {number | null} */ (null);
+  let pendingDragOffset = /** @type {{x:number,y:number} | null} */ (null);
+  let pendingDragStartClient = /** @type {{x:number,y:number} | null} */ (null);
 
   const updateAllEdges = () => {
     for (const p of /** @type {NodeListOf<SVGPathElement>} */ (els.edges.querySelectorAll(".edge"))) {
@@ -704,18 +708,36 @@ function render(graph) {
     }
   };
 
-  const startNodeDrag = (nodeId, e) => {
+  const armNodeDrag = (nodeId, e) => {
     const n = nodeById.get(nodeId);
     if (!n) return;
-    draggingNodeId = nodeId;
-    draggingPointerId = e.pointerId;
-    dragStartClient = { x: e.clientX, y: e.clientY };
-    didDrag = false;
-
     const world = worldFromClient(els.stage, transformRef.current, e.clientX, e.clientY);
-    dragOffset = { x: world.x - n.pos.x, y: world.y - n.pos.y };
+    pendingDragNodeId = nodeId;
+    pendingDragPointerId = e.pointerId;
+    pendingDragStartClient = { x: e.clientX, y: e.clientY };
+    pendingDragOffset = { x: world.x - n.pos.x, y: world.y - n.pos.y };
+  };
 
-    els.stage.setPointerCapture(e.pointerId);
+  const beginNodeDragFromPending = () => {
+    if (!pendingDragNodeId || pendingDragPointerId == null || !pendingDragOffset || !pendingDragStartClient) return;
+    draggingNodeId = pendingDragNodeId;
+    draggingPointerId = pendingDragPointerId;
+    dragOffset = pendingDragOffset;
+    dragStartClient = pendingDragStartClient;
+    didDrag = false;
+    // Only capture once we actually start dragging, so clicks remain reliable.
+    try {
+      els.stage.setPointerCapture(draggingPointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  const clearPendingDrag = () => {
+    pendingDragNodeId = null;
+    pendingDragPointerId = null;
+    pendingDragOffset = null;
+    pendingDragStartClient = null;
   };
 
   const endNodeDrag = () => {
@@ -729,13 +751,14 @@ function render(graph) {
     dragOffset = null;
     dragStartClient = null;
     didDrag = false;
+    clearPendingDrag();
   };
 
   for (const [id, btn] of nodeEls.entries()) {
     btn.addEventListener("pointerdown", (e) => {
       if (!(e instanceof PointerEvent)) return;
       if (e.button !== 0) return;
-      startNodeDrag(id, e);
+      armNodeDrag(id, e);
     });
   }
 
@@ -990,6 +1013,18 @@ function render(graph) {
   });
 
   els.stage.addEventListener("pointermove", (e) => {
+    // Turn a simple click into a drag only after a small movement threshold.
+    if (
+      !draggingNodeId &&
+      pendingDragNodeId &&
+      pendingDragPointerId === e.pointerId &&
+      pendingDragStartClient
+    ) {
+      const dx = e.clientX - pendingDragStartClient.x;
+      const dy = e.clientY - pendingDragStartClient.y;
+      if (Math.hypot(dx, dy) > 4) beginNodeDragFromPending();
+    }
+
     if (draggingNodeId && draggingPointerId === e.pointerId && dragOffset) {
       const n = nodeById.get(draggingNodeId);
       const btn = nodeEls.get(draggingNodeId);
@@ -1032,12 +1067,15 @@ function render(graph) {
 
   els.stage.addEventListener("pointerup", (e) => {
     if (draggingNodeId && draggingPointerId === e.pointerId) endNodeDrag();
+    if (pendingDragNodeId && pendingDragPointerId === e.pointerId) clearPendingDrag();
   });
   els.stage.addEventListener("pointercancel", (e) => {
     if (draggingNodeId && draggingPointerId === e.pointerId) endNodeDrag();
+    if (pendingDragNodeId && pendingDragPointerId === e.pointerId) clearPendingDrag();
   });
   els.stage.addEventListener("lostpointercapture", (e) => {
     if (draggingNodeId && draggingPointerId === e.pointerId) endNodeDrag();
+    if (pendingDragNodeId && pendingDragPointerId === e.pointerId) clearPendingDrag();
   });
 
   els.stage.addEventListener(
