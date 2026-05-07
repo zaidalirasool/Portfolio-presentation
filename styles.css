@@ -1183,7 +1183,7 @@ html, body {
 .modal__close {
   flex-shrink: 0;
   /* Match the H2 line-height so the button sits on the same baseline */
-  width: 28px;
+  width: 26px;
   aspect-ratio: 1;
   border: none;
   border-radius: 4px;
@@ -1203,21 +1203,19 @@ html, body {
 }
 
 .modal__body {
-  padding: 24px 20px 24px;
+  padding: 16px 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .modal__tableImg {
   display: block;
-  width: calc(100% - 8px);
+  width: calc(100% + 8px);
   height: auto;
   border-radius: 4px;
-  margin-top: 8px;
-  margin-bottom: 0;
+  margin: 0;
   align-self: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
 }
 
 .modal__eyebrow {
@@ -1233,7 +1231,7 @@ html, body {
 .modal__title {
   margin: 0;
   font-family: Inter, ui-sans-serif, sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.9);
   line-height: 1.25;
