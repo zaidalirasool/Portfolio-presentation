@@ -519,7 +519,9 @@ html, body {
   transform: translate(-50%, -50%) scale(0.94) !important;
 }
 
-/* Keep the pre→loyalty edge fully visible on slide 4 (before reroute) */
+/* Keep the merchant→pre and pre→loyalty connectors active on slide 4 (before reroute) */
+.viewport.viewport--slide4 .edges .edge[data-a="merchant"][data-b="pre"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="merchant"],
 .viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="loyalty"],
 .viewport.viewport--slide4 .edges .edge[data-a="loyalty"][data-b="pre"] {
   opacity: 1 !important;
@@ -582,15 +584,6 @@ html, body {
   stroke-dashoffset: 0;
   animation: edgeRerouteIn 600ms ease 650ms both;
   opacity: 1 !important;
-}
-
-/* Slide 4 only: slow the Recharge pop + main-artwork exit so the displacement reads as
-   deliberate. Overrides the default 0.72s / 0.62s timings. */
-.viewport.viewport--slide4-rerouted .node[data-id="loyalty"] .node__comboLogo--recharge.node__comboLogo--recharge--pop {
-  animation-duration: 1.15s;
-}
-.viewport.viewport--slide4-rerouted .node[data-id="loyalty"] .node__comboLogo--loyaltyMainExit {
-  animation-duration: 0.95s;
 }
 
 /* Card hanger: blue footer tab on the Loyalty card, visible on slide 4 only. */

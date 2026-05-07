@@ -636,6 +636,9 @@ function render(graph) {
   // Snapshot of Loyalty's pos in nodeById before reroute, so we can restore on leave/reset.
   /** @type {null | {x: number, y: number}} */
   let slide4PriorLoyaltyPos = null;
+  // When true, slide 4 owns the Loyalty card's Recharge display —
+  // syncLoyaltyRechargeStack() must not touch it.
+  let slide4RechargeSwapActive = false;
   // Snapshots of shared graph state taken before slide 4 modifies it, so slide 2 is unaffected.
   /** @type {Set<string> | null} */
   let slide4VisibleIdsSnapshot = null;
@@ -752,7 +755,7 @@ function render(graph) {
             // Slide 4 demo: card hanger footer attached to the Loyalty card.
             // Visibility is controlled via CSS (viewport--slide4).
             const hanger = el("div", "cardHanger");
-            const hangerLabel = el("span", "cardHanger__label", "Learn more");
+            const hangerLabel = el("span", "cardHanger__label", "Current challenges");
             hanger.appendChild(hangerLabel);
             btn.appendChild(hanger);
           } else if (n.id === "ab" || n.id === "reorder" || n.id === "upsell") {
@@ -1194,6 +1197,8 @@ function render(graph) {
   }
 
   function syncLoyaltyRechargeStack() {
+    // Slide 4 manages the Loyalty card's Recharge display independently; don't interfere.
+    if (slide4RechargeSwapActive) return;
     const btn = nodeEls.get("loyalty");
     if (!btn) return;
     const recharge = btn.querySelector(".node__comboLogo--recharge");
@@ -1402,6 +1407,11 @@ function render(graph) {
     const selected = state.selectedId;
     const activeIds = selected ? connectedSet(selected) : null;
 
+    // On slide 4, Merchant is always the visible root — never let it be muted.
+    if (activeIds && els.viewport.classList.contains("viewport--slide4")) {
+      activeIds.add("merchant");
+    }
+
     for (const n of graph.nodes) {
       const eln = nodeEls.get(n.id);
       if (!eln) continue;
@@ -1436,7 +1446,7 @@ function render(graph) {
       return;
     }
     const t = /** @type {HTMLElement | null} */ (e.target instanceof HTMLElement ? e.target : null);
-    // Hanger clicks ("Learn more") open a modal — do not treat them as node selection,
+    // Hanger clicks open a modal — do not treat them as node selection,
     // which would call applyFiltering() → syncLoyaltyRechargeStack() and undo the slide-4 swap.
     if (t?.closest?.(".cardHanger")) return;
     const btn = t?.closest?.(".node");
@@ -1539,6 +1549,10 @@ function render(graph) {
     const loyaltyBtn = nodeEls.get("loyalty");
     if (!loyaltyBtn) return;
 
+    // Shorten hanger label now that Loyalty is connected to Retention, not Pre-purchase.
+    const hangerLabelEl = loyaltyBtn.querySelector(".cardHanger__label");
+    if (hangerLabelEl) hangerLabelEl.textContent = "Requirements";
+
     // Anchor Retention + Loyalty directly above Subscriptions's current position.
     const subscriptionsNode = nodeById.get("subscriptions");
     const subX = subscriptionsNode?.pos.x ?? 425;
@@ -1588,6 +1602,8 @@ function render(graph) {
     //    Show Recharge with .recharge--pop, then animate main artwork out via .loyaltyMainExit.
     //    We do this in slide-4-isolated fashion (no global flag mutation) so leaving the slide
     //    can fully revert, and slide 2's emoji-rain Loyalty trigger remains intact.
+    //    Guard FIRST so any stray syncLoyaltyRechargeStack() call can't undo the swap.
+    slide4RechargeSwapActive = true;
     const recharge = loyaltyBtn.querySelector(".node__comboLogo--recharge");
     const main     = loyaltyBtn.querySelector(".node__comboLogo--loyaltyMain");
     const reducedMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
@@ -1610,8 +1626,7 @@ function render(graph) {
         }
       };
       if (recharge instanceof HTMLImageElement && !reducedMotion) {
-        // Fallback longer than the slowed slide-4 recharge pop (1.15s) plus buffer.
-        const fallback = window.setTimeout(triggerMainExit, 1800);
+        const fallback = window.setTimeout(triggerMainExit, 1400);
         recharge.addEventListener(
           "animationend",
           () => {
@@ -1743,8 +1758,12 @@ function render(graph) {
     }
     els.viewport.classList.remove("viewport--slide4-rerouted");
     slide4RetentionCleanup?.();
+    slide4RechargeSwapActive = false;
     slide4SubscriptionsRevealed = false;
     slide4LoyaltyRerouted = false;
+    // Restore original hanger label for the pre-reroute state (loyaltyBtn declared above).
+    const hangerLabelEl = loyaltyBtn?.querySelector(".cardHanger__label");
+    if (hangerLabelEl) hangerLabelEl.textContent = "Current challenges";
   };
 
   slideshowEnterSlide4Hook = () => {
@@ -2323,35 +2342,39 @@ initSlideshow();
 
 // ── Loyalty hanger modal ─────────────────────────────────────────────────────
 (function initLoyaltyModal() {
-  const modal = document.getElementById("loyaltyModal");
-  if (!modal) return;
+  const modal1 = document.getElementById("loyaltyModal");
+  const modal2 = document.getElementById("loyaltyModalRerouted");
+  if (!modal1 || !modal2) return;
 
-  const backdrop = modal.querySelector(".modal__backdrop");
-  const closeBtn = modal.querySelector(".modal__close");
-
-  function openModal() {
-    modal.hidden = false;
-    closeBtn?.focus();
+  function wireModal(modal) {
+    const backdrop = modal.querySelector(".modal__backdrop");
+    const closeBtn = modal.querySelector(".modal__close");
+    const close = () => { modal.hidden = true; };
+    backdrop?.addEventListener("click", close);
+    closeBtn?.addEventListener("click", close);
+    return close;
   }
 
-  function closeModal() {
-    modal.hidden = true;
-  }
+  wireModal(modal1);
+  wireModal(modal2);
 
-  // Open when any .cardHanger inside the map is clicked
+  // Open when any .cardHanger inside the map is clicked —
+  // choose modal based on whether the slide-4 reroute has happened.
   document.addEventListener("click", (e) => {
     if (!(e.target instanceof Element)) return;
-    if (e.target.closest(".cardHanger")) {
-      e.stopPropagation();
-      openModal();
-    }
+    if (!e.target.closest(".cardHanger")) return;
+    e.stopPropagation();
+    const rerouted = document.getElementById("viewport")
+      ?.classList.contains("viewport--slide4-rerouted");
+    const modal = rerouted ? modal2 : modal1;
+    modal.hidden = false;
+    modal.querySelector(".modal__close")?.focus();
   });
 
-  backdrop?.addEventListener("click", closeModal);
-  closeBtn?.addEventListener("click", closeModal);
-
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !modal.hidden) closeModal();
+    if (e.key !== "Escape") return;
+    if (!modal1.hidden) modal1.hidden = true;
+    if (!modal2.hidden) modal2.hidden = true;
   });
 })();
 
