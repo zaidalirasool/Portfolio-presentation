@@ -258,7 +258,7 @@ html, body {
   pointer-events: none;
 }
 
-.viewport.viewport--merchantSolo .nodes .node:not([data-id="merchant"]) {
+.viewport.viewport--merchantSolo .nodes .node:not([data-id="merchant"]):not([data-merchant-clone="true"]) {
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.88);
   pointer-events: none;
@@ -267,6 +267,47 @@ html, body {
 .viewport.viewport--merchantSolo .nodes .node[data-id="merchant"] {
   opacity: 1;
   filter: none;
+}
+
+/* Merchant logo cards slide up from the Merchant node */
+@keyframes merchantLogoSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--from-x, 0px)), calc(-50% + var(--from-y, 0px))) scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.node.node--merchantLogoCard {
+  pointer-events: none;
+  width: 130px;
+  height: 130px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: merchantLogoSlideUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.node--merchantLogoCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Arrae is a wide text-only logo — wider card, tight padding so it hugs edges */
+.node.node--merchantLogoCard[data-logo="arrae"] {
+  width: 170px;
+  height: 80px;
+  padding: 10px 16px;
+  border-radius: 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {

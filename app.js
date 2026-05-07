@@ -14,6 +14,12 @@ let applySlideDeck = /** @type {null | ((index: number) => void)} */ (null);
 /** After Post-purchase Recharge reveals on the map slide, next empty canvas click shows merchant-only view. */
 let upsellMerchantSoloArmNextCanvas = false;
 
+/** After merchant-solo, next canvas click slides in two merchant clones. */
+let merchantClonesArmed = false;
+
+/** Called when leaving the map slide to remove any spawned merchant clones. */
+let merchantCloneCleanup = /** @type {null | (() => void)} */ (null);
+
 // Defensive: remove any stale hint element if present (e.g., old cached HTML).
 document.getElementById("stageHint")?.remove();
 
@@ -1594,7 +1600,61 @@ function render(graph) {
   // Empty-canvas click flow:
   //   Click 1 (selection active) → clear selection so the full map is visible at full opacity.
   //   Click 2 (selection already null, arm set) → fade everything except Merchant.
+  //   Click 3 (merchantClonesArmed) → slide two merchant clone nodes in from the right.
   // This matches the rest of the storyboard where the user gets to see the full map before it collapses.
+
+  /**
+   * Three merchant brand logos that fan upward from the Merchant node on click 3.
+   * Each entry: [imgSrc, finalWorldX, finalWorldY, animDelay]
+   * The animation starts from the merchant node's world position so each card
+   * slides up and outward to its resting spot.
+   */
+  const MERCHANT_LOGO_CARDS = [
+    { src: "./assets/logos/tiege.png",  label: "Tiège Hanley", logo: "tiege", wx: -215, wy: -195, delay: 0   },
+    { src: "./assets/logos/arrae.png",  label: "Arrae",         logo: "arrae", wx:    0, wy: -230, delay: 75  },
+    { src: "./assets/logos/kollo.png?v=3",  label: "Kollo Health",  logo: "kollo", wx:  215, wy: -195, delay: 150 },
+  ];
+
+  function spawnMerchantClones() {
+    const merchantNode = graph.nodes.find((n) => n.id === "merchant");
+    if (!merchantNode) return;
+
+    merchantCloneCleanup?.();
+
+    /** @type {HTMLElement[]} */
+    const cards = [];
+
+    for (const card of MERCHANT_LOGO_CARDS) {
+      const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+      btn.type = "button";
+      btn.classList.add("node", "node--merchantLogoCard");
+      btn.dataset.merchantClone = "true";
+      btn.dataset.logo = card.logo;
+      btn.dataset.hidden = "false";
+      btn.dataset.muted = "false";
+      btn.dataset.selected = "false";
+      btn.setAttribute("aria-label", card.label);
+      btn.style.left = `${merchantNode.pos.x + card.wx}px`;
+      btn.style.top  = `${merchantNode.pos.y + card.wy}px`;
+      // Offset from this card's final position back to merchant position for the slide origin
+      btn.style.setProperty("--from-x", `${-card.wx}px`);
+      btn.style.setProperty("--from-y", `${-card.wy}px`);
+      btn.style.animationDelay = `${card.delay}ms`;
+
+      const img = document.createElement("img");
+      img.src = card.src;
+      img.alt = card.label;
+      img.draggable = false;
+      btn.appendChild(img);
+
+      els.nodes.appendChild(btn);
+      cards.push(btn);
+    }
+
+    merchantCloneCleanup = () => { for (const c of cards) c.remove(); };
+    merchantClonesArmed = false;
+  }
+
   els.stage.addEventListener("click", (e) => {
     if (!(e.target instanceof Element)) return;
     if (e.target.closest(".node")) return;
@@ -1606,6 +1666,14 @@ function render(graph) {
     }
 
     if (
+      merchantClonesArmed &&
+      window.slideshowPagination?.index === 1
+    ) {
+      spawnMerchantClones();
+      return;
+    }
+
+    if (
       upsellMerchantSoloArmNextCanvas &&
       window.slideshowPagination?.index === 1 &&
       els.viewport instanceof HTMLElement
@@ -1613,6 +1681,7 @@ function render(graph) {
       els.viewport.classList.add("viewport--merchantSolo");
       upsellMerchantSoloArmNextCanvas = false;
       resetView(false);
+      merchantClonesArmed = true;
       return;
     }
 
@@ -1837,7 +1906,12 @@ function initSlideshow() {
   function goTo(index) {
     if (index < 0 || index >= count || index === current) return;
 
-    if (index !== 1) upsellMerchantSoloArmNextCanvas = false;
+    if (index !== 1) {
+      upsellMerchantSoloArmNextCanvas = false;
+      merchantClonesArmed = false;
+      merchantCloneCleanup?.();
+      merchantCloneCleanup = null;
+    }
 
     const mount1 = document.getElementById("mapSlideMount1");
     const mount2 = document.getElementById("mapSlideMount2");
