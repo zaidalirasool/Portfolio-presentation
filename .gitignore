@@ -16,3 +16,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Local tooling (Playwright installs, etc.) — not project dependencies
+node_modules/
+package.json
+package-lock.json
+

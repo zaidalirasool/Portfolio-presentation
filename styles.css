@@ -459,6 +459,7 @@ html, body {
   inset: 0;
   width: 100%;
   height: 100%;
+  overflow: visible;
 }
 
 .nodes {
@@ -518,6 +519,13 @@ html, body {
   transform: translate(-50%, -50%) scale(0.94) !important;
 }
 
+/* Keep the pre→loyalty edge fully visible on slide 4 (before reroute) */
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="loyalty"],
+.viewport.viewport--slide4 .edges .edge[data-a="loyalty"][data-b="pre"] {
+  opacity: 1 !important;
+  stroke: var(--graph-stroke-strong) !important;
+}
+
 /* Hide their connecting edges to the hubs too */
 .viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="ab"],
 .viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="personalization"],
@@ -533,6 +541,56 @@ html, body {
 .viewport.viewport--slide4 .edges .edge[data-a="repeat"][data-b="reorder"],
 .viewport.viewport--slide4 .edges .edge[data-a="repeat"][data-b="upsell"] {
   opacity: 0 !important;
+}
+
+/* ── Slide 4 Loyalty reroute ──────────────────────────────────────────────── */
+
+/* Loyalty slides to its new position — extend the base node transition to include left/top */
+.node--slide4-moving {
+  transition:
+    left 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    top 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity var(--node-tr),
+    filter var(--node-tr),
+    transform var(--node-tr) var(--node-curve),
+    box-shadow var(--node-tr) !important;
+}
+
+/* Fade out the pre→loyalty edge once Loyalty has been detached */
+.viewport.viewport--slide4.viewport--slide4-rerouted .edges .edge[data-a="pre"][data-b="loyalty"],
+.viewport.viewport--slide4.viewport--slide4-rerouted .edges .edge[data-a="loyalty"][data-b="pre"] {
+  opacity: 0 !important;
+  transition: opacity 400ms ease !important;
+}
+
+/* Retention hub: pop in with a slight spring after Loyalty starts moving */
+@keyframes retentionHubIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.node--retentionHub {
+  animation: retentionHubIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms both;
+}
+
+/* New subscriptions→retention and retention→loyalty edges draw in */
+@keyframes edgeRerouteIn {
+  from { stroke-dashoffset: var(--edge-len, 1000); }
+  to   { stroke-dashoffset: 0; }
+}
+.edge--reroute {
+  stroke-dasharray: var(--edge-len, 1000);
+  stroke-dashoffset: 0;
+  animation: edgeRerouteIn 600ms ease 650ms both;
+  opacity: 1 !important;
+}
+
+/* Slide 4 only: slow the Recharge pop + main-artwork exit so the displacement reads as
+   deliberate. Overrides the default 0.72s / 0.62s timings. */
+.viewport.viewport--slide4-rerouted .node[data-id="loyalty"] .node__comboLogo--recharge.node__comboLogo--recharge--pop {
+  animation-duration: 1.15s;
+}
+.viewport.viewport--slide4-rerouted .node[data-id="loyalty"] .node__comboLogo--loyaltyMainExit {
+  animation-duration: 0.95s;
 }
 
 /* Card hanger: blue footer tab on the Loyalty card, visible on slide 4 only. */

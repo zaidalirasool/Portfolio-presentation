@@ -36,14 +36,14 @@ const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
 const NODE_POSITIONS_KEY = "nodePositionsById";
 /** Bump when default coordinates in data.json change so saved drags don’t mask the new layout. */
 const GRAPH_LAYOUT_VERSION_KEY = "graphLayoutBaselineVersion";
-const GRAPH_LAYOUT_VERSION = "mindmap-v13";
+const GRAPH_LAYOUT_VERSION = "mindmap-v14";
 // Legacy keys from earlier iterations (for backwards compatibility)
 const LEGACY_PERSONALIZATION_IMAGE_KEY = "personalizationCardImageDataUrl";
 const LEGACY_PERSONALIZATION_IMAGE_CLEANED_KEY = "personalizationCardImageCleaned";
 const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
   personalization: "./assets/cards/personalization.png?v=1",
   ab: "./assets/cards/ab-testing-default.png?v=3",
-  loyalty: "./assets/cards/loyalty-default.png?v=3",
+  loyalty: "./assets/cards/loyalty-default.png?v=5",
   referral: "./assets/cards/referral.png?v=1",
   mail: "./assets/cards/mailing-sms.png?v=1",
   chat: "./assets/cards/customer-chat.png?v=1",
@@ -317,6 +317,12 @@ function computeNeighbors(edges) {
 
 function edgePath(a, b) {
   const dx = b.x - a.x;
+  // Near-vertical edges produce a degenerate cubic Bezier (control points equal endpoints)
+  // which Safari can fail to render across the SVG viewBox boundary at y=0. Fall back to
+  // a straight line in that case.
+  if (Math.abs(dx) < 1) {
+    return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+  }
   const c1 = { x: a.x + dx * 0.45, y: a.y };
   const c2 = { x: b.x - dx * 0.45, y: b.y };
   return `M ${a.x} ${a.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${b.x} ${b.y}`;
@@ -621,6 +627,20 @@ function render(graph) {
 
   let upsellMainStripped = false;
   let upsellRechargeRevealUnlocked = false;
+
+  // Slide 4 Loyalty reroute state
+  let slide4SubscriptionsRevealed = false;
+  let slide4LoyaltyRerouted = false;
+  /** @type {null | (() => void)} */
+  let slide4RetentionCleanup = null;
+  // Snapshot of Loyalty's pos in nodeById before reroute, so we can restore on leave/reset.
+  /** @type {null | {x: number, y: number}} */
+  let slide4PriorLoyaltyPos = null;
+  // Snapshots of shared graph state taken before slide 4 modifies it, so slide 2 is unaffected.
+  /** @type {Set<string> | null} */
+  let slide4VisibleIdsSnapshot = null;
+  /** @type {string | null | undefined} */
+  let slide4SelectedIdSnapshot = undefined;
 
   for (const n of graph.nodes) {
     const cat = categoryById.get(n.category);
@@ -1416,6 +1436,9 @@ function render(graph) {
       return;
     }
     const t = /** @type {HTMLElement | null} */ (e.target instanceof HTMLElement ? e.target : null);
+    // Hanger clicks ("Learn more") open a modal — do not treat them as node selection,
+    // which would call applyFiltering() → syncLoyaltyRechargeStack() and undo the slide-4 swap.
+    if (t?.closest?.(".cardHanger")) return;
     const btn = t?.closest?.(".node");
     if (!(btn instanceof HTMLButtonElement)) return;
     const id = btn.dataset.id || null;
@@ -1426,6 +1449,7 @@ function render(graph) {
       if (id === "repeat" && onSlide4) {
         // Slide 4 demo: clicking Repeat purchase reveals only Subscriptions.
         reveal(["subscriptions"]);
+        slide4SubscriptionsRevealed = true;
       } else if (id === "pre" && onSlide4) {
         // Slide 4 demo: Pre-purchase only ever shows Loyalty (already revealed on entry).
         reveal(["loyalty"]);
@@ -1438,6 +1462,11 @@ function render(graph) {
       }
     }
     setSelected(id);
+    // Slide 4: clicking Subscriptions (after it has been revealed) triggers the Loyalty reroute.
+    if (id === "subscriptions" && window.slideshowPagination?.index === 3 &&
+        slide4SubscriptionsRevealed && !slide4LoyaltyRerouted) {
+      rerouteLoyaltyToRetention();
+    }
     // Loyalty click after rain: Recharge pops + confetti; main artwork exits automatically after the pop.
     if (id === "loyalty" && emojiRainEndedForLoyalty && !loyaltyRechargeRevealUnlocked) {
       loyaltyRechargeRevealUnlocked = true;
@@ -1495,17 +1524,254 @@ function render(graph) {
     });
   };
 
+
+  // ── Slide 4: Loyalty reroute to Retention ────────────────────────────────
+  // Vertical chain ABOVE Subscriptions: Loyalty (top) ↑ Retention ↑ Subscriptions (bottom).
+  // Positions are computed at click-time from Subscriptions' live pos so the chain stays
+  // vertically aligned even if the user has dragged Subscriptions to a custom position.
+  const RETENTION_OFFSET_Y = -160;  // Retention sits this far above Subscriptions
+  const LOYALTY_OFFSET_Y   = -320;  // Loyalty sits this far above Subscriptions
+  // Original Loyalty world position (must match data.json pos).
+  const LOYALTY_ORIGIN_POS   = { x: 180, y: 685 };
+
+  const rerouteLoyaltyToRetention = () => {
+    slide4LoyaltyRerouted = true;
+    const loyaltyBtn = nodeEls.get("loyalty");
+    if (!loyaltyBtn) return;
+
+    // Anchor Retention + Loyalty directly above Subscriptions's current position.
+    const subscriptionsNode = nodeById.get("subscriptions");
+    const subX = subscriptionsNode?.pos.x ?? 425;
+    const subY = subscriptionsNode?.pos.y ?? 95;
+    const RETENTION_POS        = { x: subX, y: subY + RETENTION_OFFSET_Y };
+    const LOYALTY_REROUTED_POS = { x: subX, y: subY + LOYALTY_OFFSET_Y };
+
+    // 1. Fade out the pre→loyalty edge inline (overrides the CSS force-visible rule)
+    const preLoyaltyEdge = /** @type {SVGPathElement | null} */ (
+      els.edges.querySelector('.edge[data-a="pre"][data-b="loyalty"]') ??
+      els.edges.querySelector('.edge[data-a="loyalty"][data-b="pre"]')
+    );
+    if (preLoyaltyEdge) {
+      preLoyaltyEdge.style.setProperty("transition", "opacity 350ms ease");
+      requestAnimationFrame(() => preLoyaltyEdge.style.setProperty("opacity", "0", "important"));
+    }
+    els.viewport.classList.add("viewport--slide4-rerouted");
+
+    // 2. Slide Loyalty card to its new position. Hanger stays visible.
+    //    Also update Loyalty's pos in nodeById so updateAllEdges (called during drag)
+    //    tracks the new location for any edges connected to Loyalty.
+    loyaltyBtn.classList.add("node--slide4-moving");
+    requestAnimationFrame(() => {
+      loyaltyBtn.style.left = `${LOYALTY_REROUTED_POS.x}px`;
+      loyaltyBtn.style.top  = `${LOYALTY_REROUTED_POS.y}px`;
+    });
+    const loyaltyNode = nodeById.get("loyalty");
+    if (loyaltyNode && slide4PriorLoyaltyPos === null) {
+      slide4PriorLoyaltyPos = { x: loyaltyNode.pos.x, y: loyaltyNode.pos.y };
+      loyaltyNode.pos.x = LOYALTY_REROUTED_POS.x;
+      loyaltyNode.pos.y = LOYALTY_REROUTED_POS.y;
+    }
+    // Pan viewport up immediately so Loyalty's destination is in view as it slides.
+    // Center on the chain's x and roughly the middle of the vertical span.
+    const stageR0 = els.stage.getBoundingClientRect();
+    if (stageR0.width > 0 && stageR0.height > 0) {
+      const panTarget = centerToTransform({
+        canvas: graph.canvas,
+        stageRect: stageR0,
+        targetWorld: { x: subX, y: subY + RETENTION_OFFSET_Y },
+        scale: 1,
+      });
+      animateTo(transformRef, els.viewport, panTarget, 700);
+    }
+
+    // 3. Recharge swap using the existing pop animation.
+    //    Show Recharge with .recharge--pop, then animate main artwork out via .loyaltyMainExit.
+    //    We do this in slide-4-isolated fashion (no global flag mutation) so leaving the slide
+    //    can fully revert, and slide 2's emoji-rain Loyalty trigger remains intact.
+    const recharge = loyaltyBtn.querySelector(".node__comboLogo--recharge");
+    const main     = loyaltyBtn.querySelector(".node__comboLogo--loyaltyMain");
+    const reducedMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+    if (recharge instanceof HTMLImageElement) {
+      recharge.hidden = false;
+      recharge.setAttribute("aria-hidden", "false");
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      void recharge.offsetWidth; // restart the keyframe animation
+      recharge.classList.add("node__comboLogo--recharge--pop");
+      if (!reducedMotion) burstRechargeConfetti(recharge);
+    }
+    if (main instanceof HTMLElement) {
+      const triggerMainExit = () => {
+        main.classList.add("node__comboLogo--loyaltyMainExit");
+        const finishHide = () => { main.style.display = "none"; };
+        if (reducedMotion) {
+          finishHide();
+        } else {
+          main.addEventListener("animationend", finishHide, { once: true });
+        }
+      };
+      if (recharge instanceof HTMLImageElement && !reducedMotion) {
+        // Fallback longer than the slowed slide-4 recharge pop (1.15s) plus buffer.
+        const fallback = window.setTimeout(triggerMainExit, 1800);
+        recharge.addEventListener(
+          "animationend",
+          () => {
+            window.clearTimeout(fallback);
+            window.setTimeout(triggerMainExit, 200);
+          },
+          { once: true }
+        );
+      } else {
+        window.setTimeout(triggerMainExit, 200);
+      }
+    }
+
+    // 4. After Loyalty's slide animation completes (~900ms), spawn Retention hub + edges.
+    els.edges.setAttribute("overflow", "visible");
+    setTimeout(() => {
+      // Register retention-hub as a synthetic node so updateAllEdges() tracks its pos
+      // when the user drags neighbouring nodes.
+      nodeById.set("retention-hub", /** @type {any} */ ({
+        id: "retention-hub",
+        category: "repeat",
+        title: "Retention",
+        pos: { x: RETENTION_POS.x, y: RETENTION_POS.y },
+      }));
+
+      const retBtn = document.createElement("button");
+      retBtn.type = "button";
+      retBtn.className = "node node--hub node--retentionHub";
+      retBtn.dataset.id = "retention-hub";
+      retBtn.dataset.hub = "true";
+      retBtn.dataset.muted = "false";
+      retBtn.dataset.hidden = "false";
+      retBtn.style.left = `${RETENTION_POS.x}px`;
+      retBtn.style.top  = `${RETENTION_POS.y}px`;
+      retBtn.setAttribute("aria-label", "Retention hub");
+      const row = document.createElement("div");
+      row.className = "hubRow";
+      const emoji = document.createElement("span");
+      emoji.className = "hubEmojiOnly";
+      emoji.textContent = "🤑";
+      emoji.setAttribute("aria-hidden", "true");
+      row.appendChild(emoji);
+      const txt = document.createElement("div");
+      txt.className = "hubText";
+      txt.textContent = "Retention";
+      row.appendChild(txt);
+      retBtn.appendChild(row);
+      els.nodes.appendChild(retBtn);
+
+      // Edges: subscriptions → retention → loyalty.
+      // Setting data-a/data-b lets updateAllEdges() (which fires during node drag)
+      // re-render the path from the live nodeById positions, keeping it connected.
+      const edgeDefs = [
+        { aId: "subscriptions",  bId: "retention-hub" },
+        { aId: "retention-hub",  bId: "loyalty" },
+      ];
+      const tempPaths = [];
+      for (const { aId, bId } of edgeDefs) {
+        const a = nodeById.get(aId);
+        const b = nodeById.get(bId);
+        if (!a || !b) continue;
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("class", "edge edge--reroute");
+        p.dataset.a = aId;
+        p.dataset.b = bId;
+        p.setAttribute("d", edgePath(a.pos, b.pos));
+        p.setAttribute("stroke", "rgba(0, 0, 0, 0.34)");
+        p.setAttribute("stroke-width", "0.5");
+        p.setAttribute("fill", "none");
+        els.edges.appendChild(p);
+        const len = p.getTotalLength ? p.getTotalLength() : 500;
+        p.style.setProperty("--edge-len", `${Math.ceil(len) || 500}`);
+        tempPaths.push(p);
+      }
+
+      slide4RetentionCleanup = () => {
+        retBtn.remove();
+        for (const p of tempPaths) p.remove();
+        nodeById.delete("retention-hub");
+        slide4RetentionCleanup = null;
+      };
+    }, 950);
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Slide 4 starts with Pre-purchase clicked + Loyalty active.
   // connectedSet("loyalty") is {loyalty, pre} per data.json edges, so applyFiltering
   // automatically mutes every other node and edge.
+  /** Reset slide 4 reroute state: Loyalty position/artwork, pre→loyalty edge, Retention node + edges. */
+  const resetLoyaltyReroute = () => {
+    const loyaltyBtn = nodeEls.get("loyalty");
+    if (loyaltyBtn) {
+      // Snap Loyalty back to origin without an animated transition.
+      loyaltyBtn.classList.remove("node--slide4-moving");
+      void loyaltyBtn.offsetHeight; // flush layout
+      loyaltyBtn.style.left = `${LOYALTY_ORIGIN_POS.x}px`;
+      loyaltyBtn.style.top  = `${LOYALTY_ORIGIN_POS.y}px`;
+      // Revert recharge pop animation and re-show the loyalty main artwork stack.
+      const rechargeImg = loyaltyBtn.querySelector(".node__comboLogo--recharge");
+      const mainImg     = loyaltyBtn.querySelector(".node__comboLogo--loyaltyMain");
+      if (rechargeImg instanceof HTMLImageElement) {
+        rechargeImg.classList.remove("node__comboLogo--recharge--pop");
+        rechargeImg.hidden = true;
+        rechargeImg.setAttribute("aria-hidden", "true");
+      }
+      if (mainImg instanceof HTMLElement) {
+        mainImg.classList.remove("node__comboLogo--loyaltyMainExit");
+        mainImg.style.removeProperty("display");
+      }
+    }
+    // Restore the pre→loyalty edge that was faded out inline.
+    const preLoyaltyEdge = /** @type {SVGPathElement | null} */ (
+      els.edges?.querySelector('.edge[data-a="pre"][data-b="loyalty"]') ??
+      els.edges?.querySelector('.edge[data-a="loyalty"][data-b="pre"]')
+    );
+    if (preLoyaltyEdge) {
+      preLoyaltyEdge.style.removeProperty("transition");
+      preLoyaltyEdge.style.removeProperty("opacity");
+    }
+    // Restore Loyalty's pos in nodeById so subsequent edge updates use the original
+    // data.json position (in case slide 4 is revisited or slide 2 is reopened).
+    if (slide4PriorLoyaltyPos !== null) {
+      const loyaltyNode = nodeById.get("loyalty");
+      if (loyaltyNode) {
+        loyaltyNode.pos.x = slide4PriorLoyaltyPos.x;
+        loyaltyNode.pos.y = slide4PriorLoyaltyPos.y;
+      }
+      slide4PriorLoyaltyPos = null;
+    }
+    els.viewport.classList.remove("viewport--slide4-rerouted");
+    slide4RetentionCleanup?.();
+    slide4SubscriptionsRevealed = false;
+    slide4LoyaltyRerouted = false;
+  };
+
   slideshowEnterSlide4Hook = () => {
+    // Reset any reroute leftovers from a previous visit
+    resetLoyaltyReroute();
+
+    // Snapshot shared graph state before slide 4 modifies it — restored on leave so slide 2 is unaffected.
+    slide4VisibleIdsSnapshot = new Set(visibleIds);
+    slide4SelectedIdSnapshot = state.selectedId;
+
     els.viewport.classList.add("viewport--slide4");
     reveal(["pre", "loyalty", "repeat", "measure"]);
     setSelected("loyalty");
   };
   slideshowLeaveSlide4Hook = () => {
     els.viewport.classList.remove("viewport--slide4");
-    if (state.selectedId === "loyalty" || state.selectedId === "repeat") setSelected(null);
+    resetLoyaltyReroute();
+
+    // Restore the graph's reveal + selection state to what it was before slide 4
+    if (slide4VisibleIdsSnapshot !== null) {
+      visibleIds.clear();
+      for (const id of slide4VisibleIdsSnapshot) visibleIds.add(id);
+      slide4VisibleIdsSnapshot = null;
+    }
+    state.selectedId = slide4SelectedIdSnapshot ?? null;
+    slide4SelectedIdSnapshot = undefined;
+    applyFiltering();
   };
 
   // If a map slide is already active when the graph finishes loading, trigger the layout hook now.
