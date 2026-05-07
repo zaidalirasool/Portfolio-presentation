@@ -1914,7 +1914,6 @@ function initSlideshow() {
     }
 
     const mount1 = document.getElementById("mapSlideMount1");
-    const mount2 = document.getElementById("mapSlideMount2");
     const viewport = document.getElementById("viewport");
 
     if (index === 0) {
@@ -1924,7 +1923,8 @@ function initSlideshow() {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
     } else if (index === 2) {
-      if (mount2) mountMapStage(mount2);
+      viewport?.classList.remove("viewport--merchantSolo");
+      if (mount1) mountMapStage(mount1);
     }
 
     current = index;
@@ -1943,15 +1943,7 @@ function initSlideshow() {
       else btn.removeAttribute("aria-current");
     });
 
-    if (index === 2) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          viewport?.classList.add("viewport--merchantSolo");
-        });
-      });
-    }
-
-    if (index === 1 || index === 2) {
+    if (index === 1) {
       slideshowSlide2LayoutHook?.();
       requestAnimationFrame(() => {
         slideshowSlide2LayoutHook?.();
