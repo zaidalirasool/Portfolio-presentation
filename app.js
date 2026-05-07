@@ -639,6 +639,18 @@ function render(graph) {
   // When true, slide 4 owns the Loyalty card's Recharge display —
   // syncLoyaltyRechargeStack() must not touch it.
   let slide4RechargeSwapActive = false;
+  /**
+   * Shared state container for Loyalty's "fanout" sub-nodes — populated by spawnLoyaltyFanout().
+   *  - challenges: 5 dotted nodes shown when clicking Loyalty in the pre-reroute state
+   *  - benefits:   4 dotted nodes shown when clicking Loyalty in the post-reroute state
+   * Each slot holds its own cleanup, collapse, and in-flight animation flag.
+   * @typedef {{cleanup: null | (()=>void), collapse: null | (()=>void), collapsing: boolean}} FanoutState
+   * @type {{challenges: FanoutState, benefits: FanoutState}}
+   */
+  const slide4Fanouts = {
+    challenges: { cleanup: null, collapse: null, collapsing: false },
+    benefits:   { cleanup: null, collapse: null, collapsing: false },
+  };
   // Snapshots of shared graph state taken before slide 4 modifies it, so slide 2 is unaffected.
   /** @type {Set<string> | null} */
   let slide4VisibleIdsSnapshot = null;
@@ -1452,6 +1464,9 @@ function render(graph) {
     const btn = t?.closest?.(".node");
     if (!(btn instanceof HTMLButtonElement)) return;
     const id = btn.dataset.id || null;
+    // Synthetic slide-4 fanout nodes (challenges + benefits) are decorative —
+    // clicks should not change selection.
+    if (id?.startsWith("challenge-") || id?.startsWith("benefit-")) return;
     if (id === "merchant") {
       reveal(["repeat", "pre", "measure"]);
     } else if (id && HUB_IDS.has(id)) {
@@ -1476,6 +1491,16 @@ function render(graph) {
     if (id === "subscriptions" && window.slideshowPagination?.index === 3 &&
         slide4SubscriptionsRevealed && !slide4LoyaltyRerouted) {
       rerouteLoyaltyToRetention();
+    }
+    // Slide 4 Loyalty toggle: pre-reroute fans out 5 "challenges", post-reroute fans
+    // out 4 "benefits". A second click on Loyalty collapses whichever set is showing.
+    if (id === "loyalty" && window.slideshowPagination?.index === 3) {
+      const fan = slide4LoyaltyRerouted ? slide4Fanouts.benefits : slide4Fanouts.challenges;
+      const spawn = slide4LoyaltyRerouted ? spawnLoyaltyBenefits : spawnLoyaltyChallenges;
+      if (!fan.collapsing) {
+        if (fan.cleanup) fan.collapse?.();
+        else spawn();
+      }
     }
     // Loyalty click after rain: Recharge pops + confetti; main artwork exits automatically after the pop.
     if (id === "loyalty" && emojiRainEndedForLoyalty && !loyaltyRechargeRevealUnlocked) {
@@ -1544,8 +1569,197 @@ function render(graph) {
   // Original Loyalty world position (must match data.json pos).
   const LOYALTY_ORIGIN_POS   = { x: 180, y: 685 };
 
+  /**
+   * Slide 4: when Loyalty (still connected to Pre-purchase) is clicked, fan out 5 dashed
+   * "challenge" nodes describing the current loyalty framework's shortcomings. The nodes
+   * shoot from Loyalty's position outward and are cleaned up on reroute or slide leave.
+   */
+  /**
+   * Generic Loyalty fanout spawner. Used by both Loyalty-click expansions:
+   *   pre-reroute → "challenges" (downward fan, 5 nodes)
+   *   post-reroute → "benefits"  (upward fan, 4 nodes)
+   * Installs cleanup + collapse handlers onto the supplied state slot, and pans the
+   * camera midway between Loyalty and the far edge of the fan.
+   *
+   * @param {object} cfg
+   * @param {FanoutState} cfg.state - slot to populate with cleanup/collapse/collapsing
+   * @param {Array<{id:string,title:string,angle:number}>} cfg.items - one entry per node (angles in degrees, 0°=right / 90°=down)
+   * @param {number} cfg.radius
+   */
+  const spawnLoyaltyFanout = ({ state, items, radius }) => {
+    if (state.cleanup) return;
+    const loyaltyBtn = nodeEls.get("loyalty");
+    const loyaltyNode = nodeById.get("loyalty");
+    if (!loyaltyBtn || !loyaltyNode) return;
+    const origin = { x: loyaltyNode.pos.x, y: loyaltyNode.pos.y };
+    // Snapshot the camera transform so collapse can pan back to the same view.
+    const transformBeforeSpawn = { ...transformRef.current };
+
+    /** @type {HTMLButtonElement[]} */
+    const createdNodes = [];
+    /** @type {SVGPathElement[]} */
+    const createdEdges = [];
+    /** Track each node's target world pos so collapse + pan can compute geometry. */
+    const targetPositions = items.map((it) => {
+      const rad = (it.angle * Math.PI) / 180;
+      return { x: origin.x + radius * Math.cos(rad), y: origin.y + radius * Math.sin(rad) };
+    });
+
+    items.forEach((c, i) => {
+      const { x, y } = targetPositions[i];
+
+      // Register synthetic node so updateAllEdges() can keep its connector tracking Loyalty.
+      nodeById.set(c.id, /** @type {any} */ ({
+        id: c.id, category: "pre", title: c.title, pos: { x, y },
+      }));
+      visibleIds.add(c.id);
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "node node--challenge";
+      btn.dataset.id = c.id;
+      btn.dataset.muted = "false";
+      btn.dataset.hidden = "false";
+      btn.style.left = `${x}px`;
+      btn.style.top  = `${y}px`;
+      btn.setAttribute("aria-label", c.title);
+
+      // Dotted outline rendered as an inline SVG so the dot rhythm matches the connectors.
+      const ns = "http://www.w3.org/2000/svg";
+      const outline = document.createElementNS(ns, "svg");
+      outline.setAttribute("class", "node__dotOutline");
+      outline.setAttribute("aria-hidden", "true");
+      outline.setAttribute("preserveAspectRatio", "none");
+      outline.appendChild(document.createElementNS(ns, "rect"));
+      btn.appendChild(outline);
+
+      // Title sits above the outline (z-index in CSS).
+      const label = document.createElement("span");
+      label.className = "node__challengeLabel";
+      label.textContent = c.title;
+      btn.appendChild(label);
+
+      // Start visually anchored to Loyalty's center, scaled down + invisible.
+      const dx = origin.x - x;
+      const dy = origin.y - y;
+      btn.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(0.4)`;
+      btn.style.opacity = "0";
+
+      els.nodes.appendChild(btn);
+      createdNodes.push(btn);
+
+      // Stagger reveal — fly to target.
+      const delay = 80 + i * 90;
+      window.setTimeout(() => {
+        btn.style.transform = "translate(-50%, -50%) scale(1)";
+        btn.style.opacity = "1";
+      }, delay);
+
+      // Dotted connector edge from Loyalty to this sub-node.
+      const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      p.setAttribute("class", "edge edge--challenge");
+      p.dataset.a = "loyalty";
+      p.dataset.b = c.id;
+      p.setAttribute("d", edgePath(origin, { x, y }));
+      p.setAttribute("stroke", "rgba(0, 0, 0, 0.34)");
+      p.setAttribute("stroke-width", "1");
+      p.setAttribute("stroke-dasharray", "0.1 5");
+      p.setAttribute("stroke-linecap", "round");
+      p.setAttribute("fill", "none");
+      p.style.opacity = "0";
+      p.style.transition = "opacity 320ms ease";
+      els.edges.appendChild(p);
+      createdEdges.push(p);
+      window.setTimeout(() => { p.style.opacity = "1"; }, delay + 200);
+    });
+
+    // Pan the canvas so the fan comes into view alongside Loyalty. We center on the
+    // mean y of the fan's target positions — works for both downward and upward fans.
+    const stageR = els.stage.getBoundingClientRect();
+    if (stageR.width > 0 && stageR.height > 0) {
+      const meanY = targetPositions.reduce((s, p) => s + p.y, 0) / targetPositions.length;
+      const panTargetY = (origin.y + meanY) / 2;
+      const panTarget = centerToTransform({
+        canvas: graph.canvas,
+        stageRect: stageR,
+        targetWorld: { x: origin.x, y: panTargetY },
+        scale: 1,
+      });
+      animateTo(transformRef, els.viewport, panTarget, 700);
+    }
+
+    state.cleanup = () => {
+      for (const n of createdNodes) n.remove();
+      for (const e of createdEdges) e.remove();
+      for (const c of items) {
+        nodeById.delete(c.id);
+        visibleIds.delete(c.id);
+      }
+      state.cleanup = null;
+      state.collapse = null;
+      state.collapsing = false;
+    };
+
+    // Animated reverse: nodes shrink back to Loyalty, edges fade out, camera pans back.
+    state.collapse = () => {
+      if (state.collapsing || !state.cleanup) return;
+      state.collapsing = true;
+
+      items.forEach((_c, i) => {
+        const node = createdNodes[i];
+        if (!node) return;
+        const dx = origin.x - parseFloat(node.style.left);
+        const dy = origin.y - parseFloat(node.style.top);
+        node.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(0.4)`;
+        node.style.opacity = "0";
+      });
+      for (const p of createdEdges) p.style.opacity = "0";
+
+      // Pan the camera back to the pre-spawn view.
+      animateTo(transformRef, els.viewport, transformBeforeSpawn, 700);
+
+      // Final teardown after the transition finishes (matches the 700ms node transition).
+      window.setTimeout(() => state.cleanup?.(), 720);
+    };
+  };
+
+  /**
+   * Pre-reroute Loyalty click: 5 dotted "challenges" describing what's wrong with the
+   * current loyalty framework. Fan opens downward (angles in the lower hemisphere).
+   * Radius 380 gives ~197px adjacent center-to-center for the 30° spacing — no overlap.
+   */
+  const spawnLoyaltyChallenges = () => spawnLoyaltyFanout({
+    state: slide4Fanouts.challenges,
+    radius: 380,
+    items: [
+      { id: "challenge-1", title: "One-time purchase focus",     angle: 150 },
+      { id: "challenge-2", title: "Lack of customization",       angle: 130 },
+      { id: "challenge-3", title: "No milestone-based journeys", angle:  90 },
+      { id: "challenge-4", title: "Point hoarding",              angle:  50 },
+      { id: "challenge-5", title: "Subscribers don\u2019t feel engaged", angle: 30 },
+    ],
+  });
+
+  /**
+   * Post-reroute Loyalty click: 4 dotted "benefits" describing what merchants want
+   * from the new framework. Fan opens upward (angles in the upper hemisphere, i.e. 180°–360°).
+   * 4 nodes 45° apart spanning 135° — adjacent center-to-center with R=380 is ~291px.
+   */
+  const spawnLoyaltyBenefits = () => spawnLoyaltyFanout({
+    state: slide4Fanouts.benefits,
+    radius: 380,
+    items: [
+      { id: "benefit-1", title: "Subscription based milestones",      angle: 202.5 },
+      { id: "benefit-2", title: "Customizable reward incentives",     angle: 247.5 },
+      { id: "benefit-3", title: "Engagement tool",                    angle: 292.5 },
+      { id: "benefit-4", title: "Relationship building",              angle: 337.5 },
+    ],
+  });
+
   const rerouteLoyaltyToRetention = () => {
     slide4LoyaltyRerouted = true;
+    // Clean up the dotted challenge nodes (if shown) before Loyalty starts moving.
+    slide4Fanouts.challenges.cleanup?.();
     const loyaltyBtn = nodeEls.get("loyalty");
     if (!loyaltyBtn) return;
 
@@ -1764,6 +1978,8 @@ function render(graph) {
     }
     els.viewport.classList.remove("viewport--slide4-rerouted");
     slide4RetentionCleanup?.();
+    slide4Fanouts.challenges.cleanup?.();
+    slide4Fanouts.benefits.cleanup?.();
     slide4RechargeSwapActive = false;
     slide4SubscriptionsRevealed = false;
     slide4LoyaltyRerouted = false;
