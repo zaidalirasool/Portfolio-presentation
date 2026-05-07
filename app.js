@@ -755,7 +755,7 @@ function render(graph) {
             // Slide 4 demo: card hanger footer attached to the Loyalty card.
             // Visibility is controlled via CSS (viewport--slide4).
             const hanger = el("div", "cardHanger");
-            const hangerLabel = el("span", "cardHanger__label", "Current challenges");
+            const hangerLabel = el("span", "cardHanger__label", "Current framework");
             hanger.appendChild(hangerLabel);
             btn.appendChild(hanger);
           } else if (n.id === "ab" || n.id === "reorder" || n.id === "upsell") {
@@ -1549,9 +1549,11 @@ function render(graph) {
     const loyaltyBtn = nodeEls.get("loyalty");
     if (!loyaltyBtn) return;
 
-    // Shorten hanger label now that Loyalty is connected to Retention, not Pre-purchase.
+    // Update hanger label and hide it — it reappears only after the Recharge animation.
+    const hangerEl      = /** @type {HTMLElement|null} */ (loyaltyBtn.querySelector(".cardHanger"));
     const hangerLabelEl = loyaltyBtn.querySelector(".cardHanger__label");
-    if (hangerLabelEl) hangerLabelEl.textContent = "Requirements";
+    if (hangerLabelEl) hangerLabelEl.textContent = "New framework";
+    if (hangerEl) hangerEl.style.setProperty("display", "none");
 
     // Anchor Retention + Loyalty directly above Subscriptions's current position.
     const subscriptionsNode = nodeById.get("subscriptions");
@@ -1618,7 +1620,11 @@ function render(graph) {
     if (main instanceof HTMLElement) {
       const triggerMainExit = () => {
         main.classList.add("node__comboLogo--loyaltyMainExit");
-        const finishHide = () => { main.style.display = "none"; };
+        const finishHide = () => {
+          main.style.display = "none";
+          // Reveal the hanger now that the default image has fully exited.
+          if (hangerEl) hangerEl.style.removeProperty("display");
+        };
         if (reducedMotion) {
           finishHide();
         } else {
@@ -1761,9 +1767,11 @@ function render(graph) {
     slide4RechargeSwapActive = false;
     slide4SubscriptionsRevealed = false;
     slide4LoyaltyRerouted = false;
-    // Restore original hanger label for the pre-reroute state (loyaltyBtn declared above).
-    const hangerLabelEl = loyaltyBtn?.querySelector(".cardHanger__label");
-    if (hangerLabelEl) hangerLabelEl.textContent = "Current challenges";
+    // Restore hanger label and ensure it's visible for the pre-reroute state.
+    const hangerLabelEl  = loyaltyBtn?.querySelector(".cardHanger__label");
+    const hangerElReset  = /** @type {HTMLElement|null} */ (loyaltyBtn?.querySelector(".cardHanger"));
+    if (hangerLabelEl) hangerLabelEl.textContent = "Current framework";
+    if (hangerElReset) hangerElReset.style.removeProperty("display");
   };
 
   slideshowEnterSlide4Hook = () => {
