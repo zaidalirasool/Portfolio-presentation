@@ -7,6 +7,12 @@
   --panel2: rgba(255, 255, 255, 0.92);
   --stroke: rgba(0, 0, 0, 0.10);
   --stroke2: rgba(0, 0, 0, 0.14);
+  /* Match SVG edge stroke (see `.edge`) — use for node rings so weight is consistent. */
+  --graph-stroke: rgba(0, 0, 0, 0.14);
+  --graph-stroke-strong: rgba(0, 0, 0, 0.22);
+  /** Hairline via box-shadow avoids `border: 0.5px` snapping to a full CSS pixel (looked heavier than connectors). */
+  --node-stroke-ring: 0 0 0 0.5px var(--graph-stroke);
+  --node-stroke-ring-selected: 0 0 0 0.5px var(--graph-stroke-strong);
   --text: rgba(0, 0, 0, 0.90);
   --muted: rgba(0, 0, 0, 0.62);
   --muted2: rgba(0, 0, 0, 0.48);
@@ -68,6 +74,9 @@ html, body {
   flex-direction: column;
 }
 
+/* Slides participate in normal flex flow when active; hidden via display:none when not.
+   This is the working pattern from the original committed version — DO NOT change to
+   position:absolute + opacity. That breaks the flex height chain inside the map slide. */
 .slide {
   flex: 1;
   min-height: 0;
@@ -126,6 +135,14 @@ html, body {
   gap: 14px;
   /* Extra bottom space so content stays above fixed slide dots */
   padding: 18px 18px 52px 18px;
+  min-height: 0;
+}
+
+/* Map slides: `.main` as grid gives implicit `auto` rows; `#stage` is `position:absolute`
+   so `.stageWrap` can collapse to ~0 height and the deck looks empty. Flex fills the slide. */
+.slide--map .main {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
@@ -210,6 +227,53 @@ html, body {
   box-shadow: var(--shadow);
   overflow: hidden;
   min-height: 0;
+}
+
+.mapSlideMount {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.mapSlideMount > .stageWrap {
+  flex: 1;
+  min-height: 0;
+}
+
+.viewport .edges {
+  transition: opacity 380ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.viewport .nodes .node {
+  transition:
+    opacity 420ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 420ms cubic-bezier(0.4, 0, 0.2, 1),
+    filter 420ms ease;
+}
+
+.viewport.viewport--merchantSolo .edges {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.viewport.viewport--merchantSolo .nodes .node:not([data-id="merchant"]) {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.88);
+  pointer-events: none;
+}
+
+.viewport.viewport--merchantSolo .nodes .node[data-id="merchant"] {
+  opacity: 1;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport .edges,
+  .viewport .nodes .node {
+    transition-duration: 0.01ms;
+  }
 }
 
 .emojiRain {
@@ -329,11 +393,10 @@ html, body {
   width: 170px;
   padding: 10px 10px 10px 10px;
   border-radius: 8px;
-  border: 0.5px solid rgba(0, 0, 0, 0.14);
-  border-image: none;
+  border: none;
   background: var(--node-bg);
   backdrop-filter: blur(10px);
-  box-shadow: var(--shadow2);
+  box-shadow: var(--node-stroke-ring), var(--shadow2);
   cursor: pointer;
   transform: translate(-50%, -50%);
   text-align: left;
@@ -344,7 +407,10 @@ html, body {
 }
 .node:hover { background: var(--node-bg-hover); }
 .node[data-muted="true"] { opacity: 0.26; filter: saturate(0.7); }
-.node[data-selected="true"] { outline: 2px solid rgba(0, 0, 0, 0.22); }
+.node[data-selected="true"] {
+  outline: none;
+  box-shadow: var(--node-stroke-ring-selected), var(--shadow2);
+}
 .node[data-hidden="true"] {
   opacity: 0;
   pointer-events: none;
@@ -359,15 +425,16 @@ html, body {
   padding: 14px 16px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(0, 0, 0, 0);
+  border: none;
   color: rgb(17, 17, 17);
-  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.10);
+  box-shadow: var(--node-stroke-ring), 0 18px 55px rgba(0, 0, 0, 0.10);
 }
 .node.node--hub:hover {
   background: rgba(255, 255, 255, 0.98);
 }
 .node.node--hub[data-selected="true"] {
-  outline: 2px solid rgba(0, 0, 0, 0.10);
+  outline: none;
+  box-shadow: var(--node-stroke-ring-selected), 0 18px 55px rgba(0, 0, 0, 0.10);
 }
 
 /* AnimatedTraitsList-style inner row (emoji tile + label) */
@@ -475,9 +542,9 @@ html, body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  border: 0.5px solid rgba(0, 0, 0, 0.14);
+  border: none;
   background: var(--node-bg);
-  box-shadow: var(--shadow2);
+  box-shadow: var(--node-stroke-ring), var(--shadow2);
   backdrop-filter: blur(10px);
 }
 
@@ -487,8 +554,7 @@ html, body {
 
 .node.node--merchant[data-selected="true"] {
   outline: none;
-  border-color: rgba(0, 0, 0, 0.22);
-  box-shadow: var(--shadow2);
+  box-shadow: var(--node-stroke-ring-selected), var(--shadow2);
 }
 
 .node.node--merchant .node__meta {
@@ -529,8 +595,8 @@ html, body {
   padding: 10px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
-  border: 0.5px solid rgba(0, 0, 0, 0.14);
-  box-shadow: var(--shadow2);
+  border: none;
+  box-shadow: var(--node-stroke-ring), var(--shadow2);
 }
 .node.node--merchantLogo:hover {
   background: rgba(255, 255, 255, 0.98);
@@ -608,25 +674,52 @@ html, body {
   max-width: 100%;
 }
 
-/* A/B testing: same stacked layout as Loyalty for main art → Recharge reveal */
-.node.node--imageCard[data-id="ab"] {
+/* A/B testing, Upsell & cross-sell, Post-purchase: stacked main art → Recharge reveal */
+.node.node--imageCard[data-id="ab"],
+.node.node--imageCard[data-id="reorder"],
+.node.node--imageCard[data-id="upsell"] {
   display: flex;
   flex-direction: column;
   align-items: stretch;
 }
 
-.node.node--imageCard[data-id="ab"] .node__imageStack {
+.node.node--imageCard[data-id="ab"] .node__imageStack,
+.node.node--imageCard[data-id="reorder"] .node__imageStack,
+.node.node--imageCard[data-id="upsell"] .node__imageStack {
   width: 100%;
   min-width: 0;
 }
 
-.node.node--imageCard[data-id="ab"] .node__imageStack .node__comboLogo {
+.node.node--imageCard[data-id="ab"] .node__imageStack .node__comboLogo,
+.node.node--imageCard[data-id="reorder"] .node__imageStack .node__comboLogo,
+.node.node--imageCard[data-id="upsell"] .node__imageStack .node__comboLogo {
   width: 100%;
   max-width: 100%;
 }
 
-.node.node--imageCard[data-id="ab"] .node__comboLogo--recharge {
+.node.node--imageCard[data-id="ab"] .node__comboLogo--recharge,
+.node.node--imageCard[data-id="reorder"] .node__comboLogo--recharge,
+.node.node--imageCard[data-id="upsell"] .node__comboLogo--recharge {
   height: auto;
+}
+
+/* White matte behind Repeat stack / Post-purchase card art */
+.node.node--imageCard[data-id="reorder"] .node__imageStack,
+.node.node--imageCard[data-id="upsell"] .node__imageStack {
+  background-color: #ffffff;
+  border-radius: 6px;
+}
+
+/* Subscriptions: same full-width hero sizing as Post-purchase (not the default 126px `.node__comboLogo`). */
+.node.node--imageCard[data-id="subscriptions"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.node.node--imageCard[data-id="subscriptions"] .node__comboLogo {
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Recharge mark above Loyalty art (revealed after emoji rain ends + Loyalty selected) */
@@ -856,7 +949,7 @@ html, body {
 
 /* Edge styling via SVG attributes plus classes */
 .edge {
-  stroke: rgba(0, 0, 0, 0.14);
+  stroke: var(--graph-stroke);
   stroke-width: 0.5;
   fill: none;
 }

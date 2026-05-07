@@ -51,7 +51,7 @@
 
     { "id": "subscriptions", "title": "Subscriptions", "category": "repeat", "description": "Subscription management and recurring orders.", "pos": { "x": 425, "y": 95 } },
     { "id": "reorder", "title": "Upsell & Cross-sell", "category": "repeat", "description": "Post-purchase re-order flows and cross-sell recommendations.", "pos": { "x": 225, "y": 335 } },
-    { "id": "upsell", "title": "Post-purchase", "category": "repeat", "tagLabel": "Post-purchase", "description": "One-click offers after checkout to increase AOV.", "pos": { "x": 255, "y": 130 } },
+    { "id": "upsell", "title": "Post-purchase", "category": "repeat", "tagLabel": "Post-purchase", "description": "One-click offers after checkout to increase AOV.", "pos": { "x": 206, "y": 211 } },
 
     { "id": "quant", "title": "Quant Analytics (Amplitude / Google Analytics)", "category": "quant", "description": "Event-based and web analytics for performance measurement.", "pos": { "x": 880, "y": 100 } },
     { "id": "qual", "title": "Qual Analytics (Hotjar / FullStory)", "category": "qual", "description": "Session replay and behavior insights to diagnose UX issues.", "pos": { "x": 1050, "y": 115 } },

@@ -8,8 +8,11 @@ const els = {
 /** Set by render() when the map is ready; slide 2 uses this for a one-shot layout refresh. */
 let slideshowSlide2LayoutHook = /** @type {null | (() => void)} */ (null);
 
-/** Wired by initSlideshow(); called by render() to trigger map layout when slide 2 is shown. */
+/** Set by initSlideshow(); exposes the goTo function for any code that needs to drive the deck. */
 let applySlideDeck = /** @type {null | ((index: number) => void)} */ (null);
+
+/** After Post-purchase Recharge reveals on the map slide, next empty canvas click shows merchant-only view. */
+let upsellMerchantSoloArmNextCanvas = false;
 
 // Defensive: remove any stale hint element if present (e.g., old cached HTML).
 document.getElementById("stageHint")?.remove();
@@ -21,22 +24,26 @@ const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
 const NODE_POSITIONS_KEY = "nodePositionsById";
 /** Bump when default coordinates in data.json change so saved drags don’t mask the new layout. */
 const GRAPH_LAYOUT_VERSION_KEY = "graphLayoutBaselineVersion";
-const GRAPH_LAYOUT_VERSION = "mindmap-v10";
+const GRAPH_LAYOUT_VERSION = "mindmap-v13";
 // Legacy keys from earlier iterations (for backwards compatibility)
 const LEGACY_PERSONALIZATION_IMAGE_KEY = "personalizationCardImageDataUrl";
 const LEGACY_PERSONALIZATION_IMAGE_CLEANED_KEY = "personalizationCardImageCleaned";
 const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
-  personalization: "./assets/cards/personalization.svg",
+  personalization: "./assets/cards/personalization.png?v=1",
   ab: "./assets/cards/ab-testing-default.png?v=3",
   loyalty: "./assets/cards/loyalty-default.png?v=3",
-  referral: "./assets/cards/referral.svg",
-  mail: "./assets/cards/mailing-sms.svg",
-  chat: "./assets/cards/customer-chat.svg",
-  ads: "./assets/cards/advertising.svg",
-  affiliates: "./assets/cards/affiliates.svg",
-  data: "./assets/cards/customer-data.svg",
+  referral: "./assets/cards/referral.png?v=1",
+  mail: "./assets/cards/mailing-sms.png?v=1",
+  chat: "./assets/cards/customer-chat.png?v=1",
+  ads: "./assets/cards/advertising.png?v=1",
+  affiliates: "./assets/cards/affiliates.png?v=1",
+  data: "./assets/cards/customer-data.png?v=1",
+  quant: "./assets/cards/quant-analytics.png?v=1",
+  qual: "./assets/cards/qual-analytics.png?v=1",
   crm: "./assets/cards/crm.png",
-  subscriptions: "./assets/cards/recharge.jpg?v=3"
+  subscriptions: "./assets/cards/recharge.jpg?v=3",
+  reorder: "./assets/cards/upsell-cross-sell-default.png?v=2",
+  upsell: "./assets/cards/post-purchase-default.png?v=2"
 };
 
 function getSavedNodePositions() {
@@ -240,6 +247,10 @@ function sentenceCaseSmart(input) {
   const s = (input ?? "").toString();
   if (!s.trim()) return s;
 
+  const trimmed = s.trim();
+  // Keep "testing" lowercase (sentenceCaseSmart would otherwise title-case it after "A/B").
+  if (/^a\/b\s+testing$/i.test(trimmed)) return "A/B testing";
+
   // Lowercase words, but preserve short ALL-CAPS tokens like CRM/SMS/UGC.
   const tokens = s.split(/(\s+)/);
   const lowered = tokens
@@ -317,6 +328,7 @@ function approxNodeSize(nodeId) {
   if (nodeId === "data") return { w: 146, h: 116 };
   if (nodeId === "crm") return { w: 158, h: 142 };
   if (nodeId === "subscriptions") return { w: 146, h: 116 };
+  if (nodeId === "reorder" || nodeId === "upsell") return { w: 146, h: 116 };
   return { w: 170, h: 72 };
 }
 
@@ -437,6 +449,15 @@ function animateTo(transformRef, viewportEl, next, ms = 420) {
 // (Controls removed) The experience is map + details only.
 
 function render(graph) {
+  els.stage = document.getElementById("stage");
+  els.viewport = document.getElementById("viewport");
+  els.edges = document.getElementById("edges");
+  els.nodes = document.getElementById("nodes");
+  if (!els.stage || !els.viewport || !els.edges || !els.nodes) {
+    console.error("render: map DOM (#stage / #viewport / #edges / #nodes) not found");
+    return;
+  }
+
   const categoryById = new Map(graph.categories.map((c) => [c.id, c]));
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
   const neighbors = computeNeighbors(graph.edges);
@@ -576,12 +597,18 @@ function render(graph) {
   /** @type {Map<string, HTMLButtonElement>} */
   const nodeEls = new Map();
 
-  // Loyalty / A/B → Recharge swap is session-only; full page refresh always restores bundled main artwork.
+  // Loyalty / A/B / repeat leaf cards → Recharge swap is session-only; full page refresh restores bundled main artwork.
   let loyaltyMainStripped = false;
   let loyaltyRechargeRevealUnlocked = false;
 
   let abMainStripped = false;
   let abRechargeRevealUnlocked = false;
+
+  let reorderMainStripped = false;
+  let reorderRechargeRevealUnlocked = false;
+
+  let upsellMainStripped = false;
+  let upsellRechargeRevealUnlocked = false;
 
   for (const n of graph.nodes) {
     const cat = categoryById.get(n.category);
@@ -631,20 +658,24 @@ function render(graph) {
       const stored = getNodeCardImageDataUrl(n.id);
       const cardImageSrc =
         n.id === "subscriptions"
-          ? bundled || stored
-          : n.id === "ab" || n.id === "loyalty"
+          ? bundled
+          : n.id === "ab" || n.id === "loyalty" || n.id === "reorder" || n.id === "upsell"
             ? bundled || stored
             : stored || bundled;
       const isBuiltInImageCard =
         n.id === "personalization" ||
         n.id === "ab" ||
         n.id === "loyalty" ||
+        n.id === "reorder" ||
+        n.id === "upsell" ||
         n.id === "referral" ||
         n.id === "mail" ||
         n.id === "chat" ||
         n.id === "ads" ||
         n.id === "affiliates" ||
         n.id === "data" ||
+        n.id === "quant" ||
+        n.id === "qual" ||
         n.id === "crm" ||
         n.id === "subscriptions";
       const isImageCard = Boolean(cardImageSrc) || isBuiltInImageCard;
@@ -685,7 +716,21 @@ function render(graph) {
               stack.appendChild(mainImg);
             }
             btn.appendChild(stack);
-          } else if (n.id === "ab") {
+          } else if (n.id === "ab" || n.id === "reorder" || n.id === "upsell") {
+            const mainClass =
+              n.id === "ab"
+                ? "node__comboLogo--abMain"
+                : n.id === "reorder"
+                  ? "node__comboLogo--reorderMain"
+                  : "node__comboLogo--upsellMain";
+            const stripped =
+              n.id === "ab" ? abMainStripped : n.id === "reorder" ? reorderMainStripped : upsellMainStripped;
+            const mainAlt =
+              n.id === "ab"
+                ? "A/B testing tools"
+                : n.id === "reorder"
+                  ? "Repeat and REBUY"
+                  : "AfterSell and CartHook";
             const stack = el("div", "node__imageStack");
             const rechargeBundled = DEFAULT_CARD_IMAGE_BY_NODE_ID.subscriptions;
             const rechargeImg = /** @type {HTMLImageElement} */ (document.createElement("img"));
@@ -698,13 +743,13 @@ function render(graph) {
             rechargeImg.setAttribute("aria-hidden", "true");
             const mainImg = /** @type {HTMLImageElement} */ (document.createElement("img"));
             mainImg.className = "node__comboLogo";
-            mainImg.alt = "A/B testing tools";
+            mainImg.alt = mainAlt;
             mainImg.loading = "lazy";
             mainImg.decoding = "async";
             mainImg.src = cardImageSrc;
-            mainImg.classList.add("node__comboLogo--abMain");
+            mainImg.classList.add(mainClass);
             stack.appendChild(rechargeImg);
-            if (!abMainStripped) {
+            if (!stripped) {
               stack.appendChild(mainImg);
             }
             btn.appendChild(stack);
@@ -724,11 +769,15 @@ function render(graph) {
                           ? "Affiliates & influencers tools"
                           : n.id === "data"
                             ? "Customer data"
-                            : n.id === "crm"
-                              ? "CRM"
-                              : n.id === "subscriptions"
-                                ? "Recharge"
-                                : "Personalization tools";
+                            : n.id === "quant"
+                              ? "Quantitative analytics tools"
+                              : n.id === "qual"
+                                ? "Qualitative analytics tools"
+                                : n.id === "crm"
+                                  ? "CRM"
+                                  : n.id === "subscriptions"
+                                    ? "Recharge"
+                                    : "Personalization tools";
             img.loading = "lazy";
             img.decoding = "async";
             img.src = cardImageSrc;
@@ -756,6 +805,8 @@ function render(graph) {
   /** Tracks visible state so we only run pop + confetti on false → true. */
   let loyaltyRechargeRevealWasVisible = false;
   let abRechargeRevealWasVisible = false;
+  let reorderRechargeRevealWasVisible = false;
+  let upsellRechargeRevealWasVisible = false;
   /** @type {number | null} */
   let rainTeardownTimerId = null;
   /** Container waiting for delayed removal (cleared if rain restarts). */
@@ -1007,6 +1058,14 @@ function render(graph) {
     abMainStripped = true;
   }
 
+  function persistReorderMainStripped() {
+    reorderMainStripped = true;
+  }
+
+  function persistUpsellMainStripped() {
+    upsellMainStripped = true;
+  }
+
   function exitLoyaltyMainArtwork(loyaltyBtn) {
     if (!(loyaltyBtn instanceof HTMLElement)) return;
     const main = loyaltyBtn.querySelector(".node__comboLogo--loyaltyMain");
@@ -1046,6 +1105,50 @@ function render(graph) {
       () => {
         main.remove();
         persistAbMainStripped();
+      },
+      { once: true }
+    );
+  }
+
+  function exitReorderMainArtwork(reorderBtn) {
+    if (!(reorderBtn instanceof HTMLElement)) return;
+    const main = reorderBtn.querySelector(".node__comboLogo--reorderMain");
+    if (!(main instanceof HTMLElement)) return;
+    if (main.dataset.reorderMainExiting === "1") return;
+    main.dataset.reorderMainExiting = "1";
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      main.remove();
+      persistReorderMainStripped();
+      return;
+    }
+    main.classList.add("node__comboLogo--loyaltyMainExit");
+    main.addEventListener(
+      "animationend",
+      () => {
+        main.remove();
+        persistReorderMainStripped();
+      },
+      { once: true }
+    );
+  }
+
+  function exitUpsellMainArtwork(upsellBtn) {
+    if (!(upsellBtn instanceof HTMLElement)) return;
+    const main = upsellBtn.querySelector(".node__comboLogo--upsellMain");
+    if (!(main instanceof HTMLElement)) return;
+    if (main.dataset.upsellMainExiting === "1") return;
+    main.dataset.upsellMainExiting = "1";
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      main.remove();
+      persistUpsellMainStripped();
+      return;
+    }
+    main.classList.add("node__comboLogo--loyaltyMainExit");
+    main.addEventListener(
+      "animationend",
+      () => {
+        main.remove();
+        persistUpsellMainStripped();
       },
       { once: true }
     );
@@ -1144,6 +1247,98 @@ function render(graph) {
     abRechargeRevealWasVisible = true;
   }
 
+  function syncReorderRechargeStack() {
+    const btn = nodeEls.get("reorder");
+    if (!btn) return;
+    const recharge = btn.querySelector(".node__comboLogo--recharge");
+    if (!(recharge instanceof HTMLImageElement)) return;
+    const show = reorderRechargeRevealUnlocked;
+
+    if (!show) {
+      recharge.hidden = true;
+      recharge.setAttribute("aria-hidden", "true");
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      reorderRechargeRevealWasVisible = false;
+      return;
+    }
+
+    recharge.hidden = false;
+    recharge.setAttribute("aria-hidden", "false");
+
+    if (!reorderRechargeRevealWasVisible) {
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      void recharge.offsetWidth;
+      recharge.classList.add("node__comboLogo--recharge--pop");
+      const reducedMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+      if (!reducedMotion) {
+        burstRechargeConfetti(recharge);
+      }
+      if (!reorderMainStripped) {
+        const reorderBtn = btn;
+        if (reducedMotion) {
+          window.setTimeout(() => exitReorderMainArtwork(reorderBtn), 200);
+        } else {
+          const mainExitFallbackId = window.setTimeout(() => exitReorderMainArtwork(reorderBtn), 1400);
+          recharge.addEventListener(
+            "animationend",
+            () => {
+              window.clearTimeout(mainExitFallbackId);
+              window.setTimeout(() => exitReorderMainArtwork(reorderBtn), 200);
+            },
+            { once: true }
+          );
+        }
+      }
+    }
+    reorderRechargeRevealWasVisible = true;
+  }
+
+  function syncUpsellRechargeStack() {
+    const btn = nodeEls.get("upsell");
+    if (!btn) return;
+    const recharge = btn.querySelector(".node__comboLogo--recharge");
+    if (!(recharge instanceof HTMLImageElement)) return;
+    const show = upsellRechargeRevealUnlocked;
+
+    if (!show) {
+      recharge.hidden = true;
+      recharge.setAttribute("aria-hidden", "true");
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      upsellRechargeRevealWasVisible = false;
+      return;
+    }
+
+    recharge.hidden = false;
+    recharge.setAttribute("aria-hidden", "false");
+
+    if (!upsellRechargeRevealWasVisible) {
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      void recharge.offsetWidth;
+      recharge.classList.add("node__comboLogo--recharge--pop");
+      const reducedMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+      if (!reducedMotion) {
+        burstRechargeConfetti(recharge);
+      }
+      if (!upsellMainStripped) {
+        const upsellBtn = btn;
+        if (reducedMotion) {
+          window.setTimeout(() => exitUpsellMainArtwork(upsellBtn), 200);
+        } else {
+          const mainExitFallbackId = window.setTimeout(() => exitUpsellMainArtwork(upsellBtn), 1400);
+          recharge.addEventListener(
+            "animationend",
+            () => {
+              window.clearTimeout(mainExitFallbackId);
+              window.setTimeout(() => exitUpsellMainArtwork(upsellBtn), 200);
+            },
+            { once: true }
+          );
+        }
+      }
+    }
+    upsellRechargeRevealWasVisible = true;
+  }
+
   function connectedSet(id) {
     const set = new Set([id]);
     for (const v of neighbors.get(id) ?? []) set.add(v);
@@ -1185,6 +1380,8 @@ function render(graph) {
     setEdgeClasses(activeIds);
     syncLoyaltyRechargeStack();
     syncAbRechargeStack();
+    syncReorderRechargeStack();
+    syncUpsellRechargeStack();
   }
 
   function setSelected(id) {
@@ -1219,10 +1416,26 @@ function render(graph) {
       abRechargeRevealUnlocked = true;
       syncAbRechargeStack();
     }
+    if (id === "reorder" && !reorderRechargeRevealUnlocked) {
+      reorderRechargeRevealUnlocked = true;
+      syncReorderRechargeStack();
+    }
+    if (id === "upsell" && !upsellRechargeRevealUnlocked) {
+      upsellRechargeRevealUnlocked = true;
+      syncUpsellRechargeStack();
+      upsellMerchantSoloArmNextCanvas = true;
+    }
   });
 
   function resetView(animate = true) {
-    const r = els.stage.getBoundingClientRect();
+    let r = els.stage.getBoundingClientRect();
+    // If stage has no layout yet (e.g. first render while slide is opacity:0),
+    // fall back to viewport minus known padding so nodes are never off-screen.
+    if (r.width === 0 || r.height === 0) {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      r = { left: 18, top: 18, width: Math.max(vw - 36, 200), height: Math.max(vh - 70, 200) };
+    }
     const next = centerToTransform({
       canvas: graph.canvas,
       stageRect: r,
@@ -1251,8 +1464,8 @@ function render(graph) {
     });
   };
 
-  // If slide 2 is already active when the graph finishes loading, trigger the layout hook now.
-  if (window.slideshowPagination?.index === 1) {
+  // If a map slide is already active when the graph finishes loading, trigger the layout hook now.
+  if (window.slideshowPagination && window.slideshowPagination.index >= 1) {
     slideshowSlide2LayoutHook();
   }
 
@@ -1378,10 +1591,31 @@ function render(graph) {
     }
   });
 
-  // Tiny UX: click empty space clears selection.
+  // Empty-canvas click flow:
+  //   Click 1 (selection active) → clear selection so the full map is visible at full opacity.
+  //   Click 2 (selection already null, arm set) → fade everything except Merchant.
+  // This matches the rest of the storyboard where the user gets to see the full map before it collapses.
   els.stage.addEventListener("click", (e) => {
     if (!(e.target instanceof Element)) return;
     if (e.target.closest(".node")) return;
+
+    const hadSelection = state.selectedId != null;
+    if (hadSelection) {
+      setSelected(null);
+      return;
+    }
+
+    if (
+      upsellMerchantSoloArmNextCanvas &&
+      window.slideshowPagination?.index === 1 &&
+      els.viewport instanceof HTMLElement
+    ) {
+      els.viewport.classList.add("viewport--merchantSolo");
+      upsellMerchantSoloArmNextCanvas = false;
+      resetView(false);
+      return;
+    }
+
     setSelected(null);
   });
 }
@@ -1564,6 +1798,14 @@ async function enhanceForCrispDisplay(dataUrl, opts = {}) {
   return canvas.toDataURL("image/png");
 }
 
+/** Move the shared `.stageWrap` between full-map and merchant-focus slide mounts. */
+function mountMapStage(mountEl) {
+  const stage = document.getElementById("stage");
+  const wrap = stage?.closest(".stageWrap");
+  if (!(wrap instanceof HTMLElement) || !mountEl) return;
+  mountEl.appendChild(wrap);
+}
+
 /**
  * Wire up the slideshow. Called once at module parse time — the script is
  * type="module" deferred, so the full DOM is already available.
@@ -1584,8 +1826,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 2) {
-    console.error(`[slideshow] expected 2 slide sections, found ${slides.length}`);
+  if (slides.length < 3) {
+    console.error(`[slideshow] expected 3 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -1594,6 +1836,23 @@ function initSlideshow() {
 
   function goTo(index) {
     if (index < 0 || index >= count || index === current) return;
+
+    if (index !== 1) upsellMerchantSoloArmNextCanvas = false;
+
+    const mount1 = document.getElementById("mapSlideMount1");
+    const mount2 = document.getElementById("mapSlideMount2");
+    const viewport = document.getElementById("viewport");
+
+    if (index === 0) {
+      viewport?.classList.remove("viewport--merchantSolo");
+      if (mount1) mountMapStage(mount1);
+    } else if (index === 1) {
+      viewport?.classList.remove("viewport--merchantSolo");
+      if (mount1) mountMapStage(mount1);
+    } else if (index === 2) {
+      if (mount2) mountMapStage(mount2);
+    }
+
     current = index;
 
     for (let i = 0; i < slides.length; i++) {
@@ -1610,11 +1869,31 @@ function initSlideshow() {
       else btn.removeAttribute("aria-current");
     });
 
-    if (index === 1) {
+    if (index === 2) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          viewport?.classList.add("viewport--merchantSolo");
+        });
+      });
+    }
+
+    if (index === 1 || index === 2) {
       slideshowSlide2LayoutHook?.();
+      requestAnimationFrame(() => {
+        slideshowSlide2LayoutHook?.();
+        window.setTimeout(() => slideshowSlide2LayoutHook?.(), 560);
+      });
       const stage = document.getElementById("stage");
       if (stage instanceof HTMLElement) stage.focus({ preventScroll: true });
     }
+
+    document.dispatchEvent(
+      new CustomEvent("slideshow:change", {
+        bubbles: true,
+        composed: true,
+        detail: { index, count }
+      })
+    );
   }
 
   list.replaceChildren();
