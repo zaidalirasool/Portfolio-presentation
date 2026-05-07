@@ -104,12 +104,13 @@ html, body {
 .introSlide__title {
   margin: 0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
-  font-size: 56px;
+  font-size: clamp(28px, 5vw, 56px);
   font-weight: 800;
   letter-spacing: 0.02em;
   line-height: 1.05;
   text-transform: uppercase;
   color: var(--text);
+  white-space: nowrap;
 }
 
 
@@ -484,6 +485,95 @@ html, body {
 }
 .node:hover { background: var(--node-bg-hover); }
 .node[data-muted="true"] { opacity: 0.26; filter: saturate(0.7); }
+
+/* Slide 4: pre and loyalty stay visible by default. Subscriptions joins
+   this set after clicking Repeat purchase (it's revealed via reveal()).
+   Repeat purchase and Measure performance show as muted/diffused — same as Merchant. */
+.viewport.viewport--slide4 .nodes .node[data-id="pre"]:not([data-hidden="true"]),
+.viewport.viewport--slide4 .nodes .node[data-id="loyalty"]:not([data-hidden="true"]),
+.viewport.viewport--slide4 .nodes .node[data-id="subscriptions"]:not([data-hidden="true"]) {
+  opacity: 1;
+  filter: none;
+}
+
+/* Slide 4: only Loyalty is shown as a Pre-purchase child. The other pre-children
+   and all Measure/Repeat siblings are permanently invisible — !important ensures
+   applyFiltering()'s data-muted/data-hidden state changes cannot override this. */
+.viewport.viewport--slide4 .nodes .node[data-id="ab"],
+.viewport.viewport--slide4 .nodes .node[data-id="personalization"],
+.viewport.viewport--slide4 .nodes .node[data-id="chat"],
+.viewport.viewport--slide4 .nodes .node[data-id="referral"],
+.viewport.viewport--slide4 .nodes .node[data-id="affiliates"],
+.viewport.viewport--slide4 .nodes .node[data-id="mail"],
+.viewport.viewport--slide4 .nodes .node[data-id="ads"],
+.viewport.viewport--slide4 .nodes .node[data-id="quant"],
+.viewport.viewport--slide4 .nodes .node[data-id="qual"],
+.viewport.viewport--slide4 .nodes .node[data-id="data"],
+.viewport.viewport--slide4 .nodes .node[data-id="crm"],
+.viewport.viewport--slide4 .nodes .node[data-id="reorder"],
+.viewport.viewport--slide4 .nodes .node[data-id="upsell"] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  transform: translate(-50%, -50%) scale(0.94) !important;
+}
+
+/* Hide their connecting edges to the hubs too */
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="ab"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="personalization"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="chat"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="referral"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="affiliates"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="mail"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="ads"],
+.viewport.viewport--slide4 .edges .edge[data-a="measure"][data-b="quant"],
+.viewport.viewport--slide4 .edges .edge[data-a="measure"][data-b="qual"],
+.viewport.viewport--slide4 .edges .edge[data-a="measure"][data-b="data"],
+.viewport.viewport--slide4 .edges .edge[data-a="measure"][data-b="crm"],
+.viewport.viewport--slide4 .edges .edge[data-a="repeat"][data-b="reorder"],
+.viewport.viewport--slide4 .edges .edge[data-a="repeat"][data-b="upsell"] {
+  opacity: 0 !important;
+}
+
+/* Card hanger: blue footer tab on the Loyalty card, visible on slide 4 only. */
+.cardHanger { display: none; }
+
+.viewport.viewport--slide4 .node[data-id="loyalty"] .cardHanger {
+  display: flex;
+  height: 44px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;                        /* gap: -8px clamped to 0 — negative gap is not valid CSS */
+  flex-shrink: 0;
+  align-self: stretch;
+  box-sizing: border-box;
+  /* Blue/lavender fill, flush to the card bottom — override node border-radius on this element */
+  padding: 0 12px;
+  margin: 8px -10px -10px -10px; /* pull out to the card edges (card padding is 10px) */
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: rgba(199, 210, 254, 0.55);  /* indigo-200 @ 55% — matches the template's lavender */
+  /* Inset shadow on the top edge — simulates the white card sitting above the hanger */
+  box-shadow: inset 0 4px 6px -2px rgba(0, 0, 0, 0.22);
+}
+
+.cardHanger__label {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(55, 48, 163, 0.9);          /* indigo-800 */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  transition: color 150ms ease;
+}
+
+.cardHanger:hover .cardHanger__label {
+  color: #0129F1;
+}
+
+/* hide the icon placeholder entirely */
+.cardHanger__icon { display: none; }
 .node[data-selected="true"] {
   outline: none;
   box-shadow: var(--node-stroke-ring-selected), var(--shadow2);
@@ -1040,3 +1130,142 @@ html, body {
 .edge.edge--hidden {
   opacity: 0;
 }
+
+/* ── Loyalty hanger modal ───────────────────────────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal[hidden] { display: none; }
+
+@keyframes modalBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalCardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(4px);
+  animation: modalBackdropIn 200ms ease both;
+}
+
+.modal__card {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  max-width: min(92vw, 900px);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalCardIn 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal__close {
+  flex-shrink: 0;
+  /* Match the H2 line-height so the button sits on the same baseline */
+  width: 28px;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease, color 150ms ease;
+  margin-left: auto;
+}
+.modal__close:hover {
+  background: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.modal__body {
+  padding: 24px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal__tableImg {
+  display: block;
+  width: calc(100% - 8px);
+  height: auto;
+  border-radius: 4px;
+  margin-top: 8px;
+  margin-bottom: 0;
+  align-self: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
+}
+
+.modal__eyebrow {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.44);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.modal__title {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+  line-height: 1.25;
+}
+
+.modal__desc {
+  margin: 4px 0 0;
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.6;
+}
+
+.modal__hanger {
+  display: flex;
+  height: 44px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 20px;
+  background: rgba(199, 210, 254, 0.55);
+  box-shadow: inset 0 4px 6px -2px rgba(0, 0, 0, 0.22);
+}
+
+.modal__learnMore {
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(55, 48, 163, 0.9);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 150ms ease;
+}
+.modal__learnMore:hover { color: #0129F1; }

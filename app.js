@@ -20,6 +20,12 @@ let merchantClonesArmed = false;
 /** Called when leaving the map slide to remove any spawned merchant clones. */
 let merchantCloneCleanup = /** @type {null | (() => void)} */ (null);
 
+/** Slide 4 enter: focus on Pre-purchase + Loyalty, mute everything else. */
+let slideshowEnterSlide4Hook = /** @type {null | (() => void)} */ (null);
+
+/** Slide 4 leave: clear the slide 4 selection so it doesn't bleed into other slides. */
+let slideshowLeaveSlide4Hook = /** @type {null | (() => void)} */ (null);
+
 // Defensive: remove any stale hint element if present (e.g., old cached HTML).
 document.getElementById("stageHint")?.remove();
 
@@ -722,6 +728,13 @@ function render(graph) {
               stack.appendChild(mainImg);
             }
             btn.appendChild(stack);
+
+            // Slide 4 demo: card hanger footer attached to the Loyalty card.
+            // Visibility is controlled via CSS (viewport--slide4).
+            const hanger = el("div", "cardHanger");
+            const hangerLabel = el("span", "cardHanger__label", "Learn more");
+            hanger.appendChild(hangerLabel);
+            btn.appendChild(hanger);
           } else if (n.id === "ab" || n.id === "reorder" || n.id === "upsell") {
             const mainClass =
               n.id === "ab"
@@ -1409,8 +1422,20 @@ function render(graph) {
     if (id === "merchant") {
       reveal(["repeat", "pre", "measure"]);
     } else if (id && HUB_IDS.has(id)) {
-      const kids = [...(neighbors.get(id) ?? [])].filter((x) => x !== "merchant");
-      reveal(kids);
+      const onSlide4 = window.slideshowPagination?.index === 3;
+      if (id === "repeat" && onSlide4) {
+        // Slide 4 demo: clicking Repeat purchase reveals only Subscriptions.
+        reveal(["subscriptions"]);
+      } else if (id === "pre" && onSlide4) {
+        // Slide 4 demo: Pre-purchase only ever shows Loyalty (already revealed on entry).
+        reveal(["loyalty"]);
+      } else if (id === "measure" && onSlide4) {
+        // Slide 4 demo: Measure performance has no expanded children.
+        // No-op reveal — keeps the slide's controlled state.
+      } else {
+        const kids = [...(neighbors.get(id) ?? [])].filter((x) => x !== "merchant");
+        reveal(kids);
+      }
     }
     setSelected(id);
     // Loyalty click after rain: Recharge pops + confetti; main artwork exits automatically after the pop.
@@ -1470,9 +1495,23 @@ function render(graph) {
     });
   };
 
+  // Slide 4 starts with Pre-purchase clicked + Loyalty active.
+  // connectedSet("loyalty") is {loyalty, pre} per data.json edges, so applyFiltering
+  // automatically mutes every other node and edge.
+  slideshowEnterSlide4Hook = () => {
+    els.viewport.classList.add("viewport--slide4");
+    reveal(["pre", "loyalty", "repeat", "measure"]);
+    setSelected("loyalty");
+  };
+  slideshowLeaveSlide4Hook = () => {
+    els.viewport.classList.remove("viewport--slide4");
+    if (state.selectedId === "loyalty" || state.selectedId === "repeat") setSelected(null);
+  };
+
   // If a map slide is already active when the graph finishes loading, trigger the layout hook now.
   if (window.slideshowPagination && window.slideshowPagination.index >= 1) {
     slideshowSlide2LayoutHook();
+    if (window.slideshowPagination.index === 3) slideshowEnterSlide4Hook?.();
   }
 
   let isPanning = false;
@@ -1658,6 +1697,9 @@ function render(graph) {
   els.stage.addEventListener("click", (e) => {
     if (!(e.target instanceof Element)) return;
     if (e.target.closest(".node")) return;
+
+    // Slide 4 is a controlled demo state — empty-canvas clicks are no-ops there.
+    if (window.slideshowPagination?.index === 3) return;
 
     const hadSelection = state.selectedId != null;
     if (hadSelection) {
@@ -1895,8 +1937,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 3) {
-    console.error(`[slideshow] expected 3 slide sections, found ${slides.length}`);
+  if (slides.length < 4) {
+    console.error(`[slideshow] expected 4 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -1906,6 +1948,8 @@ function initSlideshow() {
   function goTo(index) {
     if (index < 0 || index >= count || index === current) return;
 
+    const leavingSlide4 = current === 3 && index !== 3;
+
     if (index !== 1) {
       upsellMerchantSoloArmNextCanvas = false;
       merchantClonesArmed = false;
@@ -1914,18 +1958,19 @@ function initSlideshow() {
     }
 
     const mount1 = document.getElementById("mapSlideMount1");
+    const mount3 = document.getElementById("mapSlideMount3");
     const viewport = document.getElementById("viewport");
 
-    if (index === 0) {
+    if (index === 0 || index === 1 || index === 2) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
-    } else if (index === 1) {
+    } else if (index === 3) {
       viewport?.classList.remove("viewport--merchantSolo");
-      if (mount1) mountMapStage(mount1);
-    } else if (index === 2) {
-      viewport?.classList.remove("viewport--merchantSolo");
-      if (mount1) mountMapStage(mount1);
+      if (mount3) mountMapStage(mount3);
     }
+
+    if (leavingSlide4) slideshowLeaveSlide4Hook?.();
+    if (index === 3) slideshowEnterSlide4Hook?.();
 
     current = index;
 
@@ -1943,7 +1988,7 @@ function initSlideshow() {
       else btn.removeAttribute("aria-current");
     });
 
-    if (index === 1) {
+    if (index === 1 || index === 3) {
       slideshowSlide2LayoutHook?.();
       requestAnimationFrame(() => {
         slideshowSlide2LayoutHook?.();
@@ -2009,6 +2054,40 @@ function initSlideshow() {
 migrateSubscriptionsCardToBundledAsset();
 
 initSlideshow();
+
+// ── Loyalty hanger modal ─────────────────────────────────────────────────────
+(function initLoyaltyModal() {
+  const modal = document.getElementById("loyaltyModal");
+  if (!modal) return;
+
+  const backdrop = modal.querySelector(".modal__backdrop");
+  const closeBtn = modal.querySelector(".modal__close");
+
+  function openModal() {
+    modal.hidden = false;
+    closeBtn?.focus();
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+  }
+
+  // Open when any .cardHanger inside the map is clicked
+  document.addEventListener("click", (e) => {
+    if (!(e.target instanceof Element)) return;
+    if (e.target.closest(".cardHanger")) {
+      e.stopPropagation();
+      openModal();
+    }
+  });
+
+  backdrop?.addEventListener("click", closeModal);
+  closeBtn?.addEventListener("click", closeModal);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.hidden) closeModal();
+  });
+})();
 
 loadGraph()
   .then((g) => render(g))
