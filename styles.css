@@ -33,6 +33,7 @@
 html, body {
   height: 100%;
   margin: 0;
+  overflow-x: hidden;
   background:
     radial-gradient(1000px 700px at 20% -10%, rgba(124, 58, 237, 0.14), transparent 58%),
     radial-gradient(900px 650px at 90% 15%, rgba(37, 99, 235, 0.12), transparent 55%),
@@ -70,12 +71,12 @@ html, body {
 .slide {
   flex: 1;
   min-height: 0;
-  display: flex;
+  display: none;
   flex-direction: column;
 }
 
-.slide[hidden] {
-  display: none !important;
+.slide.is-active {
+  display: flex;
 }
 
 .stageWrap--intro {
@@ -123,16 +124,30 @@ html, body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
-  padding: 18px 18px 8px 18px;
+  /* Extra bottom space so content stays above fixed slide dots */
+  padding: 18px 18px 52px 18px;
   min-height: 0;
 }
 
-/* Slideshow pagination — minimal dots */
+/* Slideshow pagination — minimal dots (fixed so it stays visible when the deck is tall or embedded) */
 .slideshowPagination {
-  flex-shrink: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2147483646;
   display: flex;
   justify-content: center;
-  padding: 10px 18px 18px;
+  padding: 12px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+  pointer-events: auto;
+  isolation: isolate;
+  contain: layout;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.88) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
 .slideshowPagination__dots {
@@ -142,21 +157,33 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
+  pointer-events: auto;
 }
 
 .slideshowPagination__dot {
-  width: 6px;
-  height: 6px;
-  padding: 0;
+  box-sizing: content-box;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  /* No horizontal padding so the visible gap between dots equals the flex `gap` (8px). */
+  padding: 12px 0;
+  margin: -12px 0;
   border: none;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
+  /* Use background-color (not shorthand) so background-clip is never reset */
+  background-color: rgba(0, 0, 0, 0.18);
+  background-clip: content-box;
+  -webkit-background-clip: content-box;
   cursor: pointer;
-  transition: background 160ms ease, transform 160ms ease, width 160ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* Color-only transition so the active state appears instantly (no width animation lag) */
+  transition: background-color 120ms ease;
 }
 
 .slideshowPagination__dot:hover {
-  background: rgba(0, 0, 0, 0.32);
+  background-color: rgba(0, 0, 0, 0.32);
 }
 
 .slideshowPagination__dot:focus-visible {
@@ -165,8 +192,9 @@ html, body {
 }
 
 .slideshowPagination__dot.is-active {
-  width: 18px;
-  background: rgba(0, 0, 0, 0.55);
+  width: 22px;
+  min-width: 22px;
+  background-color: rgba(0, 0, 0, 0.55);
 }
 
 @media (max-width: 980px) {
@@ -301,7 +329,7 @@ html, body {
   width: 170px;
   padding: 10px 10px 10px 10px;
   border-radius: 8px;
-  border: 0.5px solid rgba(0, 0, 0, 0);
+  border: 0.5px solid rgba(0, 0, 0, 0.14);
   border-image: none;
   background: var(--node-bg);
   backdrop-filter: blur(10px);
@@ -432,11 +460,35 @@ html, body {
   overflow: hidden;
 }
 
-/* Merchant node: slightly more premium surface for the avatar treatment */
+/* Merchant node: circle; same frosted surface as other nodes (no gradient) */
 .node.node--merchant {
-  width: fit-content;
-  max-width: 320px;
-  padding: 14px 14px;
+  --sphere-size: 96px;
+  width: var(--sphere-size);
+  height: var(--sphere-size);
+  min-width: var(--sphere-size);
+  max-width: var(--sphere-size);
+  min-height: var(--sphere-size);
+  max-height: var(--sphere-size);
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 0.5px solid rgba(0, 0, 0, 0.14);
+  background: var(--node-bg);
+  box-shadow: var(--shadow2);
+  backdrop-filter: blur(10px);
+}
+
+.node.node--merchant:hover {
+  background: var(--node-bg-hover);
+}
+
+.node.node--merchant[data-selected="true"] {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.22);
+  box-shadow: var(--shadow2);
 }
 
 .node.node--merchant .node__meta {
@@ -448,6 +500,12 @@ html, body {
   font-size: 16px;
   font-weight: 700;
   line-height: 1.2em;
+  margin: 0;
+  max-width: 86px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .node__avatarImg {
@@ -471,7 +529,7 @@ html, body {
   padding: 10px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
-  border: 0.5px solid rgba(0, 0, 0, 0);
+  border: 0.5px solid rgba(0, 0, 0, 0.14);
   box-shadow: var(--shadow2);
 }
 .node.node--merchantLogo:hover {
@@ -550,6 +608,27 @@ html, body {
   max-width: 100%;
 }
 
+/* A/B testing: same stacked layout as Loyalty for main art → Recharge reveal */
+.node.node--imageCard[data-id="ab"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.node.node--imageCard[data-id="ab"] .node__imageStack {
+  width: 100%;
+  min-width: 0;
+}
+
+.node.node--imageCard[data-id="ab"] .node__imageStack .node__comboLogo {
+  width: 100%;
+  max-width: 100%;
+}
+
+.node.node--imageCard[data-id="ab"] .node__comboLogo--recharge {
+  height: auto;
+}
+
 /* Recharge mark above Loyalty art (revealed after emoji rain ends + Loyalty selected) */
 .node__comboLogo--recharge {
   width: 100%;
@@ -599,6 +678,26 @@ html, body {
 /* One-off: shrink only the Personalization card image by 8px */
 .node.node--imageCard[data-id="personalization"] .node__comboLogo {
   width: 118px;
+}
+
+.node.node--imageCard[data-id="crm"] {
+  width: 158px;
+  min-width: 158px;
+  max-width: 158px;
+}
+
+.node.node--imageCard[data-id="crm"] .node__comboLogo {
+  width: 138px;
+}
+
+.node.node--imageCard[data-id="chat"] {
+  width: 162px;
+  min-width: 162px;
+  max-width: 162px;
+}
+
+.node.node--imageCard[data-id="chat"] .node__comboLogo {
+  width: 142px;
 }
 
 .node__logoWrap {

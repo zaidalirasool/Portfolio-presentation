@@ -5,6 +5,12 @@ const els = {
   nodes: document.getElementById("nodes"),
 };
 
+/** Set by render() when the map is ready; slide 2 uses this for a one-shot layout refresh. */
+let slideshowSlide2LayoutHook = /** @type {null | (() => void)} */ (null);
+
+/** Wired by initSlideshow(); called by render() to trigger map layout when slide 2 is shown. */
+let applySlideDeck = /** @type {null | ((index: number) => void)} */ (null);
+
 // Defensive: remove any stale hint element if present (e.g., old cached HTML).
 document.getElementById("stageHint")?.remove();
 
@@ -13,15 +19,16 @@ const MERCHANT_DEFAULT_LOGO_SRC = "./assets/merchant-logo.svg";
 const NODE_CARD_IMAGE_KEY = "nodeCardImageDataUrlById";
 const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
 const NODE_POSITIONS_KEY = "nodePositionsById";
-/** v2: ignore legacy v1 so prior dev sessions do not force “Recharge-only” on every load. */
-const LOYALTY_MAIN_STRIPPED_KEY = "loyaltyMainStrippedV2";
+/** Bump when default coordinates in data.json change so saved drags don’t mask the new layout. */
+const GRAPH_LAYOUT_VERSION_KEY = "graphLayoutBaselineVersion";
+const GRAPH_LAYOUT_VERSION = "mindmap-v10";
 // Legacy keys from earlier iterations (for backwards compatibility)
 const LEGACY_PERSONALIZATION_IMAGE_KEY = "personalizationCardImageDataUrl";
 const LEGACY_PERSONALIZATION_IMAGE_CLEANED_KEY = "personalizationCardImageCleaned";
 const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
   personalization: "./assets/cards/personalization.svg",
-  ab: "./assets/cards/ab-testing.svg",
-  loyalty: "./assets/cards/loyalty.svg?v=2",
+  ab: "./assets/cards/ab-testing-default.png?v=3",
+  loyalty: "./assets/cards/loyalty-default.png?v=3",
   referral: "./assets/cards/referral.svg",
   mail: "./assets/cards/mailing-sms.svg",
   chat: "./assets/cards/customer-chat.svg",
@@ -43,11 +50,17 @@ function getSavedNodePositions() {
   }
 }
 
+/** Anchor nodes are always sourced from data.json; never persist them. */
+const SAVE_SKIP_IDS = new Set(["merchant", "repeat", "measure", "pre"]);
+
 function saveNodePositionsFromGraph(graph) {
   try {
     /** @type {Record<string, {x:number,y:number}>} */
     const out = {};
-    for (const n of graph.nodes) out[n.id] = { x: n.pos.x, y: n.pos.y };
+    for (const n of graph.nodes) {
+      if (SAVE_SKIP_IDS.has(n.id)) continue;
+      out[n.id] = { x: n.pos.x, y: n.pos.y };
+    }
     localStorage.setItem(NODE_POSITIONS_KEY, JSON.stringify(out));
   } catch {
     // ignore
@@ -288,8 +301,9 @@ function edgePath(a, b) {
 
 function approxNodeSize(nodeId) {
   // Must stay in sync with CSS sizes.
-  if (nodeId === "merchant") return { w: 170, h: 72 };
+  if (nodeId === "merchant") return { w: 96, h: 96 };
   if (nodeId === "pre" || nodeId === "repeat" || nodeId === "measure") return { w: 220, h: 56 };
+  if (nodeId === "chat") return { w: 162, h: 146 };
   // Any node with a custom card image becomes an "image card" size.
   if (getNodeCardImageDataUrl(nodeId)) return { w: 146, h: 116 };
   // Built-in image cards (some have defaults).
@@ -298,11 +312,10 @@ function approxNodeSize(nodeId) {
   if (nodeId === "loyalty") return { w: 146, h: 116 };
   if (nodeId === "referral") return { w: 146, h: 116 };
   if (nodeId === "mail") return { w: 146, h: 116 };
-  if (nodeId === "chat") return { w: 146, h: 116 };
   if (nodeId === "ads") return { w: 146, h: 116 };
   if (nodeId === "affiliates") return { w: 146, h: 116 };
   if (nodeId === "data") return { w: 146, h: 116 };
-  if (nodeId === "crm") return { w: 146, h: 116 };
+  if (nodeId === "crm") return { w: 158, h: 142 };
   if (nodeId === "subscriptions") return { w: 146, h: 116 };
   return { w: 170, h: 72 };
 }
@@ -429,10 +442,29 @@ function render(graph) {
   const neighbors = computeNeighbors(graph.edges);
   const HUB_IDS = new Set(["repeat", "pre", "measure"]);
 
+  try {
+    if (localStorage.getItem(GRAPH_LAYOUT_VERSION_KEY) !== GRAPH_LAYOUT_VERSION) {
+      localStorage.removeItem(NODE_POSITIONS_KEY);
+      localStorage.setItem(GRAPH_LAYOUT_VERSION_KEY, GRAPH_LAYOUT_VERSION);
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // Save data.json positions for structural anchors before localStorage can override them.
+  const ANCHOR_IDS = new Set(["merchant", "repeat", "measure", "pre"]);
+  /** @type {Map<string, {x:number,y:number}>} */
+  const anchorPositions = new Map(
+    graph.nodes
+      .filter((n) => ANCHOR_IDS.has(n.id))
+      .map((n) => [n.id, { x: n.pos.x, y: n.pos.y }])
+  );
+
   const savedPositions = getSavedNodePositions();
   let hasCustomLayout = false;
   if (savedPositions) {
     for (const n of graph.nodes) {
+      if (ANCHOR_IDS.has(n.id)) continue; // anchors are always from data.json
       const p = savedPositions[n.id];
       if (!p || typeof p.x !== "number" || typeof p.y !== "number") continue;
       n.pos.x = p.x;
@@ -441,117 +473,82 @@ function render(graph) {
     }
   }
 
+  // Always reset anchors to data.json positions (localStorage must never move them).
+  for (const n of graph.nodes) {
+    const a = anchorPositions.get(n.id);
+    if (a) { n.pos.x = a.x; n.pos.y = a.y; }
+  }
+
   if (!hasCustomLayout) {
-    // Normalize the layout so cards are evenly spaced with no overlaps.
-    layoutNoOverlap(graph, { padding: 34, iterations: 220, stiffness: 0.012 });
-    // Constraint: align Repeat Purchase and Measure Performance horizontally.
-    {
-      const repeat = nodeById.get("repeat");
-      const measure = nodeById.get("measure");
-      if (repeat && measure) {
-        const targetY = (repeat.pos.y + measure.pos.y) / 2;
-        repeat.pos.y = targetY;
-        measure.pos.y = targetY;
-        layoutNoOverlap(graph, {
-          padding: 34,
-          iterations: 140,
-          stiffness: 0.01,
-          locks: { repeat: { lockY: true }, measure: { lockY: true } }
-        });
+    // Resolve overlaps while keeping the hub spine fixed (matches designed mind-map layout).
+    layoutNoOverlap(graph, {
+      padding: 34,
+      iterations: 220,
+      stiffness: 0.012,
+      locks: {
+        merchant: { lockX: true, lockY: true },
+        repeat: { lockX: true, lockY: true },
+        measure: { lockX: true, lockY: true },
+        pre: { lockX: true, lockY: true }
       }
-    }
-    // Constraint: align Re-order & Cross-sell with CRM horizontally.
-    {
-      const reorder = nodeById.get("reorder");
-      const crm = nodeById.get("crm");
-      const repeat = nodeById.get("repeat");
-      if (reorder && crm) {
-        // Prefer: left of and slightly above Repeat Purchase, while staying visually near CRM.
-        const baseY = repeat ? repeat.pos.y : crm.pos.y;
-        reorder.pos.x = repeat ? repeat.pos.x - 260 : reorder.pos.x - 120;
-        reorder.pos.y = Math.min(crm.pos.y - 60, baseY - 80) + (156 - 88);
-        layoutNoOverlap(graph, {
-          padding: 34,
-          iterations: 140,
-          stiffness: 0.01,
-          locks: { reorder: { lockY: true, lockX: true } }
-        });
-      }
-    }
-    // Constraint: nudge Post‑Purchase Upsell to the left.
-    {
-      const upsell = nodeById.get("upsell");
-      if (upsell) {
-        upsell.pos.x -= 140;
-        upsell.pos.y -= 24;
-        layoutNoOverlap(graph, {
-          padding: 34,
-          iterations: 120,
-          stiffness: 0.01,
-          locks: { upsell: { lockX: true, lockY: true } }
-        });
-      }
-    }
-    // Constraint: move Subscriptions left by 64px.
-    {
-      const subscriptions = nodeById.get("subscriptions");
-      if (subscriptions) {
-        subscriptions.pos.x -= 64;
-        layoutNoOverlap(graph, {
-          padding: 34,
-          iterations: 120,
-          stiffness: 0.01,
-          locks: { subscriptions: { lockX: true } }
-        });
-      }
-    }
-    // Constraint: keep Advertising spaced below Customer chat.
+    });
+    // When Advertising is *below* Customer chat, keep vertical clearance (skip same-row layouts).
     {
       const chat = nodeById.get("chat");
       const ads = nodeById.get("ads");
       if (chat && ads) {
         const a = approxNodeSize("chat");
         const b = approxNodeSize("ads");
-        const gap = 28; // desired padding between cards
+        const gap = 28;
         const minDy = (a.h + b.h) / 2 + gap;
-        if (ads.pos.y - chat.pos.y < minDy) {
+        const dy = ads.pos.y - chat.pos.y;
+        if (dy > 8 && dy < minDy) {
           ads.pos.y = chat.pos.y + minDy;
+          ads.pos.y += 12;
+          layoutNoOverlap(graph, {
+            padding: 34,
+            iterations: 140,
+            stiffness: 0.01,
+            locks: { ads: { lockY: true } }
+          });
         }
-        // Nudge a bit further down for visual breathing room.
-        ads.pos.y += 12;
-        layoutNoOverlap(graph, {
-          padding: 34,
-          iterations: 140,
-          stiffness: 0.01,
-          locks: { ads: { lockY: true } }
-        });
       }
     }
+  }
 
-    // Constraint: move Subscriptions section down by 88px (and keep its connected
-    // Repeat Purchase cluster together).
-    {
-      const ids = ["repeat", "subscriptions", "reorder", "upsell"];
-      let changed = false;
-      for (const id of ids) {
-        const n = nodeById.get(id);
-        if (!n) continue;
-        n.pos.y += 88;
-        changed = true;
-      }
-      if (changed) {
-        layoutNoOverlap(graph, {
-          padding: 34,
-          iterations: 120,
-          stiffness: 0.01,
-          locks: {
-            repeat: { lockY: true },
-            subscriptions: { lockY: true },
-            reorder: { lockY: true },
-            upsell: { lockY: true }
-          }
-        });
-      }
+  // Saved layouts: still align Repeat ↔ Measure and drop Pre-purchase below Merchant.
+  {
+    const repeat = nodeById.get("repeat");
+    const measure = nodeById.get("measure");
+    if (repeat && measure) {
+      measure.pos.y = repeat.pos.y;
+      layoutNoOverlap(graph, {
+        padding: 34,
+        iterations: 100,
+        stiffness: 0.01,
+        locks: { repeat: { lockY: true }, measure: { lockY: true } }
+      });
+    }
+  }
+  {
+    const merchant = nodeById.get("merchant");
+    const pre = nodeById.get("pre");
+    if (merchant && pre) {
+      const merchantR = 48;
+      const hubHalfH = 28;
+      const gapBelowMerchant = 52;
+      const minPreY = merchant.pos.y + merchantR + gapBelowMerchant + hubHalfH;
+      if (pre.pos.y < minPreY) pre.pos.y = minPreY;
+      layoutNoOverlap(graph, {
+        padding: 34,
+        iterations: 100,
+        stiffness: 0.01,
+        locks: {
+          pre: { lockY: true },
+          repeat: { lockY: true },
+          measure: { lockY: true }
+        }
+      });
     }
   }
 
@@ -579,16 +576,12 @@ function render(graph) {
   /** @type {Map<string, HTMLButtonElement>} */
   const nodeEls = new Map();
 
+  // Loyalty / A/B → Recharge swap is session-only; full page refresh always restores bundled main artwork.
   let loyaltyMainStripped = false;
-  try {
-    loyaltyMainStripped = localStorage.getItem(LOYALTY_MAIN_STRIPPED_KEY) === "1";
-    localStorage.removeItem("loyaltyMainStrippedV1");
-  } catch {
-    /* ignore */
-  }
-  // Reveal is not persisted: Recharge stays hidden until rain + Loyalty click this session.
-  // If main was already stripped (solo card), show Recharge without replaying pop/confetti.
-  let loyaltyRechargeRevealUnlocked = loyaltyMainStripped;
+  let loyaltyRechargeRevealUnlocked = false;
+
+  let abMainStripped = false;
+  let abRechargeRevealUnlocked = false;
 
   for (const n of graph.nodes) {
     const cat = categoryById.get(n.category);
@@ -637,7 +630,11 @@ function render(graph) {
       const bundled = DEFAULT_CARD_IMAGE_BY_NODE_ID[n.id] || null;
       const stored = getNodeCardImageDataUrl(n.id);
       const cardImageSrc =
-        n.id === "subscriptions" ? bundled || stored : stored || bundled;
+        n.id === "subscriptions"
+          ? bundled || stored
+          : n.id === "ab" || n.id === "loyalty"
+            ? bundled || stored
+            : stored || bundled;
       const isBuiltInImageCard =
         n.id === "personalization" ||
         n.id === "ab" ||
@@ -688,13 +685,34 @@ function render(graph) {
               stack.appendChild(mainImg);
             }
             btn.appendChild(stack);
+          } else if (n.id === "ab") {
+            const stack = el("div", "node__imageStack");
+            const rechargeBundled = DEFAULT_CARD_IMAGE_BY_NODE_ID.subscriptions;
+            const rechargeImg = /** @type {HTMLImageElement} */ (document.createElement("img"));
+            rechargeImg.className = "node__comboLogo node__comboLogo--recharge";
+            rechargeImg.src = rechargeBundled ?? "";
+            rechargeImg.alt = "Recharge";
+            rechargeImg.loading = "lazy";
+            rechargeImg.decoding = "async";
+            rechargeImg.hidden = true;
+            rechargeImg.setAttribute("aria-hidden", "true");
+            const mainImg = /** @type {HTMLImageElement} */ (document.createElement("img"));
+            mainImg.className = "node__comboLogo";
+            mainImg.alt = "A/B testing tools";
+            mainImg.loading = "lazy";
+            mainImg.decoding = "async";
+            mainImg.src = cardImageSrc;
+            mainImg.classList.add("node__comboLogo--abMain");
+            stack.appendChild(rechargeImg);
+            if (!abMainStripped) {
+              stack.appendChild(mainImg);
+            }
+            btn.appendChild(stack);
           } else {
             const img = /** @type {HTMLImageElement} */ (document.createElement("img"));
             img.className = "node__comboLogo";
             img.alt =
-              n.id === "ab"
-                ? "A/B testing tools"
-                : n.id === "referral"
+              n.id === "referral"
                   ? "Referral tools"
                   : n.id === "mail"
                     ? "Mailing & SMS tools"
@@ -736,7 +754,8 @@ function render(graph) {
   /** After emoji rain fully tears down, user may unlock Recharge by clicking Loyalty. */
   let emojiRainEndedForLoyalty = false;
   /** Tracks visible state so we only run pop + confetti on false → true. */
-  let loyaltyRechargeRevealWasVisible = loyaltyMainStripped;
+  let loyaltyRechargeRevealWasVisible = false;
+  let abRechargeRevealWasVisible = false;
   /** @type {number | null} */
   let rainTeardownTimerId = null;
   /** Container waiting for delayed removal (cleared if rain restarts). */
@@ -982,11 +1001,10 @@ function render(graph) {
 
   function persistLoyaltyMainStripped() {
     loyaltyMainStripped = true;
-    try {
-      localStorage.setItem(LOYALTY_MAIN_STRIPPED_KEY, "1");
-    } catch {
-      /* ignore */
-    }
+  }
+
+  function persistAbMainStripped() {
+    abMainStripped = true;
   }
 
   function exitLoyaltyMainArtwork(loyaltyBtn) {
@@ -1006,6 +1024,28 @@ function render(graph) {
       () => {
         main.remove();
         persistLoyaltyMainStripped();
+      },
+      { once: true }
+    );
+  }
+
+  function exitAbMainArtwork(abBtn) {
+    if (!(abBtn instanceof HTMLElement)) return;
+    const main = abBtn.querySelector(".node__comboLogo--abMain");
+    if (!(main instanceof HTMLElement)) return;
+    if (main.dataset.abMainExiting === "1") return;
+    main.dataset.abMainExiting = "1";
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      main.remove();
+      persistAbMainStripped();
+      return;
+    }
+    main.classList.add("node__comboLogo--loyaltyMainExit");
+    main.addEventListener(
+      "animationend",
+      () => {
+        main.remove();
+        persistAbMainStripped();
       },
       { once: true }
     );
@@ -1058,6 +1098,52 @@ function render(graph) {
     loyaltyRechargeRevealWasVisible = true;
   }
 
+  function syncAbRechargeStack() {
+    const btn = nodeEls.get("ab");
+    if (!btn) return;
+    const recharge = btn.querySelector(".node__comboLogo--recharge");
+    if (!(recharge instanceof HTMLImageElement)) return;
+    const show = abRechargeRevealUnlocked;
+
+    if (!show) {
+      recharge.hidden = true;
+      recharge.setAttribute("aria-hidden", "true");
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      abRechargeRevealWasVisible = false;
+      return;
+    }
+
+    recharge.hidden = false;
+    recharge.setAttribute("aria-hidden", "false");
+
+    if (!abRechargeRevealWasVisible) {
+      recharge.classList.remove("node__comboLogo--recharge--pop");
+      void recharge.offsetWidth;
+      recharge.classList.add("node__comboLogo--recharge--pop");
+      const reducedMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+      if (!reducedMotion) {
+        burstRechargeConfetti(recharge);
+      }
+      if (!abMainStripped) {
+        const abBtn = btn;
+        if (reducedMotion) {
+          window.setTimeout(() => exitAbMainArtwork(abBtn), 200);
+        } else {
+          const mainExitFallbackId = window.setTimeout(() => exitAbMainArtwork(abBtn), 1400);
+          recharge.addEventListener(
+            "animationend",
+            () => {
+              window.clearTimeout(mainExitFallbackId);
+              window.setTimeout(() => exitAbMainArtwork(abBtn), 200);
+            },
+            { once: true }
+          );
+        }
+      }
+    }
+    abRechargeRevealWasVisible = true;
+  }
+
   function connectedSet(id) {
     const set = new Set([id]);
     for (const v of neighbors.get(id) ?? []) set.add(v);
@@ -1098,6 +1184,7 @@ function render(graph) {
     // Edges only react to selection (keep search/category lightweight).
     setEdgeClasses(activeIds);
     syncLoyaltyRechargeStack();
+    syncAbRechargeStack();
   }
 
   function setSelected(id) {
@@ -1128,6 +1215,10 @@ function render(graph) {
       loyaltyRechargeRevealUnlocked = true;
       syncLoyaltyRechargeStack();
     }
+    if (id === "ab" && !abRechargeRevealUnlocked) {
+      abRechargeRevealUnlocked = true;
+      syncAbRechargeStack();
+    }
   });
 
   function resetView(animate = true) {
@@ -1154,15 +1245,16 @@ function render(graph) {
   maybeRain();
 
   // Map initializes while slide 2 may be hidden — rect is 0×0. Re-measure when that slide is shown.
-  const refreshStageLayout = () => {
+  slideshowSlide2LayoutHook = () => {
     requestAnimationFrame(() => {
       resetView(false);
     });
   };
-  document.addEventListener("slideshow:change", (e) => {
-    const ce = /** @type {CustomEvent<{ index: number }>} */ (e);
-    if (ce.detail.index === 1) refreshStageLayout();
-  });
+
+  // If slide 2 is already active when the graph finishes loading, trigger the layout hook now.
+  if (window.slideshowPagination?.index === 1) {
+    slideshowSlide2LayoutHook();
+  }
 
   let isPanning = false;
   /** @type {{x:number,y:number} | null} */
@@ -1472,109 +1564,106 @@ async function enhanceForCrispDisplay(dataUrl, opts = {}) {
   return canvas.toDataURL("image/png");
 }
 
-function initSlideshowPagination() {
-  const nav = document.querySelector(".slideshowPagination");
+/**
+ * Wire up the slideshow. Called once at module parse time — the script is
+ * type="module" deferred, so the full DOM is already available.
+ *
+ * Visibility is controlled by a single CSS class (`.slide.is-active`).
+ * No `hidden` attribute juggling, no async scheduling, no teardown logic.
+ */
+function initSlideshow() {
   const list = document.getElementById("slideshowDots");
-  if (!nav || !list) return;
+  const nav = list ? list.closest("nav") : null;
+  if (!list || !nav) {
+    console.error("[slideshow] #slideshowDots or parent <nav> missing");
+    return;
+  }
 
-  const count = Math.max(1, Number.parseInt(nav.dataset.slideCount || "1", 10) || 1);
-  list.replaceChildren();
+  const slides = /** @type {HTMLElement[]} */ (
+    [...document.querySelectorAll(".slidesDeck section[data-slide-index]")]
+      .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
+  );
 
+  if (slides.length < 2) {
+    console.error(`[slideshow] expected 2 slide sections, found ${slides.length}`);
+    return;
+  }
+
+  const count = slides.length;
   let current = 0;
 
-  const setActive = (index) => {
-    if (index < 0 || index >= count) return;
+  function goTo(index) {
+    if (index < 0 || index >= count || index === current) return;
     current = index;
-    const buttons = list.querySelectorAll(".slideshowPagination__dot");
-    buttons.forEach((b, j) => {
-      const on = j === index;
-      b.classList.toggle("is-active", on);
-      if (on) b.setAttribute("aria-current", "true");
-      else b.removeAttribute("aria-current");
-    });
-    document.dispatchEvent(
-      new CustomEvent("slideshow:change", { detail: { index, count } })
-    );
-  };
 
+    for (let i = 0; i < slides.length; i++) {
+      const on = i === index;
+      slides[i].classList.toggle("is-active", on);
+      slides[i].setAttribute("aria-hidden", on ? "false" : "true");
+    }
+
+    const dots = list.querySelectorAll("button.slideshowPagination__dot");
+    dots.forEach((btn, i) => {
+      const on = i === index;
+      btn.classList.toggle("is-active", on);
+      if (on) btn.setAttribute("aria-current", "true");
+      else btn.removeAttribute("aria-current");
+    });
+
+    if (index === 1) {
+      slideshowSlide2LayoutHook?.();
+      const stage = document.getElementById("stage");
+      if (stage instanceof HTMLElement) stage.focus({ preventScroll: true });
+    }
+  }
+
+  list.replaceChildren();
   for (let i = 0; i < count; i++) {
     const li = document.createElement("li");
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = `slideshowPagination__dot${i === 0 ? " is-active" : ""}`;
+    btn.className = "slideshowPagination__dot" + (i === 0 ? " is-active" : "");
     btn.setAttribute("aria-label", `Slide ${i + 1} of ${count}`);
     if (i === 0) btn.setAttribute("aria-current", "true");
-    btn.addEventListener("click", () => setActive(i));
+    btn.addEventListener("click", () => goTo(i));
     li.appendChild(btn);
     list.appendChild(li);
   }
 
-  const isTypingTarget = (el) => {
-    if (!(el instanceof HTMLElement)) return false;
-    const tag = el.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
-    return el.isContentEditable;
-  };
-
-  const onSlideshowArrowKey = (e) => {
-    const key = e.key;
-    if (key !== "ArrowRight" && key !== "ArrowLeft" && key !== "ArrowUp" && key !== "ArrowDown") return;
+  // Capture phase so the slideshow gets the event before the stage (which has focus on slide 2).
+  window.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     const t = e.target;
-    if (t instanceof HTMLElement && isTypingTarget(t)) return;
+    if (t instanceof HTMLElement) {
+      const tag = t.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable) return;
+    }
     e.preventDefault();
-    if (key === "ArrowRight" || key === "ArrowDown") setActive((current + 1) % count);
-    else setActive((current - 1 + count) % count);
-  };
+    e.stopPropagation();
+    goTo(e.key === "ArrowRight" ? (current + 1) % count : (current - 1 + count) % count);
+  }, true);
 
-  // Capture on window so arrows work even when focus is on role="application" (stage)
-  // or when bubbling would otherwise miss document.
-  window.addEventListener("keydown", onSlideshowArrowKey, true);
-
+  applySlideDeck = goTo;
   window.slideshowPagination = {
-    goTo: setActive,
-    next: () => setActive((current + 1) % count),
-    prev: () => setActive((current - 1 + count) % count),
-    get index() {
-      return current;
-    },
-    get count() {
-      return count;
-    }
-  };
-}
-
-function bindSlideDeck() {
-  const slides = /** @type {NodeListOf<HTMLElement>} */ (
-    document.querySelectorAll(".slidesDeck [data-slide-index]")
-  );
-  if (!slides.length) return;
-
-  const show = (index) => {
-    slides.forEach((el) => {
-      const i = Number(el.dataset.slideIndex);
-      const on = i === index;
-      el.classList.toggle("is-active", on);
-      el.toggleAttribute("hidden", !on);
-      el.setAttribute("aria-hidden", String(!on));
-    });
-    const stage = document.getElementById("stage");
-    if (stage instanceof HTMLElement && index === 1) {
-      window.requestAnimationFrame(() => stage.focus({ preventScroll: true }));
-    }
+    goTo,
+    next: () => goTo((current + 1) % count),
+    prev: () => goTo((current - 1 + count) % count),
+    get index() { return current; },
+    get count() { return count; }
   };
 
-  document.addEventListener("slideshow:change", (e) => {
-    const ce = /** @type {CustomEvent<{ index: number }>} */ (e);
-    show(ce.detail.index);
-  });
+  // Sync the initial state (slide 0 already has is-active in HTML; this re-asserts)
+  for (let i = 0; i < slides.length; i++) {
+    slides[i].classList.toggle("is-active", i === 0);
+    slides[i].setAttribute("aria-hidden", i === 0 ? "false" : "true");
+  }
 
-  show(0);
+  console.info(`[slideshow] ready — ${count} slides`);
 }
 
 migrateSubscriptionsCardToBundledAsset();
 
-initSlideshowPagination();
-bindSlideDeck();
+initSlideshow();
 
 loadGraph()
   .then((g) => render(g))
@@ -1619,4 +1708,3 @@ loadGraph()
     setTimeout(() => run(), 0);
   }
 })();
-

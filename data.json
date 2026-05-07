@@ -16,7 +16,7 @@
       "title": "Merchant",
       "category": "hub",
       "description": "The ecommerce brand/operator orchestrating the tools across acquisition, conversion, retention, and measurement.",
-      "pos": { "x": 520, "y": 290 }
+      "pos": { "x": 640, "y": 405 }
     },
     {
       "id": "pre",
@@ -26,7 +26,7 @@
       "emojiOnly": true,
       "emojiLabel": "Pre‑Purchase",
       "description": "Everything that happens before checkout: discovery, conversion, and shopper assistance.",
-      "pos": { "x": 520, "y": 420 }
+      "pos": { "x": 640, "y": 600 }
     },
     {
       "id": "repeat",
@@ -36,7 +36,7 @@
       "emojiOnly": true,
       "emojiLabel": "Repeat purchase",
       "description": "Tools that drive retention and repeat buying: subscriptions, upsells, loyalty, and re-order experiences.",
-      "pos": { "x": 320, "y": 270 }
+      "pos": { "x": 380, "y": 290 }
     },
     {
       "id": "measure",
@@ -46,26 +46,26 @@
       "emojiOnly": true,
       "emojiLabel": "Measure Performance",
       "description": "Analytics and measurement across the customer journey to understand what's working.",
-      "pos": { "x": 760, "y": 230 }
+      "pos": { "x": 900, "y": 290 }
     },
 
-    { "id": "subscriptions", "title": "Subscriptions", "category": "repeat", "description": "Subscription management and recurring orders.", "pos": { "x": 500, "y": 120 } },
-    { "id": "reorder", "title": "Upsell & Cross-sell", "category": "repeat", "description": "Post-purchase re-order flows and cross-sell recommendations.", "pos": { "x": 200, "y": 120 } },
-    { "id": "upsell", "title": "Post-purchase", "category": "repeat", "tagLabel": "Post-purchase", "description": "One-click offers after checkout to increase AOV.", "pos": { "x": 350, "y": 200 } },
-    { "id": "ab", "title": "A/B testing", "category": "pre", "description": "Experimentation for on-site experiences and merchandising.", "pos": { "x": 420, "y": 460 } },
-    { "id": "loyalty", "title": "Loyalty", "category": "pre", "description": "Rewards, points, referrals, and retention programs.", "pos": { "x": 170, "y": 470 } },
+    { "id": "subscriptions", "title": "Subscriptions", "category": "repeat", "description": "Subscription management and recurring orders.", "pos": { "x": 425, "y": 95 } },
+    { "id": "reorder", "title": "Upsell & Cross-sell", "category": "repeat", "description": "Post-purchase re-order flows and cross-sell recommendations.", "pos": { "x": 225, "y": 335 } },
+    { "id": "upsell", "title": "Post-purchase", "category": "repeat", "tagLabel": "Post-purchase", "description": "One-click offers after checkout to increase AOV.", "pos": { "x": 255, "y": 130 } },
 
-    { "id": "personalization", "title": "Personalization (Justuno / Privy / Octane AI)", "category": "pre", "description": "On-site popups, personalization, and lead capture.", "pos": { "x": 330, "y": 520 } },
-    { "id": "referral", "title": "Referral (Yotpo / Okendo / Loox)", "category": "pre", "description": "Social proof and referrals via reviews and UGC.", "pos": { "x": 520, "y": 550 } },
-    { "id": "mail", "title": "Mailing & SMS (Klaviyo / Attentive / SendGrid)", "category": "pre", "description": "Lifecycle messaging: email and SMS automation.", "pos": { "x": 690, "y": 540 } },
-    { "id": "chat", "title": "Customer Chat (Drift / Intercom)", "category": "pre", "description": "On-site chat and customer support engagement.", "pos": { "x": 860, "y": 510 } },
-    { "id": "ads", "title": "Advertising (Meta / Google / TikTok / YouTube)", "category": "ad", "description": "Paid acquisition channels driving traffic and demand.", "pos": { "x": 930, "y": 731 } },
+    { "id": "quant", "title": "Quant Analytics (Amplitude / Google Analytics)", "category": "quant", "description": "Event-based and web analytics for performance measurement.", "pos": { "x": 880, "y": 100 } },
+    { "id": "qual", "title": "Qual Analytics (Hotjar / FullStory)", "category": "qual", "description": "Session replay and behavior insights to diagnose UX issues.", "pos": { "x": 1050, "y": 115 } },
+    { "id": "data", "title": "Customer Data (Segment)", "category": "data", "description": "Customer data platform for collecting and routing events/traits.", "pos": { "x": 1110, "y": 250 } },
+    { "id": "crm", "title": "CRM (HubSpot)", "category": "crm", "description": "Customer relationship management, lead tracking, and lifecycle operations.", "pos": { "x": 1110, "y": 385 } },
 
-    { "id": "quant", "title": "Quant Analytics (Amplitude / Google Analytics)", "category": "quant", "description": "Event-based and web analytics for performance measurement.", "pos": { "x": 680, "y": 90 } },
-    { "id": "qual", "title": "Qual Analytics (Hotjar / FullStory)", "category": "qual", "description": "Session replay and behavior insights to diagnose UX issues.", "pos": { "x": 850, "y": 90 } },
-    { "id": "data", "title": "Customer Data (Segment)", "category": "data", "description": "Customer data platform for collecting and routing events/traits.", "pos": { "x": 1115, "y": 14 } },
-    { "id": "crm", "title": "CRM (HubSpot)", "category": "crm", "description": "Customer relationship management, lead tracking, and lifecycle operations.", "pos": { "x": 1203, "y": 10 } },
-    { "id": "affiliates", "title": "Affiliates", "category": "pre", "description": "Affiliate links, influencer management, and partner attribution.", "pos": { "x": 980, "y": 360 } }
+    { "id": "loyalty", "title": "Loyalty", "category": "pre", "description": "Rewards, points, referrals, and retention programs.", "pos": { "x": 180, "y": 685 } },
+    { "id": "ab", "title": "A/B testing", "category": "pre", "description": "Experimentation for on-site experiences and merchandising.", "pos": { "x": 395, "y": 565 } },
+    { "id": "personalization", "title": "Personalization (Justuno / Privy / Octane AI)", "category": "pre", "description": "On-site popups, personalization, and lead capture.", "pos": { "x": 350, "y": 845 } },
+    { "id": "chat", "title": "Customer Chat (Drift / Intercom)", "category": "pre", "description": "On-site chat and customer support engagement.", "pos": { "x": 555, "y": 865 } },
+    { "id": "referral", "title": "Referral (Yotpo / Okendo / Loox)", "category": "pre", "description": "Social proof and referrals via reviews and UGC.", "pos": { "x": 745, "y": 865 } },
+    { "id": "affiliates", "title": "Affiliates", "category": "pre", "description": "Affiliate links, influencer management, and partner attribution.", "pos": { "x": 930, "y": 845 } },
+    { "id": "ads", "title": "Advertising (Meta / Google / TikTok / YouTube)", "category": "ad", "description": "Paid acquisition channels driving traffic and demand.", "pos": { "x": 1105, "y": 720 } },
+    { "id": "mail", "title": "Mailing & SMS (Klaviyo / Attentive / SendGrid)", "category": "pre", "description": "Lifecycle messaging: email and SMS automation.", "pos": { "x": 950, "y": 555 } }
   ],
   "edges": [
     ["merchant", "repeat"],
@@ -90,6 +90,5 @@
     ["measure", "data"],
     ["measure", "crm"]
   ],
-  "canvas": { "width": 1120, "height": 740 }
+  "canvas": { "width": 1280, "height": 980 }
 }
-
