@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
-    <link rel="stylesheet" href="./spark.css?v=131" />
+    <link rel="stylesheet" href="./spark.css?v=142" />
     <link rel="stylesheet" href="./styles.css?v=120" />
   </head>
   <body>
@@ -541,9 +541,10 @@
                       class="flowBranchPanelRoot"
                       aria-hidden="true"
                     >
+                      <div class="flowBranchPanel__dock">
                       <div
                         id="flowBranchPanel"
-                        class="flowTriggerPanel"
+                        class="flowTriggerPanel flowBranchPanel--split"
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="flowBranchPanelTitle"
@@ -580,9 +581,10 @@
                             Customers meeting the specified condition(s) will be assigned to the corresponding branch.
                           </p>
                         </header>
+                        <div class="flowBranchPanel__splitBody">
+                        <div class="flowBranchPanel__mainColumn">
                         <div class="flowTriggerPanel__scroll">
                           <div class="flowTriggerPanel__block">
-                            <div class="flowBranchPanel__branchColumns">
                               <div class="flowBranchPanel__branchColumnMain">
                                 <div class="flowBranchPanel__nodeNameSection">
                                   <label
@@ -771,13 +773,16 @@
                               <span class="flowBranchPanel__addBranchLabel">Add branch</span>
                             </button>
                           </div>
-                            <aside
-                              id="flowBranchEditorCol"
-                              class="flowBranchPanel__editorCol flowBranchPanel__secondColumn"
-                              hidden
-                              aria-hidden="true"
-                              aria-label="Branch condition editor"
-                            >
+                          </div>
+                        </div>
+                        </div>
+                      <aside
+                        id="flowBranchEditorCol"
+                        class="flowBranchPanel__editorCol flowBranchPanel__secondColumn"
+                        hidden
+                        aria-hidden="true"
+                        aria-label="Branch condition editor"
+                      >
                               <div class="flowBranchPanel__secondColumnFieldset">
                                 <label
                                   class="flowBranchPanel__blockNameLabel"
@@ -867,6 +872,12 @@
                                 >
                                   <button type="button" class="flowTriggerPanel__selectOption" role="option">
                                     Customer
+                                  </button>
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Line item
+                                  </button>
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Shipping address
                                   </button>
                                   <button type="button" class="flowTriggerPanel__selectOption" role="option">
                                     Subscription
@@ -1030,11 +1041,9 @@
                                 </div>
                               </div>
                               </div>
-                            </aside>
-                            </div>
-                          </div>
+                      </aside>
                         </div>
-                        <footer class="flowTriggerPanel__footer">
+                        <footer class="flowTriggerPanel__footer flowBranchPanel__splitFooter">
                           <div class="flowTriggerPanel__footerInner">
                             <div class="flowBranchPanel__applyWrap" id="flowBranchApplyWrap">
                               <div
@@ -1060,15 +1069,14 @@
                           </div>
                         </footer>
                       </div>
-                  </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
-              </div>
+            </div>
           </main>
         </section>
-              </div>
-            </div>
 
     <!-- Modal 1: Loyalty connected to Pre-purchase -->
     <div id="loyaltyModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="loyaltyModalTitle" hidden>
@@ -1126,6 +1134,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-111"></script>
+    <script type="module" src="./app.js?v=slideshow-112"></script>
   </body>
 </html>

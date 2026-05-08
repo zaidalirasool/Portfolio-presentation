@@ -84,6 +84,10 @@
 
   --spark-trigger-card-width: 359px;
   --spark-panel-width: 512px;
+  /* Editor-wide branch panel: equal column widths (main + condition editor). */
+  --spark-branch-split-column-width: 488px;
+  /* Shell width = two columns + vertical divider (see #flowBranchEditorCol border-left). */
+  --spark-branch-editor-wide-width: calc(var(--spark-branch-split-column-width) * 2 + 1px);
   --spark-panel-height: 960px;
   --spark-panel-z: 10005;
 
@@ -524,7 +528,28 @@
     var(--spark-shadow-sm-hover),
     var(--spark-shadow-focus-ring);
 }
+
+/* Branch node icon: midnight-100 pill + shadow-2, 24×24 glyph centered (Figma Small / icon-left) */
+.flowBranchNode .triggerNode__iconSlot {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+  box-sizing: border-box;
   background: var(--spark-palette-midnight-100);
+  border-radius: var(--spark-radius-pill);
+  box-shadow: var(--spark-palette-shadow-2);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.flowBranchNode .triggerNode__iconDisc {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .flowBranchNode .triggerNode__kebab {
@@ -664,6 +689,10 @@
   margin-bottom: 8px;
 }
 
+#flowBranchPanel .flowBranchPanel__mainColumn .flowBranchPanel__labelStack {
+  margin-bottom: 0;
+}
+
 .flowBranchPanel__nodeNameSection {
   align-self: stretch;
   display: flex;
@@ -672,6 +701,10 @@
   width: 100%;
   box-sizing: border-box;
   margin-bottom: 24px;
+}
+
+#flowBranchPanel .flowBranchPanel__mainColumn .flowBranchPanel__nodeNameSection {
+  margin-bottom: 0;
 }
 
 .flowBranchPanel__sectionHint {
@@ -692,33 +725,27 @@
   gap: 8px;
 }
 
-.flowBranchPanel__branchColumns {
-  align-self: stretch;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
 .flowBranchPanel__branchColumnMain {
   align-self: stretch;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  box-sizing: border-box;
 }
 
-#flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__branchColumns {
-  flex-direction: row;
-  align-items: stretch;
-  gap: 24px;
-  flex: 1 1 0;
+/* Main-column list: 24px top/sides; sections spaced by gap (see design ref). */
+#flowBranchPanel .flowBranchPanel__mainColumn .flowBranchPanel__branchColumnMain {
+  width: 100%;
   min-height: 0;
+  padding: 24px 24px 0;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__branchColumnMain {
   flex: 1 1 0;
+  min-height: 0;
   min-width: 0;
-  background-color: var(--spark-color-white);
 }
 
 .flowBranchPanel__editorSection {
@@ -1136,43 +1163,63 @@
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol {
-  flex: 1 1 0;
-  min-width: 280px;
+  flex: 0 0 auto;
+  width: min(var(--spark-branch-split-column-width), calc(100vw - 48px));
+  min-width: 0;
+  min-height: 0;
   max-width: none;
   margin-top: 0;
   border-top: none;
-  /* Top inset comes from `.flowTriggerPanel__scroll`; avoid double padding vs. left column. */
-  padding: 0 24px 24px 24px;
+  padding: 0;
   margin-left: 0;
   border-left: 1px solid var(--spark-color-panel-border);
   align-self: stretch;
   background-color: #f6f8f9;
   gap: 20px;
   box-sizing: border-box;
+  border-radius: 0;
+  box-shadow: none;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-/* Scroll area matches first column (white); editor aside keeps its own grey fill. */
-#flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__scroll {
-  padding: 24px 0 24px 24px;
+/* Branch main column: scroll is flush and full-width; inset lives inside children. */
+#flowBranchPanel .flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-self: stretch;
+  align-items: stretch;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
   background-color: var(--spark-color-white);
 }
 
-/* Fill scroll height so the branch row (and editor aside) stretch — no white gap below. */
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__block {
   flex: 1 1 0;
   min-height: 0;
 }
 
+#flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__splitFooter,
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__footer {
   padding: 24px;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__masthead {
-  padding: 24px 0 20px 24px;
+  padding: 24px 24px 20px;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__mastheadRow > .flowTriggerPanel__closeBtn {
-  margin-right: 24px;
+  margin-right: 0;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnFieldset {
@@ -1181,27 +1228,50 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 8px;
+  padding: 24px 24px 0;
+  box-sizing: border-box;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnTextInput {
-  border: 1px solid #b1bcc2;
-  outline: none;
+  align-self: stretch;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 8px 8px 8px 12px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  border: none;
+  background: var(--spark-color-white);
+  outline: 1px solid #b1bcc2;
+  outline-offset: -1px;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--spark-palette-midnight-100);
+  -webkit-text-fill-color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    outline-color 180ms cubic-bezier(0.4, 0, 1, 1),
+    box-shadow 180ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnTextInput:hover {
-  border-color: var(--spark-palette-structure-80);
+  outline-color: var(--spark-palette-structure-80);
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnTextInput:focus {
-  border-color: var(--spark-color-active-ring);
-  box-shadow: 0 0 0 1px var(--spark-color-active-ring);
+  outline: 1px solid var(--spark-color-active-ring);
+  outline-offset: -1px;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnTextInput:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 1px var(--spark-color-active-ring),
-    0 0 0 3px rgba(57, 1, 241, 0.22);
+  outline: 1px solid var(--spark-color-active-ring);
+  outline-offset: -1px;
+  box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnHelper {
@@ -1209,7 +1279,20 @@
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnExecuteHint {
+  margin: 0;
   color: #616374;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnExecute {
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnFrameContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnExecuteTitle {
@@ -1219,8 +1302,12 @@
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__orderFilter {
   width: 100%;
   max-width: none;
-  padding: 0 0 16px;
+  padding: 0 24px 16px;
   box-sizing: border-box;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__conditionsEngine {
+  gap: 12px;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondaryButtonWrapper {
@@ -1311,6 +1398,72 @@
   overflow: visible;
 }
 
+.flowBranchPanel__dock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Match trigger panel: fixed shell width so scale(0.82)→(1) reads the same (not width-animate with root). */
+.flowBranchPanel__dock > #flowBranchPanel {
+  flex: 0 0 auto;
+  width: min(var(--spark-panel-width), calc(100vw - 48px));
+  min-width: 0;
+  max-width: min(var(--spark-panel-width), calc(100vw - 48px));
+}
+
+.flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide .flowBranchPanel__dock {
+  align-items: stretch;
+}
+
+.flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide .flowBranchPanel__dock > #flowBranchPanel {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Branch panel: masthead + Apply span full width; body = scroll column | editor */
+.flowBranchPanel.flowBranchPanel--split.flowTriggerPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  /* Same pop-in anchor as .flowTriggerPanel */
+  transform-origin: left center;
+}
+
+.flowBranchPanel__splitBody {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.flowBranchPanel__mainColumn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--spark-color-white);
+  overflow: hidden;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn {
+  flex: 0 0 auto;
+  width: min(var(--spark-branch-split-column-width), calc(100vw - 48px));
+}
+
+.flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .flowTriggerPanel {
   width: min(var(--spark-panel-width), calc(100vw - 48px));
   height: min(var(--spark-panel-height), 92vh);
@@ -1339,12 +1492,8 @@
 }
 
 .flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide {
-  min-width: min(calc(var(--spark-panel-width) * 2 + 32px), calc(100vw - 48px));
-  max-width: min(calc(var(--spark-panel-width) * 2 + 32px), calc(100vw - 48px));
-}
-
-.flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide .flowTriggerPanel {
-  width: min(calc(var(--spark-panel-width) * 2 + 32px), calc(100vw - 48px));
+  min-width: min(var(--spark-branch-editor-wide-width), calc(100vw - 48px));
+  max-width: min(var(--spark-branch-editor-wide-width), calc(100vw - 48px));
 }
 
 .flowTriggerPanel__masthead {
@@ -2231,26 +2380,63 @@
     max-width: min(var(--spark-panel-width), calc(100vw - 32px));
   }
 
-  .flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide .flowTriggerPanel {
-    width: min(var(--spark-panel-width), calc(100vw - 32px));
-  }
-
-  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__branchColumns {
+  .flowBranchPanel__dock {
     flex-direction: column;
     gap: 0;
+    align-items: stretch;
+  }
+
+  .flowBranchPanel__dock > #flowBranchPanel {
+    width: min(var(--spark-panel-width), calc(100vw - 32px));
+    max-width: min(var(--spark-panel-width), calc(100vw - 32px));
+  }
+
+  .flowBranchPanel.flowBranchPanel--split.flowTriggerPanel {
+    transform-origin: center top;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__splitBody {
+    flex-direction: column;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn {
+    width: 100%;
+    flex: 0 0 auto;
   }
 
   #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol {
     max-width: none;
-    padding: 24px 0 0;
+    padding: 0;
     margin-left: 0;
     border-left: none;
     border-top: 1px solid var(--spark-color-panel-border);
     margin-top: 20px;
     background-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
   }
 
-  #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__scroll,
+  #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnFieldset {
+    padding: 24px 24px 0;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnExecute {
+    padding: 0 24px;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__orderFilter {
+    padding: 0 24px 16px;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    align-items: stretch;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__splitFooter,
   #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__footer {
     padding: 24px;
   }

@@ -2745,6 +2745,14 @@ initSlideshow();
     branchRoot.classList.toggle("flowBranchPanelRoot--editorWide", wide);
     branchPanel.classList.toggle("flowBranchPanel--editorWide", wide);
     resetBranchEditorConditionUi();
+    if (
+      card &&
+      !card.hasAttribute("data-flow-branch-else") &&
+      card.querySelector(".flowBranchPanel__branchLabel")?.textContent?.trim() ===
+        "Prospective subscribers"
+    ) {
+      applyProspectiveSubscribersBranchEditorConditionPreset();
+    }
     syncBranchApplyDisabledState();
   }
 
@@ -2890,6 +2898,27 @@ initSlideshow();
     if (textEl) {
       textEl.textContent = trimmed;
       textEl.classList.add("flowTriggerPanel__selectText--hasValue");
+    }
+  }
+
+  /** Pre-filled condition row for the "Prospective subscribers" branch only (portfolio demo). */
+  function applyProspectiveSubscribersBranchEditorConditionPreset() {
+    syncBranchEditorConditionDetailsFromObject("Customer");
+    const metricBtn = document.getElementById("flowBranchEditorMetricBtn");
+    const metricSpan = metricBtn?.querySelector(".flowTriggerPanel__selectText");
+    if (metricSpan) {
+      metricSpan.textContent = "Number of active subscriptions";
+      metricSpan.classList.add("flowTriggerPanel__selectText--hasValue");
+    }
+    const operatorBtn = document.getElementById("flowBranchEditorOperatorBtn");
+    const operatorSpan = operatorBtn?.querySelector(".flowTriggerPanel__selectText");
+    if (operatorSpan) {
+      operatorSpan.textContent = "Equals";
+      operatorSpan.classList.add("flowTriggerPanel__selectText--hasValue");
+    }
+    const valueInput = document.getElementById("flowBranchEditorValueInput");
+    if (valueInput instanceof HTMLInputElement) {
+      valueInput.value = "0";
     }
   }
 
