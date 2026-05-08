@@ -1471,10 +1471,6 @@
   color: #616374;
 }
 
-.flowBranchPanel__innerAndPill {
-  align-self: stretch;
-}
-
 .flowBranchPanel__innerAndBlock {
   align-self: stretch;
   display: flex;
