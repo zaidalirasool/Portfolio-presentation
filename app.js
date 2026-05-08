@@ -2630,15 +2630,24 @@ initSlideshow();
   const flowLayout = triggerBtn.closest(".slide5FlowLayout");
 
   const branchNodeWrap = document.getElementById("flowBranchNodeWrap");
+  const creditNodeWrap = document.getElementById("flowCreditNodeWrap");
+  const creditBtn = document.getElementById("flowCreditNode");
   const slide5Canvas = document.getElementById("slide5Canvas");
   let slide5BranchSpawnEligible = false;
+  let slide5CreditSpawnEligible = false;
 
   function resetSlide5BranchSpawnState() {
     slide5BranchSpawnEligible = false;
+    slide5CreditSpawnEligible = false;
     if (branchNodeWrap) {
       branchNodeWrap.hidden = true;
       branchNodeWrap.setAttribute("aria-hidden", "true");
       branchNodeWrap.classList.remove("flowBranchNodeWrap--enter", "flowBranchNodeWrap--enter-active");
+    }
+    if (creditNodeWrap) {
+      creditNodeWrap.hidden = true;
+      creditNodeWrap.setAttribute("aria-hidden", "true");
+      creditNodeWrap.classList.remove("flowCreditNodeWrap--enter", "flowCreditNodeWrap--enter-active");
     }
   }
 
@@ -2657,6 +2666,21 @@ initSlideshow();
     }, 900);
   }
 
+  function revealCreditNode() {
+    if (!creditNodeWrap?.hasAttribute("hidden")) return;
+    creditNodeWrap.classList.remove("flowCreditNodeWrap--enter", "flowCreditNodeWrap--enter-active");
+    void creditNodeWrap.offsetWidth;
+    creditNodeWrap.classList.add("flowCreditNodeWrap--enter");
+    creditNodeWrap.removeAttribute("hidden");
+    creditNodeWrap.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => {
+      creditNodeWrap.classList.add("flowCreditNodeWrap--enter-active");
+    });
+    window.setTimeout(() => {
+      creditNodeWrap.classList.remove("flowCreditNodeWrap--enter", "flowCreditNodeWrap--enter-active");
+    }, 900);
+  }
+
   const branchStack = branchPanel.querySelector(".flowBranchPanel__branchStack");
   const editorCol = document.getElementById("flowBranchEditorCol");
   const branchApplyWrap = document.getElementById("flowBranchApplyWrap");
@@ -2669,7 +2693,14 @@ initSlideshow();
     if (!(extDetails instanceof HTMLElement) || extDetails.hidden) return false;
     const metricBtn = document.getElementById("flowBranchEditorExtMetricBtn");
     const span = metricBtn?.querySelector(".flowTriggerPanel__selectText");
-    return (span?.textContent?.trim() ?? "") === FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV;
+    if ((span?.textContent?.trim() ?? "") !== FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV) return false;
+    const currencyInput = document.getElementById("flowBranchEditorExtCurrencyInput");
+    if (!(currencyInput instanceof HTMLInputElement)) return true;
+    const raw = currencyInput.value.trim().replace(/^\$\s*/, "").replace(/,/g, "");
+    if (raw === "") return true;
+    const n = parseFloat(raw);
+    if (Number.isNaN(n)) return true;
+    return n === 0;
   }
 
   function countNonElseBranches() {
@@ -2914,14 +2945,18 @@ initSlideshow();
   /** Midnight-100 text when extended AOV amount is non-zero; muted placeholder tone for 0 / empty. */
   function syncBranchEditorExtCurrencyInputValueClass() {
     const el = document.getElementById("flowBranchEditorExtCurrencyInput");
-    if (!(el instanceof HTMLInputElement)) return;
+    if (!(el instanceof HTMLInputElement)) {
+      syncBranchApplyDisabledState();
+      return;
+    }
     const raw = el.value.trim().replace(/^\$\s*/, "").replace(/,/g, "");
     if (raw === "") {
       el.classList.remove("flowBranchPanel__compoundCurrencyInput--hasValue");
-      return;
+    } else {
+      const n = parseFloat(raw);
+      el.classList.toggle("flowBranchPanel__compoundCurrencyInput--hasValue", !Number.isNaN(n) && n !== 0);
     }
-    const n = parseFloat(raw);
-    el.classList.toggle("flowBranchPanel__compoundCurrencyInput--hasValue", !Number.isNaN(n) && n !== 0);
+    syncBranchApplyDisabledState();
   }
 
   /**
@@ -2937,7 +2972,6 @@ initSlideshow();
     if (currencyWrap instanceof HTMLElement) currencyWrap.hidden = !isAov;
     branchEditorExtMetricLabelSnapshot = trimmed;
     syncBranchEditorExtCurrencyInputValueClass();
-    syncBranchApplyDisabledState();
   }
 
   /**
@@ -3353,6 +3387,7 @@ initSlideshow();
   }
 
   function closeBranch(options = {}) {
+    const wasOpen = branchRoot.classList.contains(BRANCH_OPEN);
     const refocusBranch = options.refocusBranch !== false;
     exitBranchEditor();
     branchRoot.classList.remove(BRANCH_OPEN);
@@ -3361,6 +3396,7 @@ initSlideshow();
     syncFlowLayout();
     if (!refocusBranch) branchBtn.blur();
     else branchBtn.focus({ preventScroll: true });
+    if (wasOpen) slide5CreditSpawnEligible = true;
   }
 
   function openBranch() {
@@ -3415,14 +3451,27 @@ initSlideshow();
     if (!(t instanceof Element)) return;
     if (
       t.closest(
-        "#flowTriggerNode, #flowConditionalBranchNode, #flowTriggerPanelRoot, #flowBranchPanelRoot",
+        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowTriggerPanelRoot, #flowBranchPanelRoot",
       )
     ) {
       return;
     }
-    if (!slide5BranchSpawnEligible) return;
-    if (branchNodeWrap && !branchNodeWrap.hidden) return;
-    revealConditionalBranchNode();
+    if (slide5BranchSpawnEligible && branchNodeWrap?.hidden) {
+      revealConditionalBranchNode();
+      return;
+    }
+    if (
+      slide5CreditSpawnEligible &&
+      creditNodeWrap?.hidden &&
+      branchNodeWrap &&
+      !branchNodeWrap.hidden
+    ) {
+      revealCreditNode();
+    }
+  });
+
+  creditBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
   });
 
   triggerRoot.querySelectorAll("[data-flow-trigger-dismiss]").forEach((el) => {

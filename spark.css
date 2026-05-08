@@ -202,14 +202,20 @@
   display: none !important;
 }
 
-/* Deferred conditional branch node: entrance after canvas unlock */
-#flowBranchNodeWrap.flowBranchNodeWrap--enter .triggerNode__card {
+.slide5FlowLayout__node--credit[hidden] {
+  display: none !important;
+}
+
+/* Deferred nodes: entrance after canvas unlock (branch, then credit) */
+#flowBranchNodeWrap.flowBranchNodeWrap--enter .triggerNode__card,
+#flowCreditNodeWrap.flowCreditNodeWrap--enter .triggerNode__card {
   opacity: 0;
   transform: translateY(14px) scale(0.98);
   filter: blur(3px);
 }
 
-#flowBranchNodeWrap.flowBranchNodeWrap--enter.flowBranchNodeWrap--enter-active .triggerNode__card {
+#flowBranchNodeWrap.flowBranchNodeWrap--enter.flowBranchNodeWrap--enter-active .triggerNode__card,
+#flowCreditNodeWrap.flowCreditNodeWrap--enter.flowCreditNodeWrap--enter-active .triggerNode__card {
   opacity: 1;
   transform: translateY(0) scale(1);
   filter: blur(0);
@@ -221,12 +227,23 @@
 
 @media (prefers-reduced-motion: reduce) {
   #flowBranchNodeWrap.flowBranchNodeWrap--enter .triggerNode__card,
-  #flowBranchNodeWrap.flowBranchNodeWrap--enter.flowBranchNodeWrap--enter-active .triggerNode__card {
+  #flowBranchNodeWrap.flowBranchNodeWrap--enter.flowBranchNodeWrap--enter-active .triggerNode__card,
+  #flowCreditNodeWrap.flowCreditNodeWrap--enter .triggerNode__card,
+  #flowCreditNodeWrap.flowCreditNodeWrap--enter.flowCreditNodeWrap--enter-active .triggerNode__card {
     opacity: 1;
     transform: none;
     filter: none;
     transition: none;
   }
+}
+
+/* Slide 5 credit node — title black Greycliff 16/24 bold; subtitle #191D48 Avenir 14/20 */
+.flowCreditNode .triggerNode__title {
+  color: #000000;
+}
+
+.flowCreditNode .triggerNode__subtitle {
+  color: #191d48;
 }
 
 /* ── Trigger node ─────────────────────────────────────────────────── */
