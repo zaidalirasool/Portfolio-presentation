@@ -529,27 +529,26 @@
     var(--spark-shadow-focus-ring);
 }
 
-/* Branch node icon: midnight-100 pill + shadow-2, 24×24 glyph centered (Figma Small / icon-left) */
+/* Branch node icon: same 40×40 disc geometry as Trigger; midnight pill + shadow-2 (Figma). */
 .flowBranchNode .triggerNode__iconSlot {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  padding: 4px;
-  box-sizing: border-box;
-  background: var(--spark-palette-midnight-100);
-  border-radius: var(--spark-radius-pill);
-  box-shadow: var(--spark-palette-shadow-2);
-  overflow: hidden;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
   flex-shrink: 0;
 }
 
 .flowBranchNode .triggerNode__iconDisc {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+  box-sizing: border-box;
+  background: var(--spark-palette-midnight-100);
+  box-shadow: var(--spark-palette-shadow-2);
+  border-radius: var(--spark-radius-pill);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .flowBranchNode .triggerNode__kebab {
@@ -685,7 +684,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 0;
   margin-bottom: 8px;
 }
 
@@ -704,7 +703,17 @@
 }
 
 #flowBranchPanel .flowBranchPanel__mainColumn .flowBranchPanel__nodeNameSection {
-  margin-bottom: 0;
+  margin-bottom: 16px;
+  gap: 0;
+}
+
+/* 4px between label and field; 8px before helper. */
+#flowBranchPanel .flowBranchPanel__mainColumn .flowBranchPanel__nodeNameSection .flowBranchPanel__blockNameLabel {
+  margin-bottom: 4px;
+}
+
+#flowBranchPanel .flowBranchPanel__mainColumn .flowBranchPanel__nodeNameSection .flowBranchPanel__textInput {
+  margin: 0 0 8px 0;
 }
 
 .flowBranchPanel__sectionHint {
@@ -723,6 +732,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* Column gap (4px) + this 8px = 12px from last card to Add branch. */
+  padding-bottom: 8px;
+  box-sizing: border-box;
 }
 
 .flowBranchPanel__branchColumnMain {
@@ -731,15 +743,24 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 4px;
   box-sizing: border-box;
 }
 
-/* Main-column list: 24px top/sides; sections spaced by gap (see design ref). */
-#flowBranchPanel .flowBranchPanel__mainColumn .flowBranchPanel__branchColumnMain {
+/* Single-column branch list: flush to panel edges; editor-wide keeps inset (matches second column). */
+#flowBranchPanel:not(.flowBranchPanel--editorWide)
+  .flowBranchPanel__mainColumn
+  .flowBranchPanel__branchColumnMain {
   width: 100%;
   min-height: 0;
-  padding: 24px 24px 0;
+  padding: 0;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn .flowBranchPanel__branchColumnMain {
+  width: 100%;
+  min-height: 0;
+  /* Inset lives on .flowTriggerPanel__scroll */
+  padding: 0;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__branchColumnMain {
@@ -982,7 +1003,7 @@
 
 .flowBranchPanel__addBranch {
   align-self: flex-start;
-  margin-top: 12px;
+  margin-top: 0;
   padding: 0;
   border: none;
   background: transparent;
@@ -1094,18 +1115,6 @@
   box-sizing: border-box;
 }
 
-.flowBranchPanel__secondColumnSpacer--4 {
-  width: 100%;
-  height: 4px;
-  flex-shrink: 0;
-}
-
-.flowBranchPanel__secondColumnSpacer--8 {
-  width: 100%;
-  height: 8px;
-  flex-shrink: 0;
-}
-
 .flowBranchPanel__secondColumnExecute {
   align-self: stretch;
   width: 100%;
@@ -1163,9 +1172,9 @@
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol {
-  flex: 0 0 auto;
-  width: min(var(--spark-branch-split-column-width), calc(100vw - 48px));
+  flex: 1 1 0;
   min-width: 0;
+  width: auto;
   min-height: 0;
   max-width: none;
   margin-top: 0;
@@ -1183,30 +1192,42 @@
   overflow-y: auto;
 }
 
-/* Branch main column: scroll is flush and full-width; inset lives inside children. */
+/* Branch main column: scroll inset 24px top/sides; min-width:0 keeps flex stretch. */
 #flowBranchPanel .flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
-  padding: 0;
+  padding: 24px 24px 0;
   margin: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
   width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
   align-self: stretch;
   align-items: stretch;
+  box-sizing: border-box;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
-  padding: 0;
+  padding: 24px 24px 0;
   margin: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
   width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
   align-items: stretch;
+  box-sizing: border-box;
   background-color: var(--spark-color-white);
+}
+
+#flowBranchPanel .flowBranchPanel__mainColumn .flowTriggerPanel__block {
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__block {
   flex: 1 1 0;
   min-height: 0;
+  min-width: 0;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__splitFooter,
@@ -1228,16 +1249,23 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 0;
   padding: 24px 24px 0;
   box-sizing: border-box;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide
+  #flowBranchEditorCol
+  .flowBranchPanel__secondColumnFieldset
+  > .flowBranchPanel__blockNameLabel {
+  margin-bottom: 4px;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnTextInput {
   align-self: stretch;
   display: block;
   width: 100%;
-  margin: 0;
+  margin: 0 0 8px 0;
   padding: 8px 8px 8px 12px;
   box-sizing: border-box;
   border-radius: 6px;
@@ -1292,7 +1320,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 0;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnExecuteTitle {
@@ -1435,6 +1463,9 @@
 .flowBranchPanel__splitBody {
   flex: 1 1 0;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+  align-self: stretch;
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -1446,21 +1477,23 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   background: var(--spark-color-white);
   overflow: hidden;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn {
-  flex: 0 0 auto;
-  width: min(var(--spark-branch-split-column-width), calc(100vw - 48px));
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
 }
 
 .flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
   flex: 1 1 0;
   min-height: 0;
+  min-width: 0;
   align-self: stretch;
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -2429,11 +2462,14 @@
   }
 
   #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
-    padding: 0;
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    padding: 24px 24px 0;
     margin: 0;
     width: 100%;
-    max-width: 100%;
     align-items: stretch;
+    box-sizing: border-box;
   }
 
   #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__splitFooter,
