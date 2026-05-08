@@ -2887,6 +2887,18 @@ initSlideshow();
     branch3AndRow.hidden = !isB3 || !details.hidden;
   }
 
+  /** Hide card-level Add under Object once Condition 1 details are open (e.g. Customer). Prospective/Existing/B3 rely on CSS. */
+  function syncBranchEditorConditionCardAddRowVisibility() {
+    const addRow = document.getElementById("flowBranchEditorConditionCardAddRow");
+    const details = document.getElementById("flowBranchEditorConditionDetails");
+    if (!(addRow instanceof HTMLElement) || !details) return;
+    if (branchPanel.classList.contains("flowBranchPanel--hideEditorCardConditionAdd")) {
+      addRow.removeAttribute("hidden");
+      return;
+    }
+    addRow.hidden = !details.hidden;
+  }
+
   function syncBranchEditorPanelModeFromEditedName(trimmed) {
     const isBranch3 = trimmed === "Branch 3";
     const hideEditorCardConditionAdd =
@@ -2896,6 +2908,7 @@ initSlideshow();
     branchPanel.classList.toggle("flowBranchPanel--editingBranch3", isBranch3);
     branchPanel.classList.toggle("flowBranchPanel--hideEditorCardConditionAdd", hideEditorCardConditionAdd);
     syncBranchEditorBranch3Affordances();
+    syncBranchEditorConditionCardAddRowVisibility();
   }
 
   function resetBranchEditorExtendedConditionDetailsFields() {
@@ -2998,15 +3011,14 @@ initSlideshow();
 
   function resetBranchEditorSecondConditionCard() {
     const c2 = document.getElementById("flowBranchEditorConditionCard2");
-    const addRow = document.getElementById("flowBranchEditorConditionCardAddRow");
     if (c2 instanceof HTMLElement) c2.hidden = true;
-    if (addRow instanceof HTMLElement) addRow.hidden = false;
     const o2Btn = document.getElementById("flowBranchEditor2ObjectBtn");
     const o2Span = o2Btn?.querySelector(".flowTriggerPanel__selectText");
     if (o2Span) {
       o2Span.textContent = "Object";
       o2Span.classList.remove("flowTriggerPanel__selectText--hasValue");
     }
+    syncBranchEditorConditionCardAddRowVisibility();
   }
 
   function collapseBranchEditorConditionExtension() {
@@ -3090,6 +3102,7 @@ initSlideshow();
     collapseBranchEditorConditionExtension();
     resetBranchEditorSecondConditionCard();
     syncBranchEditorBranch3Affordances();
+    syncBranchEditorConditionCardAddRowVisibility();
   }
 
   /**
@@ -3101,6 +3114,7 @@ initSlideshow();
     if (!details || !objectBtn) {
       collapseBranchEditorConditionExtension();
       syncBranchEditorBranch3Affordances();
+      syncBranchEditorConditionCardAddRowVisibility();
       return;
     }
     const textEl = objectBtn.querySelector(".flowTriggerPanel__selectText");
@@ -3113,6 +3127,7 @@ initSlideshow();
     }
     collapseBranchEditorConditionExtension();
     syncBranchEditorBranch3Affordances();
+    syncBranchEditorConditionCardAddRowVisibility();
   }
 
   /**
