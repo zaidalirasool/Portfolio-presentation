@@ -2693,6 +2693,7 @@ initSlideshow();
     if (creditApplyWrap instanceof HTMLElement) {
       creditApplyWrap.classList.add("flowCreditPanel__applyWrap--invalid");
     }
+    syncCreditNodeCard();
   }
 
   function revealConditionalBranchNode() {
@@ -2825,11 +2826,15 @@ initSlideshow();
   }
 
   function syncCreditApplyDisabledState() {
-    if (!(creditApplyBtn instanceof HTMLButtonElement) || !(creditApplyWrap instanceof HTMLElement)) return;
+    if (!(creditApplyBtn instanceof HTMLButtonElement) || !(creditApplyWrap instanceof HTMLElement)) {
+      syncCreditNodeCard();
+      return;
+    }
     if (!(creditAmountInput instanceof HTMLInputElement)) {
       creditApplyWrap.classList.remove("flowCreditPanel__applyWrap--invalid");
       creditApplyBtn.disabled = false;
       creditApplyBtn.removeAttribute("aria-describedby");
+      syncCreditNodeCard();
       return;
     }
     const blocked = isCreditApplyBlockedByAmount();
@@ -2837,6 +2842,90 @@ initSlideshow();
     creditApplyBtn.disabled = blocked;
     if (blocked) creditApplyBtn.setAttribute("aria-describedby", "flowCreditApplyTooltip");
     else creditApplyBtn.removeAttribute("aria-describedby");
+    syncCreditNodeCard();
+  }
+
+  function formatCreditNodePercentageDisplay(n) {
+    if (!Number.isFinite(n)) return "0%";
+    if (Number.isInteger(n)) return `${n}%`;
+    const t = n.toFixed(2).replace(/\.?0+$/, "");
+    return `${t}%`;
+  }
+
+  function getCreditExpirySummaryForNode() {
+    const checked = creditPanel?.querySelector('input[name="flowCreditExpiry"]:checked');
+    const v = checked?.getAttribute("value") ?? "store";
+    if (v === "never") return "Never";
+    if (v === "store") return "Store settings";
+    let n = 45;
+    if (creditPeriodValueInput instanceof HTMLInputElement) {
+      const p = Number.parseInt(creditPeriodValueInput.value, 10);
+      if (Number.isFinite(p)) n = p;
+    }
+    const unit =
+      document
+        .getElementById("flowCreditPeriodUnitSelectBtn")
+        ?.querySelector(".flowTriggerPanel__selectText")
+        ?.textContent?.trim() ?? "Days";
+    return `${n} ${unit.toLowerCase()}`;
+  }
+
+  function syncCreditNodeCard() {
+    if (!(creditBtn instanceof HTMLElement)) return;
+    const subEl = document.getElementById("flowCreditNodeSubtitle");
+    const detEl = document.getElementById("flowCreditNodeDetails");
+    const d1l = document.getElementById("flowCreditNodeDetail1Label");
+    const d1v = document.getElementById("flowCreditNodeDetail1Value");
+    const d2v = document.getElementById("flowCreditNodeDetail2Value");
+    if (!subEl) return;
+
+    if (isCreditApplyBlockedByAmount()) {
+      subEl.textContent = "Configure";
+      creditBtn.classList.remove("flowCreditNode--configured");
+      if (detEl) {
+        detEl.hidden = true;
+        detEl.setAttribute("aria-hidden", "true");
+      }
+      creditBtn.setAttribute("aria-label", "Issue credit. Configure.");
+      return;
+    }
+
+    const typeLabel = document
+      .getElementById("flowCreditTypeSelectBtn")
+      ?.querySelector(".flowTriggerPanel__selectText")
+      ?.textContent?.trim() ?? "Fixed amount";
+    const isPercentage = typeLabel === "Percentage";
+    let amountNum = 0;
+    if (creditAmountInput instanceof HTMLInputElement) {
+      const raw = creditAmountInput.value.trim().replace(/[$,%\s]/g, "");
+      const n = Number.parseFloat(raw);
+      if (Number.isFinite(n)) amountNum = n;
+    }
+
+    subEl.textContent = "Reward credit type";
+    creditBtn.classList.add("flowCreditNode--configured");
+
+    if (detEl && d1l && d1v && d2v) {
+      detEl.hidden = false;
+      detEl.setAttribute("aria-hidden", "false");
+      if (isPercentage) {
+        d1l.textContent = "Percentage";
+        d1v.textContent = formatCreditNodePercentageDisplay(amountNum);
+      } else {
+        d1l.textContent = "Amount";
+        d1v.textContent = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(amountNum);
+      }
+      d2v.textContent = getCreditExpirySummaryForNode();
+      creditBtn.setAttribute(
+        "aria-label",
+        `Issue credit. Reward credit type. ${d1l.textContent} ${d1v.textContent}. Credits expire ${d2v.textContent}.`,
+      );
+    } else {
+      creditBtn.setAttribute("aria-label", "Issue credit. Reward credit type.");
+    }
   }
 
   function syncCreditPeriodSection() {
@@ -2848,12 +2937,16 @@ initSlideshow();
       creditPeriodSection.toggleAttribute("hidden", !show);
       creditPeriodSection.setAttribute("aria-hidden", String(!show));
     }
+    syncCreditNodeCard();
   }
 
   /** @param {string} unitLabel e.g. "Days", "Weeks", "Months" */
   function syncCreditPeriodUnitAffordances(unitLabel) {
     const unit = unitLabel.trim();
-    if (!(creditPeriodSection instanceof HTMLElement)) return;
+    if (!(creditPeriodSection instanceof HTMLElement)) {
+      syncCreditNodeCard();
+      return;
+    }
     const dec = creditPeriodSection.querySelector(".flowCreditPanel__stepperBtn--dec");
     const inc = creditPeriodSection.querySelector(".flowCreditPanel__stepperBtn--inc");
     const u = unit.toLowerCase();
@@ -2861,6 +2954,7 @@ initSlideshow();
     if (inc instanceof HTMLButtonElement) inc.setAttribute("aria-label", `Increase ${u}`);
     const lbl = document.getElementById("flowCreditPeriodValueLabel");
     if (lbl) lbl.textContent = `${unit} until credit expires`;
+    syncCreditNodeCard();
   }
 
   /** @param {string} choiceLabel */
@@ -3692,6 +3786,13 @@ initSlideshow();
     syncCreditApplyDisabledState();
   });
 
+  creditPeriodValueInput?.addEventListener("input", () => {
+    syncCreditNodeCard();
+  });
+  creditPeriodValueInput?.addEventListener("change", () => {
+    syncCreditNodeCard();
+  });
+
   creditPanel?.addEventListener("change", (e) => {
     const t = e.target;
     if (t instanceof HTMLInputElement && t.name === "flowCreditExpiry") syncCreditPeriodSection();
@@ -3708,6 +3809,7 @@ initSlideshow();
     if (!Number.isFinite(n)) n = 45;
     n = Math.max(1, Math.min(9999, n + delta));
     creditPeriodValueInput.value = String(n);
+    syncCreditNodeCard();
   });
 
   attachFlowSelect(
