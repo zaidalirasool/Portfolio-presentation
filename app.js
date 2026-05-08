@@ -520,8 +520,8 @@ function render(graph) {
 
   if (!hasCustomLayout) {
     // Resolve overlaps while keeping the hub spine fixed (matches designed mind-map layout).
-    layoutNoOverlap(graph, {
-      padding: 34,
+      layoutNoOverlap(graph, {
+        padding: 34,
       iterations: 220,
       stiffness: 0.012,
       locks: {
@@ -544,14 +544,14 @@ function render(graph) {
         if (dy > 8 && dy < minDy) {
           ads.pos.y = chat.pos.y + minDy;
           ads.pos.y += 12;
-          layoutNoOverlap(graph, {
-            padding: 34,
-            iterations: 140,
-            stiffness: 0.01,
+      layoutNoOverlap(graph, {
+        padding: 34,
+        iterations: 140,
+        stiffness: 0.01,
             locks: { ads: { lockY: true } }
-          });
-        }
-      }
+      });
+    }
+  }
     }
   }
 
@@ -670,10 +670,10 @@ function render(graph) {
     const isMerchant = n.id === "merchant";
     if (isMerchant) btn.classList.add("node--merchant");
 
-    // Remove all trailing parenthetical contents per design.
-    const displayTitle = stripTrailingParenthetical(n.title);
-    const title = el("div", "node__title", sentenceCaseSmart(displayTitle));
-    btn.appendChild(title);
+      // Remove all trailing parenthetical contents per design.
+      const displayTitle = stripTrailingParenthetical(n.title);
+      const title = el("div", "node__title", sentenceCaseSmart(displayTitle));
+      btn.appendChild(title);
 
     // Treat these as section hubs (bigger, cleaner style; no chips).
     const isHubSection = n.id === "pre" || n.id === "repeat" || n.id === "measure";
@@ -808,9 +808,9 @@ function render(graph) {
             }
             btn.appendChild(stack);
           } else {
-            const img = /** @type {HTMLImageElement} */ (document.createElement("img"));
-            img.className = "node__comboLogo";
-            img.alt =
+          const img = /** @type {HTMLImageElement} */ (document.createElement("img"));
+          img.className = "node__comboLogo";
+          img.alt =
               n.id === "referral"
                   ? "Referral tools"
                   : n.id === "mail"
@@ -831,13 +831,13 @@ function render(graph) {
                                   ? "CRM"
                                   : n.id === "subscriptions"
                                     ? "Recharge"
-                                    : "Personalization tools";
-            img.loading = "lazy";
-            img.decoding = "async";
-            img.src = cardImageSrc;
-            btn.appendChild(img);
-          }
+                  : "Personalization tools";
+          img.loading = "lazy";
+          img.decoding = "async";
+          img.src = cardImageSrc;
+          btn.appendChild(img);
         }
+      }
       }
     }
 
@@ -2603,17 +2603,170 @@ initSlideshow();
   });
 })();
 
-// ── Slide 5: flow trigger → configure panel ───────────────────────────────────
-(function initFlowTriggerPanel() {
-  const root = document.getElementById("flowTriggerPanelRoot");
-  const panel = document.getElementById("flowTriggerPanel");
-  const trigger = document.getElementById("flowTriggerNode");
-  if (!root || !panel || !trigger) return;
+// ── Slide 5: flow trigger + conditional branch panels ──────────────────────────
+(function initSlide5FlowPanels() {
+  const triggerRoot = document.getElementById("flowTriggerPanelRoot");
+  const triggerPanel = document.getElementById("flowTriggerPanel");
+  const triggerBtn = document.getElementById("flowTriggerNode");
+  const branchRoot = document.getElementById("flowBranchPanelRoot");
+  const branchPanel = document.getElementById("flowBranchPanel");
+  const branchBtn = document.getElementById("flowConditionalBranchNode");
 
-  const OPEN_CLASS = "flowTriggerPanelRoot--open";
-  const FLOW_LAYOUT_OPEN_CLASS = "slide5FlowLayout--panelOpen";
+  if (
+    !triggerRoot ||
+    !triggerPanel ||
+    !triggerBtn ||
+    !branchRoot ||
+    !branchPanel ||
+    !branchBtn
+  ) {
+    return;
+  }
 
-  const flowLayout = trigger.closest(".slide5FlowLayout");
+  const TRIGGER_OPEN = "flowTriggerPanelRoot--open";
+  const BRANCH_OPEN = "flowBranchPanelRoot--open";
+  const FLOW_LAYOUT_OPEN = "slide5FlowLayout--panelOpen";
+
+  const flowLayout = triggerBtn.closest(".slide5FlowLayout");
+
+  const branchNodeWrap = document.getElementById("flowBranchNodeWrap");
+  const slide5Canvas = document.getElementById("slide5Canvas");
+  let slide5BranchSpawnEligible = false;
+
+  function resetSlide5BranchSpawnState() {
+    slide5BranchSpawnEligible = false;
+    if (branchNodeWrap) {
+      branchNodeWrap.hidden = true;
+      branchNodeWrap.setAttribute("aria-hidden", "true");
+      branchNodeWrap.classList.remove("flowBranchNodeWrap--enter", "flowBranchNodeWrap--enter-active");
+    }
+  }
+
+  function revealConditionalBranchNode() {
+    if (!branchNodeWrap?.hasAttribute("hidden")) return;
+    branchNodeWrap.classList.remove("flowBranchNodeWrap--enter", "flowBranchNodeWrap--enter-active");
+    void branchNodeWrap.offsetWidth;
+    branchNodeWrap.classList.add("flowBranchNodeWrap--enter");
+    branchNodeWrap.removeAttribute("hidden");
+    branchNodeWrap.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => {
+      branchNodeWrap.classList.add("flowBranchNodeWrap--enter-active");
+    });
+    window.setTimeout(() => {
+      branchNodeWrap.classList.remove("flowBranchNodeWrap--enter", "flowBranchNodeWrap--enter-active");
+    }, 720);
+  }
+
+  const branchStack = branchPanel.querySelector(".flowBranchPanel__branchStack");
+  const editorCol = document.getElementById("flowBranchEditorCol");
+
+  /** @type {HTMLElement | null} */
+  let draggedBranchCard = null;
+  /** @type {HTMLElement | null} */
+  let branchDragGhostEl = null;
+  /** @type {HTMLElement | null} */
+  let branchDropSlotEl = null;
+  let draggedBranchCardHeight = 48;
+
+  function removeBranchDropSlot() {
+    branchDropSlotEl?.remove();
+    branchDropSlotEl = null;
+  }
+
+  function clearEditingBranchCard() {
+    branchStack?.querySelectorAll(".flowBranchPanel__branchCard--editing").forEach((el) => {
+      el.classList.remove("flowBranchPanel__branchCard--editing");
+    });
+  }
+
+  function exitBranchEditor() {
+    removeBranchDropSlot();
+    clearEditingBranchCard();
+    if (editorCol) {
+      editorCol.hidden = true;
+      editorCol.setAttribute("aria-hidden", "true");
+    }
+    branchRoot.classList.remove("flowBranchPanelRoot--editorWide");
+    branchPanel.classList.remove("flowBranchPanel--editorWide");
+  }
+
+  function enterBranchEditor(options = {}) {
+    if (!editorCol) return;
+    const wide = options.wide === true;
+    const card = options.card instanceof HTMLElement ? options.card : null;
+    clearEditingBranchCard();
+    if (card && !card.hasAttribute("data-flow-branch-else")) {
+      card.classList.add("flowBranchPanel__branchCard--editing");
+    }
+    const branchNameInput = document.getElementById("flowBranchEditorBranchNameInput");
+    if (branchNameInput && card) {
+      const labelEl = card.querySelector(".flowBranchPanel__branchLabel");
+      branchNameInput.value = labelEl?.textContent?.trim() ?? "";
+    }
+    editorCol.hidden = false;
+    editorCol.setAttribute("aria-hidden", "false");
+    branchRoot.classList.toggle("flowBranchPanelRoot--editorWide", wide);
+    branchPanel.classList.toggle("flowBranchPanel--editorWide", wide);
+  }
+
+  function normalizeElseBranchLast() {
+    const elseEl = branchStack?.querySelector("[data-flow-branch-else]");
+    if (elseEl && branchStack) branchStack.appendChild(elseEl);
+  }
+
+  function nextBranchNumberLabel() {
+    let maxNum = 2;
+    branchStack?.querySelectorAll(".flowBranchPanel__branchCard:not([data-flow-branch-else])").forEach((card) => {
+      const labelEl = card.querySelector(".flowBranchPanel__branchLabel");
+      const text = labelEl?.textContent?.trim() ?? "";
+      const m = /^Branch (\d+)$/.exec(text);
+      if (m) maxNum = Math.max(maxNum, Number(m[1]));
+    });
+    return `Branch ${maxNum + 1}`;
+  }
+
+  function addBranchRowFromTemplate() {
+    if (!branchStack) return;
+    const elseEl = branchStack.querySelector("[data-flow-branch-else]");
+    const template = branchStack.querySelector(".flowBranchPanel__branchCard:not([data-flow-branch-else])");
+    if (!(elseEl instanceof HTMLElement) || !(template instanceof HTMLElement)) return;
+    const card = /** @type {HTMLElement} */ (template.cloneNode(true));
+    card.classList.remove("flowBranchPanel__branchCard--dragging", "flowBranchPanel__branchCard--editing");
+    const label = card.querySelector(".flowBranchPanel__branchLabel");
+    if (label) label.textContent = nextBranchNumberLabel();
+    elseEl.before(card);
+    normalizeElseBranchLast();
+  }
+
+  /**
+   * @param {HTMLElement} reference
+   */
+  function moveBranchDropSlotBefore(reference) {
+    if (!branchStack || !draggedBranchCard) return;
+    if (reference.parentNode !== branchStack) return;
+    if (!branchDropSlotEl) {
+      branchDropSlotEl = document.createElement("div");
+      branchDropSlotEl.className = "flowBranchPanel__branchDropSlot";
+      branchDropSlotEl.setAttribute("aria-hidden", "true");
+    }
+    branchDropSlotEl.style.height = `${draggedBranchCardHeight}px`;
+    branchStack.insertBefore(branchDropSlotEl, reference);
+  }
+
+  /**
+   * @param {HTMLElement} reference
+   */
+  function moveBranchDropSlotAfter(reference) {
+    if (!branchStack || !draggedBranchCard) return;
+    if (reference.parentNode !== branchStack) return;
+    if (!branchDropSlotEl) {
+      branchDropSlotEl = document.createElement("div");
+      branchDropSlotEl.className = "flowBranchPanel__branchDropSlot";
+      branchDropSlotEl.setAttribute("aria-hidden", "true");
+    }
+    branchDropSlotEl.style.height = `${draggedBranchCardHeight}px`;
+    reference.after(branchDropSlotEl);
+  }
 
   const customerDetails = document.getElementById("flowTriggerCustomerDetails");
   const conditionAndPill = document.getElementById("flowTriggerConditionAndPill");
@@ -2622,13 +2775,19 @@ initSlideshow();
   /** @type {{ trigger: HTMLElement; list: HTMLElement; field: HTMLElement; position: () => void; setExpanded: (v: boolean) => void; isExpanded: () => boolean }[]} */
   const flowSelects = [];
 
+  function syncFlowLayout() {
+    const anyOpen =
+      triggerRoot.classList.contains(TRIGGER_OPEN) || branchRoot.classList.contains(BRANCH_OPEN);
+    flowLayout?.classList.toggle(FLOW_LAYOUT_OPEN, anyOpen);
+  }
+
   function syncCustomerConditionUi(selectedLabel) {
     const isCustomer = selectedLabel === "Customer";
     if (customerDetails) {
       customerDetails.hidden = !isCustomer;
     }
     if (conditionAndPill) conditionAndPill.hidden = isCustomer;
-    trigger.classList.toggle("triggerNode--hasConditions", isCustomer);
+    triggerBtn.classList.toggle("triggerNode--hasConditions", isCustomer);
     if (triggerNodeConditions) {
       triggerNodeConditions.hidden = !isCustomer;
     }
@@ -2708,37 +2867,243 @@ initSlideshow();
     });
   }
 
-  function isOpen() {
-    return root.classList.contains(OPEN_CLASS);
+  function isTriggerOpen() {
+    return triggerRoot.classList.contains(TRIGGER_OPEN);
   }
 
-  function open() {
-    root.classList.add(OPEN_CLASS);
-    flowLayout?.classList.add(FLOW_LAYOUT_OPEN_CLASS);
-    root.setAttribute("aria-hidden", "false");
-    trigger.setAttribute("aria-expanded", "true");
-    window.requestAnimationFrame(() => panel.focus({ preventScroll: true }));
+  function isBranchOpen() {
+    return branchRoot.classList.contains(BRANCH_OPEN);
   }
 
-  function close(options = {}) {
+  function closeBranch(options = {}) {
+    const refocusBranch = options.refocusBranch !== false;
+    exitBranchEditor();
+    branchRoot.classList.remove(BRANCH_OPEN);
+    branchRoot.setAttribute("aria-hidden", "true");
+    branchBtn.setAttribute("aria-expanded", "false");
+    syncFlowLayout();
+    if (!refocusBranch) branchBtn.blur();
+    else branchBtn.focus({ preventScroll: true });
+  }
+
+  function openBranch() {
+    if (branchNodeWrap?.hidden) return;
+    exitBranchEditor();
+    closeTrigger({ refocusTrigger: false });
+    closeAllSelects();
+    branchRoot.classList.add(BRANCH_OPEN);
+    branchRoot.setAttribute("aria-hidden", "false");
+    branchBtn.setAttribute("aria-expanded", "true");
+    syncFlowLayout();
+    window.requestAnimationFrame(() => branchPanel.focus({ preventScroll: true }));
+  }
+
+  function closeTrigger(options = {}) {
+    const wasOpen = triggerRoot.classList.contains(TRIGGER_OPEN);
     const refocusTrigger = options.refocusTrigger !== false;
     closeAllSelects();
-    root.classList.remove(OPEN_CLASS);
-    flowLayout?.classList.remove(FLOW_LAYOUT_OPEN_CLASS);
-    root.setAttribute("aria-hidden", "true");
-    trigger.setAttribute("aria-expanded", "false");
-    if (!refocusTrigger) trigger.blur();
-    else trigger.focus({ preventScroll: true });
+    triggerRoot.classList.remove(TRIGGER_OPEN);
+    triggerRoot.setAttribute("aria-hidden", "true");
+    triggerBtn.setAttribute("aria-expanded", "false");
+    syncFlowLayout();
+    if (!refocusTrigger) triggerBtn.blur();
+    else triggerBtn.focus({ preventScroll: true });
+    if (wasOpen) slide5BranchSpawnEligible = true;
   }
 
-  trigger.addEventListener("click", (e) => {
+  function openTrigger() {
+    closeBranch({ refocusBranch: false });
+    closeAllSelects();
+    triggerRoot.classList.add(TRIGGER_OPEN);
+    triggerRoot.setAttribute("aria-hidden", "false");
+    triggerBtn.setAttribute("aria-expanded", "true");
+    syncFlowLayout();
+    window.requestAnimationFrame(() => triggerPanel.focus({ preventScroll: true }));
+  }
+
+  triggerBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (isOpen()) close();
-    else open();
+    if (isTriggerOpen()) closeTrigger();
+    else openTrigger();
   });
 
-  root.querySelectorAll("[data-flow-trigger-dismiss]").forEach((el) => {
-    el.addEventListener("click", close);
+  branchBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (isBranchOpen()) closeBranch();
+    else openBranch();
+  });
+
+  slide5Canvas?.addEventListener("click", (e) => {
+    const t = e.target;
+    if (!(t instanceof Element)) return;
+    if (
+      t.closest(
+        "#flowTriggerNode, #flowConditionalBranchNode, #flowTriggerPanelRoot, #flowBranchPanelRoot",
+      )
+    ) {
+      return;
+    }
+    if (!slide5BranchSpawnEligible) return;
+    if (branchNodeWrap && !branchNodeWrap.hidden) return;
+    revealConditionalBranchNode();
+  });
+
+  triggerRoot.querySelectorAll("[data-flow-trigger-dismiss]").forEach((el) => {
+    el.addEventListener("click", closeTrigger);
+  });
+
+  branchRoot.querySelectorAll("[data-flow-branch-dismiss]").forEach((el) => {
+    el.addEventListener("click", closeBranch);
+  });
+
+  branchPanel.addEventListener("click", (e) => {
+    const el = e.target instanceof Element ? e.target : null;
+    if (!el) return;
+    if (el.closest("[data-flow-branch-add]")) {
+      e.stopPropagation();
+      addBranchRowFromTemplate();
+      return;
+    }
+    if (el.closest("[data-flow-branch-edit]")) {
+      e.stopPropagation();
+      const card = el.closest(".flowBranchPanel__branchCard");
+      enterBranchEditor({
+        wide: true,
+        card: card instanceof HTMLElement ? card : null,
+      });
+    }
+  });
+
+  branchStack?.addEventListener("dragstart", (e) => {
+    const t = e.target;
+    if (!(t instanceof Element)) return;
+    const handle = t.closest("[data-flow-branch-drag-handle]");
+    if (!handle) return;
+    const card = handle.closest(".flowBranchPanel__branchCard");
+    if (!(card instanceof HTMLElement)) return;
+    if (card.hasAttribute("data-flow-branch-else")) return;
+    draggedBranchCard = card;
+    draggedBranchCardHeight = Math.max(32, Math.round(card.getBoundingClientRect().height));
+    card.classList.add("flowBranchPanel__branchCard--dragging");
+    const dt = e.dataTransfer;
+    if (dt) {
+      dt.effectAllowed = "move";
+      dt.setData("text/plain", "flow-branch");
+
+      branchDragGhostEl?.remove();
+      branchDragGhostEl = null;
+
+      const rect = card.getBoundingClientRect();
+      const ghost = /** @type {HTMLElement} */ (card.cloneNode(true));
+      ghost.classList.remove(
+        "flowBranchPanel__branchCard--dragging",
+      );
+      ghost.querySelectorAll("[data-flow-branch-drag-handle]").forEach((h) => {
+        if (h instanceof HTMLElement) {
+          h.removeAttribute("draggable");
+          h.draggable = false;
+        }
+      });
+      ghost.style.position = "fixed";
+      ghost.style.left = "-10000px";
+      ghost.style.top = "0";
+      ghost.style.width = `${Math.round(rect.width)}px`;
+      ghost.style.boxSizing = "border-box";
+      ghost.style.margin = "0";
+      ghost.style.pointerEvents = "none";
+      ghost.style.opacity = "1";
+      ghost.style.zIndex = "100000";
+      document.body.appendChild(ghost);
+      branchDragGhostEl = ghost;
+
+      dt.setDragImage(
+        ghost,
+        Math.round(e.clientX - rect.left),
+        Math.round(e.clientY - rect.top),
+      );
+    }
+  });
+
+  branchStack?.addEventListener("dragend", () => {
+    branchDragGhostEl?.remove();
+    branchDragGhostEl = null;
+    removeBranchDropSlot();
+    if (draggedBranchCard) {
+      draggedBranchCard.classList.remove("flowBranchPanel__branchCard--dragging");
+    }
+    draggedBranchCard = null;
+  });
+
+  branchStack?.addEventListener("dragenter", (e) => {
+    if (!draggedBranchCard) return;
+    e.preventDefault();
+  });
+
+  branchStack?.addEventListener("dragover", (e) => {
+    if (!draggedBranchCard || !branchStack) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const targetCard =
+      under instanceof Element ? under.closest(".flowBranchPanel__branchCard") : null;
+    const elseEl = branchStack.querySelector("[data-flow-branch-else]");
+
+    if (!(targetCard instanceof HTMLElement)) {
+      if (elseEl instanceof HTMLElement) moveBranchDropSlotBefore(elseEl);
+      else removeBranchDropSlot();
+      return;
+    }
+
+    if (targetCard === draggedBranchCard) {
+      removeBranchDropSlot();
+      return;
+    }
+
+    if (targetCard.hasAttribute("data-flow-branch-else") && elseEl instanceof HTMLElement) {
+      moveBranchDropSlotBefore(elseEl);
+      return;
+    }
+
+    const rect = targetCard.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    if (e.clientY < mid) {
+      moveBranchDropSlotBefore(targetCard);
+    } else {
+      moveBranchDropSlotAfter(targetCard);
+    }
+  });
+
+  branchStack?.addEventListener("drop", (e) => {
+    if (!draggedBranchCard || !branchStack) return;
+    e.preventDefault();
+
+    if (branchDropSlotEl && branchDropSlotEl.parentNode === branchStack) {
+      branchDropSlotEl.before(draggedBranchCard);
+      removeBranchDropSlot();
+    } else {
+      removeBranchDropSlot();
+      const under = document.elementFromPoint(e.clientX, e.clientY);
+      const targetCard =
+        under instanceof Element ? under.closest(".flowBranchPanel__branchCard") : null;
+      if (!(targetCard instanceof HTMLElement) || targetCard === draggedBranchCard) return;
+
+      const elseEl = branchStack.querySelector("[data-flow-branch-else]");
+
+      if (targetCard.hasAttribute("data-flow-branch-else") && elseEl) {
+        elseEl.before(draggedBranchCard);
+      } else {
+        const rect = targetCard.getBoundingClientRect();
+        const mid = rect.top + rect.height / 2;
+        if (e.clientY < mid) {
+          targetCard.before(draggedBranchCard);
+        } else {
+          targetCard.after(draggedBranchCard);
+        }
+      }
+    }
+
+    normalizeElseBranchLast();
   });
 
   attachFlowSelect(document.getElementById("flowTriggerSelectObj"), document.getElementById("flowTriggerSelectList"), {
@@ -2755,7 +3120,22 @@ initSlideshow();
     document.getElementById("flowTriggerOperatorList"),
   );
 
-  const scrollArea = panel.querySelector(".flowTriggerPanel__scroll");
+  attachFlowSelect(
+    document.getElementById("flowBranchEditorObjectBtn"),
+    document.getElementById("flowBranchEditorObjectList"),
+  );
+
+  attachFlowSelect(
+    document.getElementById("flowBranchEditorMetricBtn"),
+    document.getElementById("flowBranchEditorMetricList"),
+  );
+
+  attachFlowSelect(
+    document.getElementById("flowBranchEditorOperatorBtn"),
+    document.getElementById("flowBranchEditorOperatorList"),
+  );
+
+  const scrollArea = triggerPanel.querySelector(".flowTriggerPanel__scroll");
   scrollArea?.addEventListener(
     "scroll",
     () => {
@@ -2765,6 +3145,17 @@ initSlideshow();
     },
     { passive: true }
   );
+
+  const branchScroll = branchPanel.querySelector(".flowTriggerPanel__scroll");
+  branchScroll?.addEventListener(
+    "scroll",
+    () => {
+      for (const s of flowSelects) {
+        if (s.isExpanded()) s.position();
+      }
+    },
+    { passive: true }
+ );
 
   window.addEventListener("resize", () => {
     for (const s of flowSelects) {
@@ -2798,13 +3189,19 @@ initSlideshow();
     );
   }
 
-  /** Slide 5 is data-slide-index="4" — leaving it closes the panel and clears “active” */
+  /** Slide 5 is data-slide-index="4" — leaving it closes panels */
   const FLOW_SLIDE_INDEX = 4;
 
   document.addEventListener("slideshow:change", (e) => {
     if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
-    if (e.detail.index === FLOW_SLIDE_INDEX) return;
-    close({ refocusTrigger: false });
+    if (e.detail.index === FLOW_SLIDE_INDEX) {
+      closeTrigger({ refocusTrigger: false });
+      closeBranch({ refocusBranch: false });
+      resetSlide5BranchSpawnState();
+      return;
+    }
+    closeTrigger({ refocusTrigger: false });
+    closeBranch({ refocusBranch: false });
   });
 
   document.addEventListener("keydown", (e) => {
@@ -2815,7 +3212,17 @@ initSlideshow();
       e.preventDefault();
       return;
     }
-    if (isOpen()) close();
+    if (isBranchOpen() && editorCol && !editorCol.hidden) {
+      exitBranchEditor();
+      e.preventDefault();
+      return;
+    }
+    if (isBranchOpen()) {
+      closeBranch();
+      e.preventDefault();
+      return;
+    }
+    if (isTriggerOpen()) closeTrigger();
   });
 })();
 
@@ -2829,7 +3236,7 @@ loadGraph()
 // One-time migration: clean existing saved card images.
 (() => {
   const run = async () => {
-    migrateLegacyPersonalizationImageIfNeeded();
+  migrateLegacyPersonalizationImageIfNeeded();
 
     // If there are no user-uploaded card images, skip entirely.
     let raw;
@@ -2840,18 +3247,18 @@ loadGraph()
     }
     if (!raw) return;
 
-    try {
-      for (const nodeId of ["personalization", "ab", "loyalty", "referral", "mail", "chat", "ads", "affiliates"]) {
-        const img = getNodeCardImageDataUrl(nodeId);
-        if (!img) continue;
-        if (getNodeCardImageCleaned(nodeId)) continue;
-        const cleaned = await normalizeBackgroundToWhite(img, { threshold: 42 });
-        const enhanced = await enhanceForCrispDisplay(cleaned, { sharpenStrength: 0.55, maxLongEdge: 1200 });
-        setNodeCardImageDataUrl(nodeId, enhanced);
-        setNodeCardImageCleaned(nodeId, true);
-      }
-    } catch {
-      // If it fails, don't block anything.
+  try {
+    for (const nodeId of ["personalization", "ab", "loyalty", "referral", "mail", "chat", "ads", "affiliates"]) {
+      const img = getNodeCardImageDataUrl(nodeId);
+      if (!img) continue;
+      if (getNodeCardImageCleaned(nodeId)) continue;
+      const cleaned = await normalizeBackgroundToWhite(img, { threshold: 42 });
+      const enhanced = await enhanceForCrispDisplay(cleaned, { sharpenStrength: 0.55, maxLongEdge: 1200 });
+      setNodeCardImageDataUrl(nodeId, enhanced);
+      setNodeCardImageCleaned(nodeId, true);
+    }
+  } catch {
+    // If it fails, don't block anything.
     }
   };
 

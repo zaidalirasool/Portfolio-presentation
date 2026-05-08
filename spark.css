@@ -151,12 +151,53 @@
   gap: 24px;
 }
 
+.slide5FlowLayout__nodeStack {
+  flex: 0 0 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
 .slide5FlowLayout__node {
   flex: 0 0 auto;
   min-width: 0;
   max-width: 100%;
   display: flex;
   justify-content: center;
+}
+
+.slide5FlowLayout__node--branch[hidden] {
+  display: none !important;
+}
+
+/* Deferred conditional branch node: entrance after canvas unlock */
+#flowBranchNodeWrap.flowBranchNodeWrap--enter .triggerNode__card {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+  filter: blur(3px);
+}
+
+#flowBranchNodeWrap.flowBranchNodeWrap--enter.flowBranchNodeWrap--enter-active .triggerNode__card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #flowBranchNodeWrap.flowBranchNodeWrap--enter .triggerNode__card,
+  #flowBranchNodeWrap.flowBranchNodeWrap--enter.flowBranchNodeWrap--enter-active .triggerNode__card {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }
 
 /* ── Trigger node ─────────────────────────────────────────────────── */
@@ -419,9 +460,658 @@
   object-fit: contain;
 }
 
+/* ── Conditional branch node (slide 5) ───────────────────────────── */
+
+.flowBranchNode .triggerNode__iconDisc {
+  background: var(--spark-color-purple);
+}
+
+/* Conditional branch panel masthead + type (matches Figma tokens) */
+#flowBranchPanel .flowBranchPanel__mastheadRow {
+  align-items: flex-start;
+}
+
+.flowBranchPanel__mastheadTop {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.flowBranchPanel__headerTitleRow {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  width: 100%;
+}
+
+#flowBranchPanel .flowBranchPanel__headerTitle {
+  margin: 0;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  position: relative;
+  font-size: 24px;
+  line-height: 28px;
+  display: inline-block;
+  font-family: var(--spark-font-display);
+  font-weight: 700;
+  color: var(--spark-palette-midnight-100);
+  text-align: left;
+  word-wrap: break-word;
+}
+
+.flowBranchPanel__panelLede {
+  margin: 0;
+  align-self: stretch;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+}
+
+.flowBranchPanel__blockNameLabel {
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+}
+
+#flowBranchPanel .flowBranchPanel__textInput {
+  align-self: stretch;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 8px 8px 8px 12px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  border: none;
+  background: var(--spark-color-white);
+  outline: 1px solid var(--spark-color-panel-outline);
+  outline-offset: -1px;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--spark-palette-midnight-100);
+  -webkit-text-fill-color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    outline-color 180ms cubic-bezier(0.4, 0, 1, 1),
+    box-shadow 180ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+#flowBranchPanel #flowBranchBlockNameInput::placeholder {
+  color: var(--spark-palette-midnight-100);
+  -webkit-text-fill-color: var(--spark-palette-midnight-100);
+  opacity: 1;
+}
+
+#flowBranchPanel .flowBranchPanel__textInput::placeholder {
+  color: var(--spark-palette-structure-80);
+  opacity: 1;
+}
+
+#flowBranchPanel .flowBranchPanel__textInput:hover {
+  outline-color: var(--spark-palette-structure-80);
+}
+
+#flowBranchPanel .flowBranchPanel__textInput:focus {
+  outline: 1px solid var(--spark-color-active-ring);
+  outline-offset: -1px;
+}
+
+#flowBranchPanel .flowBranchPanel__textInput:focus-visible {
+  box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
+}
+
+#flowBranchPanel .flowBranchPanel__blockNameHint {
+  margin: 0;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-palette-structure-80);
+  word-wrap: break-word;
+}
+
+#flowBranchPanel .flowBranchPanel__branchesHeading {
+  color: var(--spark-palette-midnight-100);
+}
+
+#flowBranchPanel .flowBranchPanel__sectionHint {
+  color: var(--spark-palette-structure-100);
+}
+
+.flowBranchPanel__labelStack {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.flowBranchPanel__sectionHint {
+  margin: 0;
+  align-self: stretch;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-palette-structure-100);
+  word-wrap: break-word;
+}
+
+.flowBranchPanel__branchStack {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flowBranchPanel__branchColumns {
+  align-self: stretch;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.flowBranchPanel__branchColumnMain {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__branchColumns {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__branchColumnMain {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.flowBranchPanel__editorSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+  width: 100%;
+}
+
+.flowBranchPanel__editorSection + .flowBranchPanel__editorSection {
+  margin-top: 8px;
+}
+
+.flowBranchPanel__labelStack--tight {
+  margin-bottom: 0;
+}
+
+.flowBranchPanel__branchCard {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 16px;
+  background: var(--spark-palette-structure-10);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.flowBranchPanel__branchActions--else {
+  flex: 1 1 0;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.flowBranchPanel__iconButtonPair--else {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.flowBranchPanel__rightIcon {
+  display: flex;
+  align-items: flex-start;
+}
+
+.flowBranchPanel__elseInfoButton.flowBranchPanel__iconButton--elseInfo {
+  border-radius: 6px;
+  background-color: var(--spark-palette-midnight-10);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  margin: 0;
+  cursor: pointer;
+  line-height: 0;
+  color: var(--spark-palette-midnight-100);
+  transition: background-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.flowBranchPanel__elseInfoButton.flowBranchPanel__iconButton--elseInfo:hover {
+  background-color: var(--spark-palette-midnight-20);
+}
+
+.flowBranchPanel__elseInfoButton.flowBranchPanel__iconButton--elseInfo:focus-visible {
+  outline: 2px solid var(--spark-palette-cobalt-100);
+  outline-offset: 2px;
+}
+
+.flowBranchPanel__infoIcon {
+  height: 24px;
+  width: 24px;
+  position: relative;
+  display: block;
+  object-fit: contain;
+}
+
+.flowBranchPanel__branchCard--else .flowBranchPanel__branchGlyph {
+  cursor: default;
+}
+
+.flowBranchPanel__branchGlyph {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-right: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowBranchPanel__branchGlyph img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.flowBranchPanel__branchMain {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flowBranchPanel__branchLabel {
+  margin: 0;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+}
+
+.flowBranchPanel__branchActions {
+  flex-shrink: 0;
+  margin-left: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.flowBranchPanel__iconButtonPair {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.flowBranchPanel__leftIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowBranchPanel__iconButtonPair .flowBranchPanel__iconButton.flowBranchPanel__iconAction {
+  cursor: pointer;
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px;
+  background-color: var(--spark-palette-midnight-10);
+  border: 1.2px solid transparent;
+  box-shadow: none;
+  border-radius: 6px;
+}
+
+.flowBranchPanel__iconButtonPair .flowBranchPanel__iconButton.flowBranchPanel__iconAction:hover {
+  background-color: var(--spark-palette-midnight-20);
+}
+
+.flowBranchPanel__iconButtonPair .flowBranchPanel__iconButton.flowBranchPanel__iconAction:focus-visible {
+  outline: 2px solid var(--spark-palette-cobalt-100);
+  outline-offset: 2px;
+}
+
+.flowBranchPanel__branchCard--editing .flowBranchPanel__iconButtonPair {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.flowBranchPanel__branchCard--editing
+  .flowBranchPanel__iconButtonPair
+  .flowBranchPanel__iconButton[data-flow-branch-edit] {
+  background-color: var(--spark-palette-midnight-20);
+  border: 1.2px solid var(--spark-palette-cobalt-100);
+  box-shadow: none;
+}
+
+.flowBranchPanel__branchCard--editing
+  .flowBranchPanel__iconButtonPair
+  .flowBranchPanel__iconButton[data-flow-branch-edit]:hover {
+  background-color: var(--spark-palette-midnight-30);
+}
+
+.flowBranchPanel__branchCard--editing
+  .flowBranchPanel__iconButtonPair
+  .flowBranchPanel__iconButton[data-flow-branch-edit]:focus-visible {
+  outline: 2px solid var(--spark-palette-cobalt-100);
+  outline-offset: 2px;
+}
+
+.flowBranchPanel__branchCard--editing
+  .flowBranchPanel__iconButtonPair
+  .flowBranchPanel__iconButton[data-flow-branch-delete] {
+  background-color: var(--spark-palette-midnight-20);
+  border: none;
+  box-shadow: none;
+}
+
+.flowBranchPanel__branchCard--editing
+  .flowBranchPanel__iconButtonPair
+  .flowBranchPanel__iconButton[data-flow-branch-delete]:hover {
+  background-color: var(--spark-palette-midnight-30);
+}
+
+.flowBranchPanel__branchCard--editing
+  .flowBranchPanel__iconButtonPair
+  .flowBranchPanel__iconButton[data-flow-branch-delete]:focus-visible {
+  outline: 2px solid var(--spark-palette-cobalt-100);
+  outline-offset: 2px;
+}
+
+.flowBranchPanel__branchCard--editing .flowBranchPanel__deleteIcon {
+  object-fit: cover;
+}
+
+.flowBranchPanel__iconAction {
+  padding: 4px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  transition: background-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.flowBranchPanel__iconAction:hover {
+  background: rgba(25, 29, 72, 0.06);
+}
+
+.flowBranchPanel__iconAction img,
+.flowBranchPanel__editIcon,
+.flowBranchPanel__deleteIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.flowBranchPanel__iconAction--ghost {
+  box-shadow: 0 0 0 1px var(--spark-color-panel-outline) inset;
+}
+
+.flowBranchPanel__addBranch {
+  align-self: flex-start;
+  margin-top: 12px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--spark-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.flowBranchPanel__addBranch:hover,
+.flowBranchPanel__addBranch:focus-visible {
+  color: var(--spark-palette-cobalt-100);
+}
+
+.flowBranchPanel__addBranch:hover .flowBranchPanel__addBranchLabel,
+.flowBranchPanel__addBranch:focus-visible .flowBranchPanel__addBranchLabel {
+  color: var(--spark-palette-cobalt-100);
+}
+
+.flowBranchPanel__addBranch:hover .flowBranchPanel__addBranchIcon,
+.flowBranchPanel__addBranch:focus-visible .flowBranchPanel__addBranchIcon {
+  background-color: var(--spark-palette-cobalt-100);
+}
+
+.flowBranchPanel__addBranch:focus-visible {
+  outline: 2px solid var(--spark-palette-cobalt-100);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.flowBranchPanel__addBranchIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: block;
+  background-color: var(--spark-color-ink);
+  mask-image: url("./assets/icons/add.svg");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url("./assets/icons/add.svg");
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  transition: background-color 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowBranchPanel__addBranchLabel {
+  padding-top: 1px;
+  color: inherit;
+}
+
+.flowBranchPanel__branchGlyph[data-flow-branch-drag-handle] {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flowBranchPanel__branchGlyph[data-flow-branch-drag-handle]:active {
+  cursor: grabbing;
+}
+
+.flowBranchPanel__branchCard--dragging {
+  opacity: 0.55;
+}
+
+.flowBranchPanel__branchDropSlot {
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  background: rgba(57, 1, 241, 0.07);
+  box-shadow: 0 0 0 1.5px rgba(57, 1, 241, 0.28) inset;
+  pointer-events: none;
+  transition: height 90ms ease;
+}
+
+.flowBranchPanel__editorCol {
+  align-self: stretch;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--spark-color-panel-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flowBranchPanel__editorCol[hidden] {
+  display: none !important;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__editorCol {
+  flex: 1 1 0;
+  min-width: 280px;
+  max-width: min(480px, 46vw);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  padding-left: 24px;
+  margin-left: 0;
+  border-left: 1px solid var(--spark-color-panel-border);
+  align-self: stretch;
+}
+
+.flowBranchPanel__editorHint {
+  margin: 0 0 8px;
+  font-family: var(--spark-font-body);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--spark-palette-structure-100);
+}
+
+.flowBranchPanel__compoundCurrencyField {
+  align-self: stretch;
+  width: 100%;
+  padding: 10px;
+  margin: 0;
+  border-radius: 6px;
+  background: var(--spark-color-white);
+  box-shadow: 0 0 0 1px #b1bcc2 inset;
+  box-sizing: border-box;
+}
+
+.flowBranchPanel__compoundCurrencyInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2px;
+  width: 100%;
+}
+
+.flowBranchPanel__compoundCurrencyPrefix {
+  flex-shrink: 0;
+  padding: 2px;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #191d48;
+}
+
+.flowBranchPanel__compoundCurrencyInput {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #6e7381;
+  outline: none;
+}
+
+/* Branch condition editor: 24px-tall controls (trigger panel stays default height) */
+#flowBranchEditorCol .flowTriggerPanel__selectRow {
+  min-height: 24px;
+  height: 24px;
+  padding: 0 6px 0 10px;
+  gap: 8px;
+}
+
+#flowBranchEditorCol .flowTriggerPanel__chevImg--select {
+  width: 16px;
+  height: 16px;
+}
+
+#flowBranchEditorCol .flowTriggerPanel__selectText {
+  line-height: 24px;
+}
+
+#flowBranchEditorCol .flowTriggerPanel__valueReadout {
+  min-height: 24px;
+  height: 24px;
+  padding: 0 8px 0 10px;
+  line-height: 24px;
+}
+
+#flowBranchEditorCol .flowBranchPanel__compoundCurrencyField {
+  min-height: 24px;
+  height: 24px;
+  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+}
+
+#flowBranchEditorCol .flowBranchPanel__compoundCurrencyInner {
+  align-items: center;
+}
+
+#flowBranchEditorCol .flowBranchPanel__compoundCurrencyPrefix {
+  line-height: 24px;
+  padding: 0 2px;
+}
+
+#flowBranchEditorCol .flowBranchPanel__compoundCurrencyInput {
+  height: 24px;
+  line-height: 24px;
+}
+
 /* ── Configure panel (right of node, centered group in canvas) ───── */
 
-.flowTriggerPanelRoot {
+.flowTriggerPanelRoot,
+.flowBranchPanelRoot {
   flex: 0 1 0;
   min-width: 0;
   min-height: 0;
@@ -441,7 +1131,8 @@
     flex-basis 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.flowTriggerPanelRoot--open {
+.flowTriggerPanelRoot--open,
+.flowBranchPanelRoot--open {
   flex: 0 0 auto;
   min-width: min(var(--spark-panel-width), calc(100vw - 48px));
   max-width: min(var(--spark-panel-width), calc(100vw - 48px));
@@ -474,9 +1165,19 @@
     box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.flowTriggerPanelRoot--open .flowTriggerPanel {
+.flowTriggerPanelRoot--open .flowTriggerPanel,
+.flowBranchPanelRoot--open .flowTriggerPanel {
   transform: scale(1) translateX(0);
   box-shadow: var(--spark-shadow-sm);
+}
+
+.flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide {
+  min-width: min(calc(var(--spark-panel-width) * 2 + 32px), calc(100vw - 48px));
+  max-width: min(calc(var(--spark-panel-width) * 2 + 32px), calc(100vw - 48px));
+}
+
+.flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide .flowTriggerPanel {
+  width: min(calc(var(--spark-panel-width) * 2 + 32px), calc(100vw - 48px));
 }
 
 .flowTriggerPanel__masthead {
@@ -1220,11 +1921,13 @@
     gap: 24px;
   }
 
-  .flowTriggerPanelRoot {
+  .flowTriggerPanelRoot,
+  .flowBranchPanelRoot {
     transform: translateY(16px);
   }
 
-  .flowTriggerPanelRoot--open {
+  .flowTriggerPanelRoot--open,
+  .flowBranchPanelRoot--open {
     transform: translateY(0);
     min-width: min(var(--spark-panel-width), calc(100vw - 32px));
     max-width: min(var(--spark-panel-width), calc(100vw - 32px));
@@ -1237,8 +1940,33 @@
     transform: scale(0.82) translateY(10px);
   }
 
-  .flowTriggerPanelRoot--open .flowTriggerPanel {
+  .flowTriggerPanelRoot--open .flowTriggerPanel,
+  .flowBranchPanelRoot--open .flowTriggerPanel {
     transform: scale(1) translateY(0);
+  }
+
+  .flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide {
+    min-width: min(var(--spark-panel-width), calc(100vw - 32px));
+    max-width: min(var(--spark-panel-width), calc(100vw - 32px));
+  }
+
+  .flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide .flowTriggerPanel {
+    width: min(var(--spark-panel-width), calc(100vw - 32px));
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__branchColumns {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__editorCol {
+    max-width: none;
+    padding-left: 0;
+    margin-left: 0;
+    border-left: none;
+    border-top: 1px solid var(--spark-color-panel-border);
+    margin-top: 20px;
+    padding-top: 20px;
   }
 }
 
@@ -1248,7 +1976,9 @@
   }
 
   .flowTriggerPanelRoot,
-  .flowTriggerPanelRoot--open {
+  .flowBranchPanelRoot,
+  .flowTriggerPanelRoot--open,
+  .flowBranchPanelRoot--open {
     transition: none;
   }
 
@@ -1257,7 +1987,8 @@
     transform: none;
   }
 
-  .flowTriggerPanelRoot--open .flowTriggerPanel {
+  .flowTriggerPanelRoot--open .flowTriggerPanel,
+  .flowBranchPanelRoot--open .flowTriggerPanel {
     transform: none;
   }
 }

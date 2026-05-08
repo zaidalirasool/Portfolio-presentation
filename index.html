@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
-    <link rel="stylesheet" href="./spark.css?v=45" />
+    <link rel="stylesheet" href="./spark.css?v=107" />
     <link rel="stylesheet" href="./styles.css?v=120" />
   </head>
   <body>
@@ -30,16 +30,16 @@
           aria-label="Merchant stack"
           aria-hidden="true"
         >
-          <main class="main">
+      <main class="main">
             <div id="mapSlideMount1" class="mapSlideMount">
-              <section class="stageWrap" aria-label="Interactive map">
-                <div id="stage" class="stage" tabindex="0" role="application" aria-roledescription="interactive diagram">
-                  <div id="viewport" class="viewport" aria-hidden="false">
-                    <svg id="edges" class="edges" aria-hidden="true"></svg>
-                    <div id="nodes" class="nodes" aria-hidden="false"></div>
-                  </div>
-                </div>
-              </section>
+        <section class="stageWrap" aria-label="Interactive map">
+          <div id="stage" class="stage" tabindex="0" role="application" aria-roledescription="interactive diagram">
+            <div id="viewport" class="viewport" aria-hidden="false">
+              <svg id="edges" class="edges" aria-hidden="true"></svg>
+              <div id="nodes" class="nodes" aria-hidden="false"></div>
+            </div>
+          </div>
+        </section>
             </div>
           </main>
         </section>
@@ -64,7 +64,7 @@
                   />
                 </div>
               </section>
-            </div>
+              </div>
           </main>
         </section>
 
@@ -88,8 +88,9 @@
           <main class="main main--slide5">
             <div class="mapSlideMount mapSlideMount--slide5">
               <section class="stageWrap stageWrap--slide5" aria-label="Flow canvas">
-                <div class="slide5Canvas">
+                <div class="slide5Canvas" id="slide5Canvas">
                   <div class="slide5FlowLayout">
+                    <div class="slide5FlowLayout__nodeStack">
                     <div class="slide5FlowLayout__node">
                       <button
                         type="button"
@@ -147,6 +148,65 @@
                           </div>
                         </div>
                       </button>
+                    </div>
+                    <div
+                      id="flowBranchNodeWrap"
+                      class="slide5FlowLayout__node slide5FlowLayout__node--branch"
+                      hidden
+                      aria-hidden="true"
+                    >
+                      <button
+                        type="button"
+                        id="flowConditionalBranchNode"
+                        class="triggerNode flowBranchNode"
+                        aria-expanded="false"
+                        aria-controls="flowBranchPanel"
+                        aria-label="Conditional branch. 2 branches."
+                      >
+                        <div class="triggerNode__outer" data-node="Conditional branch">
+                          <div class="triggerNode__stretchCol">
+                            <div class="triggerNode__card">
+                              <div class="triggerNode__cardPad">
+                                <div class="triggerNode__row">
+                                  <div class="triggerNode__iconSlot">
+                                    <div class="triggerNode__iconDisc" aria-hidden="true">
+                                      <div class="triggerNode__iconArt">
+                                        <img
+                                          class="triggerNode__iconImg"
+                                          src="./assets/icons/branch.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="triggerNode__textCol">
+                                    <div class="triggerNode__titleLine">
+                                      <span class="triggerNode__title">Conditional branch</span>
+                                    </div>
+                                    <div class="triggerNode__subtitle">2 branches</div>
+                                  </div>
+                                  <div class="triggerNode__kebab" aria-hidden="true">
+                                    <div class="triggerNode__kebabArt">
+                                      <img
+                                        class="triggerNode__kebabImg"
+                                        src="./assets/icons/action.svg"
+                                        width="24"
+                                        height="24"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
                     </div>
                     <div
                       id="flowTriggerPanelRoot"
@@ -476,14 +536,432 @@
                         </footer>
                       </div>
                     </div>
+                    <div
+                      id="flowBranchPanelRoot"
+                      class="flowBranchPanelRoot"
+                      aria-hidden="true"
+                    >
+                      <div
+                        id="flowBranchPanel"
+                        class="flowTriggerPanel"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="flowBranchPanelTitle"
+                        tabindex="-1"
+                      >
+                        <header class="flowTriggerPanel__masthead">
+                          <div class="flowTriggerPanel__mastheadRow flowBranchPanel__mastheadRow">
+                            <div class="flowBranchPanel__mastheadTop">
+                              <div class="flowBranchPanel__headerTitleRow">
+                                <h2 id="flowBranchPanelTitle" class="flowBranchPanel__headerTitle">
+                                  Conditional branch
+                                </h2>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              class="flowTriggerPanel__closeBtn"
+                              data-flow-branch-dismiss
+                              aria-label="Close"
+                            >
+                              <span class="flowTriggerPanel__closeArt" aria-hidden="true">
+                                <img
+                                  class="flowTriggerPanel__closeImg"
+                                  src="./assets/icons/close.svg"
+                                  width="24"
+                                  height="24"
+                                  alt=""
+                                  decoding="async"
+                                />
+                              </span>
+                            </button>
+                          </div>
+                          <p class="flowBranchPanel__panelLede">
+                            Customers meeting the specified condition(s) will be assigned to the corresponding branch.
+                          </p>
+                        </header>
+                        <div class="flowTriggerPanel__scroll">
+                          <div class="flowTriggerPanel__block">
+                            <label
+                              class="flowBranchPanel__blockNameLabel"
+                              for="flowBranchBlockNameInput"
+                              >Node name</label>
+                            <input
+                              type="text"
+                              id="flowBranchBlockNameInput"
+                              class="flowBranchPanel__textInput"
+                              value=""
+                              placeholder="Conditional branch"
+                              autocomplete="off"
+                              aria-label="Node name"
+                            />
+                            <p class="flowBranchPanel__blockNameHint">
+                              Adding a name will help you keep track of the purpose of the node.
+                            </p>
+                          </div>
+                          <div class="flowTriggerPanel__block">
+                            <div class="flowBranchPanel__labelStack">
+                              <h3 class="flowTriggerPanel__sectionTitle flowBranchPanel__branchesHeading">
+                                Branches
+                              </h3>
+                              <p class="flowBranchPanel__sectionHint">
+                                Only the first branch with passing conditions will execute.
+                              </p>
+                            </div>
+                            <div class="flowBranchPanel__branchColumns">
+                              <div class="flowBranchPanel__branchColumnMain">
+                                <div class="flowBranchPanel__branchStack">
+                              <div class="flowBranchPanel__branchCard">
+                                <div
+                                  class="flowBranchPanel__branchGlyph"
+                                  data-flow-branch-drag-handle=""
+                                  draggable="true"
+                                  aria-hidden="true"
+                                >
+                                  <img
+                                    src="./assets/icons/drag.svg"
+                                    width="24"
+                                    height="24"
+                                    alt=""
+                                    decoding="async"
+                                  />
+                                </div>
+                                <div class="flowBranchPanel__branchMain">
+                                  <p class="flowBranchPanel__branchLabel">Prospective subscribers</p>
+                                </div>
+                                <div class="flowBranchPanel__branchActions">
+                                  <div class="flowBranchPanel__iconButtonPair">
+                                    <div class="flowBranchPanel__leftIcon">
+                                      <button
+                                        type="button"
+                                        class="flowBranchPanel__iconButton flowBranchPanel__iconAction"
+                                        aria-label="Edit branch"
+                                        data-flow-branch-edit=""
+                                      >
+                                        <img
+                                          class="flowBranchPanel__editIcon"
+                                          src="./assets/icons/edit.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </button>
+                                    </div>
+                                    <div class="flowBranchPanel__leftIcon">
+                                      <button
+                                        type="button"
+                                        class="flowBranchPanel__iconButton flowBranchPanel__iconAction"
+                                        aria-label="Delete branch"
+                                        data-flow-branch-delete=""
+                                      >
+                                        <img
+                                          class="flowBranchPanel__deleteIcon"
+                                          src="./assets/icons/delete-red.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="flowBranchPanel__branchCard">
+                                <div
+                                  class="flowBranchPanel__branchGlyph"
+                                  data-flow-branch-drag-handle=""
+                                  draggable="true"
+                                  aria-hidden="true"
+                                >
+                                  <img
+                                    src="./assets/icons/drag.svg"
+                                    width="24"
+                                    height="24"
+                                    alt=""
+                                    decoding="async"
+                                  />
+                                </div>
+                                <div class="flowBranchPanel__branchMain">
+                                  <p class="flowBranchPanel__branchLabel">Existing subscribers</p>
+                                </div>
+                                <div class="flowBranchPanel__branchActions">
+                                  <div class="flowBranchPanel__iconButtonPair">
+                                    <div class="flowBranchPanel__leftIcon">
+                                      <button
+                                        type="button"
+                                        class="flowBranchPanel__iconButton flowBranchPanel__iconAction"
+                                        aria-label="Edit branch"
+                                        data-flow-branch-edit=""
+                                      >
+                                        <img
+                                          class="flowBranchPanel__editIcon"
+                                          src="./assets/icons/edit.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </button>
+                                    </div>
+                                    <div class="flowBranchPanel__leftIcon">
+                                      <button
+                                        type="button"
+                                        class="flowBranchPanel__iconButton flowBranchPanel__iconAction"
+                                        aria-label="Delete branch"
+                                        data-flow-branch-delete=""
+                                      >
+                                        <img
+                                          class="flowBranchPanel__deleteIcon"
+                                          src="./assets/icons/delete-red.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                class="flowBranchPanel__branchCard flowBranchPanel__branchCard--else"
+                                data-flow-branch-else
+                              >
+                                <div
+                                  class="flowBranchPanel__branchGlyph"
+                                  aria-hidden="true"
+                                >
+                                  <img
+                                    src="./assets/icons/lock.svg"
+                                    width="24"
+                                    height="24"
+                                    alt=""
+                                    decoding="async"
+                                  />
+                                </div>
+                                <div class="flowBranchPanel__branchMain">
+                                  <p class="flowBranchPanel__branchLabel">Else</p>
+                                </div>
+                                <div class="flowBranchPanel__branchActions flowBranchPanel__branchActions--else">
+                                  <div class="flowBranchPanel__iconButtonPair flowBranchPanel__iconButtonPair--else">
+                                    <div class="flowBranchPanel__rightIcon">
+                                      <button
+                                        type="button"
+                                        class="flowBranchPanel__elseInfoButton flowBranchPanel__iconButton--elseInfo"
+                                        aria-label="About the Else branch"
+                                      >
+                                        <img
+                                          class="flowBranchPanel__infoIcon"
+                                          src="./assets/icons/info-cobalt.svg?v=2"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <button type="button" class="flowBranchPanel__addBranch" data-flow-branch-add>
+                              <span class="flowBranchPanel__addBranchIcon" aria-hidden="true"></span>
+                              <span class="flowBranchPanel__addBranchLabel">Add branch</span>
+                            </button>
+                          </div>
+                            <aside
+                              id="flowBranchEditorCol"
+                              class="flowBranchPanel__editorCol"
+                              hidden
+                              aria-hidden="true"
+                              aria-label="Branch condition editor"
+                            >
+                              <div class="flowBranchPanel__editorSection">
+                                <label
+                                  class="flowBranchPanel__blockNameLabel"
+                                  for="flowBranchEditorBranchNameInput"
+                                  >Branch name</label>
+                                <input
+                                  type="text"
+                                  id="flowBranchEditorBranchNameInput"
+                                  class="flowBranchPanel__textInput"
+                                  value="Prospective subscribers"
+                                  autocomplete="off"
+                                  aria-label="Branch name"
+                                />
+                                <p class="flowBranchPanel__blockNameHint">
+                                  Adding a name will help you keep track of the purpose of the branch.
+                                </p>
+                              </div>
+                              <div class="flowBranchPanel__editorSection">
+                                <div class="flowBranchPanel__labelStack flowBranchPanel__labelStack--tight">
+                                  <h3 class="flowTriggerPanel__sectionTitle">Execute this branch if</h3>
+                                  <p class="flowBranchPanel__sectionHint">
+                                    Only the first condition with passing actions will execute.
+                                  </p>
+                                </div>
+                              <div class="flowTriggerPanel__selectField">
+                                <label class="sr-only" for="flowBranchEditorObjectBtn">Object</label>
+                                <button
+                                  type="button"
+                                  id="flowBranchEditorObjectBtn"
+                                  class="flowTriggerPanel__selectRow"
+                                  aria-haspopup="listbox"
+                                  aria-expanded="false"
+                                  aria-controls="flowBranchEditorObjectList"
+                                >
+                                  <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
+                                    Customer
+                                  </span>
+                                  <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                    <img
+                                      class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                      src="./assets/icons/chevron-down.svg"
+                                      width="24"
+                                      height="24"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </span>
+                                </button>
+                                <div
+                                  id="flowBranchEditorObjectList"
+                                  class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                  role="listbox"
+                                  aria-labelledby="flowBranchEditorObjectBtn"
+                                  aria-hidden="true"
+                                >
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Customer
+                                  </button>
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Subscription
+                                  </button>
+                                </div>
+                              </div>
+                              <div class="flowTriggerPanel__selectField">
+                                <label class="sr-only" for="flowBranchEditorMetricBtn">Metric</label>
+                                <button
+                                  type="button"
+                                  id="flowBranchEditorMetricBtn"
+                                  class="flowTriggerPanel__selectRow"
+                                  aria-haspopup="listbox"
+                                  aria-expanded="false"
+                                  aria-controls="flowBranchEditorMetricList"
+                                >
+                                  <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
+                                    Number of active subscriptions
+                                  </span>
+                                  <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                    <img
+                                      class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                      src="./assets/icons/chevron-down.svg"
+                                      width="24"
+                                      height="24"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </span>
+                                </button>
+                                <div
+                                  id="flowBranchEditorMetricList"
+                                  class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                  role="listbox"
+                                  aria-labelledby="flowBranchEditorMetricBtn"
+                                  aria-hidden="true"
+                                >
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Number of active subscriptions
+                                  </button>
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Subscription AOV
+                                  </button>
+                                </div>
+                              </div>
+                              <div class="flowTriggerPanel__selectField">
+                                <label class="sr-only" for="flowBranchEditorOperatorBtn">Operator</label>
+                                <button
+                                  type="button"
+                                  id="flowBranchEditorOperatorBtn"
+                                  class="flowTriggerPanel__selectRow"
+                                  aria-haspopup="listbox"
+                                  aria-expanded="false"
+                                  aria-controls="flowBranchEditorOperatorList"
+                                >
+                                  <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
+                                    Is equal to
+                                  </span>
+                                  <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                    <img
+                                      class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                      src="./assets/icons/chevron-down.svg"
+                                      width="24"
+                                      height="24"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </span>
+                                </button>
+                                <div
+                                  id="flowBranchEditorOperatorList"
+                                  class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                  role="listbox"
+                                  aria-labelledby="flowBranchEditorOperatorBtn"
+                                  aria-hidden="true"
+                                >
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Is equal to
+                                  </button>
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Is greater than
+                                  </button>
+                                </div>
+                              </div>
+                              <label class="sr-only" for="flowBranchEditorValueInput">Comparison value</label>
+                              <input
+                                type="text"
+                                id="flowBranchEditorValueInput"
+                                class="flowTriggerPanel__valueReadout"
+                                value="0"
+                                autocomplete="off"
+                                aria-label="Comparison value"
+                              />
+                              <div class="flowBranchPanel__compoundCurrencyField">
+                                <div class="flowBranchPanel__compoundCurrencyInner">
+                                  <span class="flowBranchPanel__compoundCurrencyPrefix" aria-hidden="true">$</span>
+                                  <input
+                                    type="text"
+                                    class="flowBranchPanel__compoundCurrencyInput"
+                                    placeholder="0.00"
+                                    autocomplete="off"
+                                    aria-label="Amount in dollars"
+                                  />
+                                </div>
+                              </div>
+                              </div>
+                            </aside>
+                            </div>
+                          </div>
+                        </div>
+                        <footer class="flowTriggerPanel__footer">
+                          <div class="flowTriggerPanel__footerInner">
+                            <button type="button" class="flowTriggerPanel__apply" data-flow-branch-dismiss>
+                              <span class="flowTriggerPanel__applyLabel">Apply</span>
+                            </button>
+                          </div>
+                        </footer>
+                      </div>
+                  </div>
                   </div>
                 </div>
               </section>
-            </div>
+              </div>
           </main>
         </section>
-      </div>
-    </div>
+              </div>
+            </div>
 
     <!-- Modal 1: Loyalty connected to Pre-purchase -->
     <div id="loyaltyModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="loyaltyModalTitle" hidden>
@@ -508,8 +986,8 @@
             draggable="false"
           />
         </div>
-      </div>
-    </div>
+              </div>
+            </div>
 
     <!-- Modal 2: Loyalty connected to Retention (post-reroute) -->
     <div id="loyaltyModalRerouted" class="modal" role="dialog" aria-modal="true" aria-labelledby="loyaltyModalReroutedTitle" hidden>
@@ -541,6 +1019,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-86"></script>
+    <script type="module" src="./app.js?v=slideshow-110"></script>
   </body>
 </html>
