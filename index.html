@@ -1131,6 +1131,141 @@
                                         </button>
                                       </div>
                                     </div>
+                                    <div
+                                      id="flowBranchEditorExtendedConditionDetails"
+                                      class="flowTriggerPanel__customerDetails"
+                                      hidden
+                                    >
+                                      <div class="flowTriggerPanel__selectField">
+                                        <label class="sr-only" for="flowBranchEditorExtMetricBtn">Metric</label>
+                                        <button
+                                          type="button"
+                                          id="flowBranchEditorExtMetricBtn"
+                                          class="flowTriggerPanel__selectRow"
+                                          aria-haspopup="listbox"
+                                          aria-expanded="false"
+                                          aria-controls="flowBranchEditorExtMetricList"
+                                        >
+                                          <span class="flowTriggerPanel__selectText">Metric</span>
+                                          <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                            <img
+                                              class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                              src="./assets/icons/chevron-down.svg"
+                                              width="24"
+                                              height="24"
+                                              alt=""
+                                              decoding="async"
+                                            />
+                                          </span>
+                                        </button>
+                                        <div
+                                          id="flowBranchEditorExtMetricList"
+                                          class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                          role="listbox"
+                                          aria-labelledby="flowBranchEditorExtMetricBtn"
+                                          aria-hidden="true"
+                                        >
+                                          <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                            Number of active subscriptions
+                                          </button>
+                                          <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                            Subscription AOV
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <div class="flowTriggerPanel__selectField">
+                                        <label class="sr-only" for="flowBranchEditorExtOperatorBtn">Operator</label>
+                                        <button
+                                          type="button"
+                                          id="flowBranchEditorExtOperatorBtn"
+                                          class="flowTriggerPanel__selectRow"
+                                          aria-haspopup="listbox"
+                                          aria-expanded="false"
+                                          aria-controls="flowBranchEditorExtOperatorList"
+                                        >
+                                          <span class="flowTriggerPanel__selectText">Operator</span>
+                                          <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                            <img
+                                              class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                              src="./assets/icons/chevron-down.svg"
+                                              width="24"
+                                              height="24"
+                                              alt=""
+                                              decoding="async"
+                                            />
+                                          </span>
+                                        </button>
+                                        <div
+                                          id="flowBranchEditorExtOperatorList"
+                                          class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                          role="listbox"
+                                          aria-labelledby="flowBranchEditorExtOperatorBtn"
+                                          aria-hidden="true"
+                                        >
+                                          <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                            Is equal to
+                                          </button>
+                                          <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                            Is greater than
+                                          </button>
+                                          <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                            Is greater than or equal to
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <label class="sr-only" for="flowBranchEditorExtValueInput">Comparison value</label>
+                                      <div class="flowBranchPanel__conditionValueRow">
+                                        <input
+                                          type="text"
+                                          id="flowBranchEditorExtValueInput"
+                                          class="flowTriggerPanel__valueReadout"
+                                          value=""
+                                          autocomplete="off"
+                                          aria-label="Comparison value (extended condition)"
+                                        />
+                                      </div>
+                                      <div class="flowTriggerPanel__infoCallout" role="status">
+                                        <span class="flowTriggerPanel__infoCalloutIcon" aria-hidden="true">
+                                          <img
+                                            class="flowTriggerPanel__infoCalloutImg"
+                                            src="./assets/icons/info.svg"
+                                            width="24"
+                                            height="24"
+                                            alt=""
+                                            decoding="async"
+                                          />
+                                        </span>
+                                        <p class="flowTriggerPanel__infoCalloutText">
+                                          This is the number of active subscriptions this particular shopper has.
+                                        </p>
+                                      </div>
+                                      <div class="flowBranchPanel__conditionRowAddWrap">
+                                        <button
+                                          type="button"
+                                          class="flowTriggerPanel__pillBtn flowBranchPanel__conditionRowAdd"
+                                          data-flow-branch-editor-add-condition-card
+                                          aria-label="Add condition"
+                                          tabindex="-1"
+                                        >
+                                          <span class="flowTriggerPanel__pillInner">
+                                            <span
+                                              class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                              aria-hidden="true"
+                                            >
+                                              <img
+                                                class="flowTriggerPanel__pillPlusImg"
+                                                src="./assets/icons/add.svg"
+                                                width="20"
+                                                height="20"
+                                                alt=""
+                                                decoding="async"
+                                              />
+                                            </span>
+                                            <span class="flowTriggerPanel__pillLabel">Add</span>
+                                          </span>
+                                        </button>
+                                      </div>
+                                    </div>
                                     <div class="flowBranchPanel__innerAndBlock">
                                       <button
                                         type="button"
@@ -1363,6 +1498,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-123"></script>
+    <script type="module" src="./app.js?v=slideshow-124"></script>
   </body>
 </html>
