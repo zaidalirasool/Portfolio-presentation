@@ -99,6 +99,28 @@
   --trigger-purple: var(--spark-color-purple);
 }
 
+@keyframes flowBranchEditorColSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes flowBranchEditorColSlideInStacked {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ── Slide 5 canvas shell ─────────────────────────────────────────── */
 
 .slide--map.slide--outro .main.main--slide5 {
@@ -1338,6 +1360,98 @@
   gap: 12px;
 }
 
+/* Portfolio: Branch 3 only — hide metric / operator / value / callout / Add (everything in #flowBranchEditorConditionDetails). */
+#flowBranchPanel.flowBranchPanel--editingBranch3 #flowBranchEditorConditionDetails {
+  display: none !important;
+}
+
+.flowBranchPanel__conditionValueRow {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.flowBranchPanel__conditionRowAdd {
+  align-self: flex-start;
+}
+
+.flowBranchPanel__conditionCardAddRow {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.flowBranchPanel__conditionCardAddRow[hidden] {
+  display: none !important;
+}
+
+.flowBranchPanel__extraConditionCard[hidden] {
+  display: none !important;
+}
+
+.flowBranchPanel__extraConditionHead.flowTriggerPanel__conditionHead {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.flowBranchPanel__conditionExtended {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.flowBranchPanel__conditionExtended[hidden] {
+  display: none !important;
+}
+
+.flowBranchPanel__conditionAndChipWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.flowBranchPanel__conditionAndChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #d5dadd;
+  font-family: var(--spark-font-body);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 16px;
+  color: #616374;
+}
+
+.flowBranchPanel__innerAndPill {
+  align-self: stretch;
+}
+
+.flowBranchPanel__innerAndBlock {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0 0;
+  box-sizing: border-box;
+}
+
+.flowBranchPanel__innerExtendedDelete.flowTriggerPanel__bannerAction {
+  align-self: flex-start;
+  width: auto;
+}
+
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondaryButtonWrapper {
   align-items: stretch;
 }
@@ -1488,6 +1602,32 @@
   width: auto;
 }
 
+@media (min-width: 901px) {
+  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__splitBody {
+    position: relative;
+    overflow: hidden;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__mainColumn {
+    flex: 0 0 calc(50% - 0.5px);
+    max-width: calc(50% - 0.5px);
+    min-width: 0;
+    width: auto;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: calc(50% - 0.5px);
+    align-self: auto;
+    flex: none;
+    animation: flowBranchEditorColSlideIn 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
 .flowBranchPanel__mainColumn .flowTriggerPanel__scroll {
   flex: 1 1 0;
   min-height: 0;
@@ -1527,6 +1667,12 @@
 .flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide {
   min-width: min(var(--spark-branch-editor-wide-width), calc(100vw - 48px));
   max-width: min(var(--spark-branch-editor-wide-width), calc(100vw - 48px));
+  /* Snap shell width; second column uses a slide-in (see #flowBranchEditorCol). */
+  transition:
+    max-height 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 325ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    flex-basis 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .flowTriggerPanel__masthead {
@@ -1969,7 +2115,9 @@
 }
 
 /* Branch editor (slide 5): object row hint matches Figma structure-80 */
-#flowBranchPanel #flowBranchEditorObjectBtn .flowTriggerPanel__selectText:not(.flowTriggerPanel__selectText--hasValue) {
+#flowBranchPanel #flowBranchEditorObjectBtn .flowTriggerPanel__selectText:not(.flowTriggerPanel__selectText--hasValue),
+#flowBranchPanel #flowBranchEditorObject2Btn .flowTriggerPanel__selectText:not(.flowTriggerPanel__selectText--hasValue),
+#flowBranchPanel #flowBranchEditor2ObjectBtn .flowTriggerPanel__selectText:not(.flowTriggerPanel__selectText--hasValue) {
   color: var(--spark-palette-structure-80);
 }
 
@@ -2174,11 +2322,24 @@
   align-items: center;
   justify-content: center;
   font: inherit;
-  transition: background 220ms cubic-bezier(0.4, 0, 1, 1);
+  transition:
+    background 180ms cubic-bezier(0.4, 0, 1, 1),
+    box-shadow 180ms cubic-bezier(0.4, 0, 1, 1);
 }
 
-.flowTriggerPanel__pillBtn:hover {
+.flowTriggerPanel__pillBtn:hover:not(:disabled) {
   background: var(--spark-color-surface-hover);
+  box-shadow: 0 0 0 1.5px var(--spark-palette-midnight-80) inset;
+}
+
+.flowTriggerPanel__pillBtn:active:not(:disabled) {
+  background: var(--spark-palette-midnight-10);
+  box-shadow: 0 0 0 1.5px var(--spark-palette-midnight-100) inset;
+}
+
+.flowTriggerPanel__pillBtn:focus-visible:not(:disabled) {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
 }
 
 .flowTriggerPanel__pillInner {
@@ -2447,6 +2608,8 @@
     background-color: transparent;
     border-radius: 0;
     box-shadow: none;
+    overflow-x: hidden;
+    animation: flowBranchEditorColSlideInStacked 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnFieldset {
@@ -2505,6 +2668,11 @@
 
   .flowTriggerPanelRoot--open .flowTriggerPanel,
   .flowBranchPanelRoot--open .flowTriggerPanel {
+    transform: none;
+  }
+
+  #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol {
+    animation: none;
     transform: none;
   }
 }

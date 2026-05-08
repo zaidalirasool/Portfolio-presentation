@@ -2663,6 +2663,19 @@ initSlideshow();
   const branchApplyBtn = document.getElementById("flowBranchApplyBtn");
   const branchCompoundInput = branchPanel.querySelector(".flowBranchPanel__compoundCurrencyInput");
 
+  function countNonElseBranches() {
+    if (!branchStack) return 0;
+    return branchStack.querySelectorAll(".flowBranchPanel__branchCard:not([data-flow-branch-else])").length;
+  }
+
+  function syncConditionalBranchNodeSubtitle() {
+    const subtitle = branchBtn.querySelector(".triggerNode__subtitle");
+    const n = countNonElseBranches();
+    const phrase = n === 1 ? "1 branch" : `${n} branches`;
+    if (subtitle) subtitle.textContent = phrase;
+    branchBtn.setAttribute("aria-label", `Conditional branch. ${phrase}.`);
+  }
+
   /** @type {HTMLElement | null} */
   let draggedBranchCard = null;
   /** @type {HTMLElement | null} */
@@ -2723,6 +2736,7 @@ initSlideshow();
     }
     branchRoot.classList.remove("flowBranchPanelRoot--editorWide");
     branchPanel.classList.remove("flowBranchPanel--editorWide");
+    branchPanel.classList.remove("flowBranchPanel--editingBranch3");
     resetBranchEditorConditionUi();
     syncBranchApplyDisabledState();
   }
@@ -2731,6 +2745,8 @@ initSlideshow();
     if (!editorCol) return;
     const wide = options.wide === true;
     const card = options.card instanceof HTMLElement ? options.card : null;
+    const branchLabel = card?.querySelector(".flowBranchPanel__branchLabel")?.textContent?.trim() ?? "";
+    const isBranch3 = branchLabel === "Branch 3";
     clearEditingBranchCard();
     if (card && !card.hasAttribute("data-flow-branch-else")) {
       card.classList.add("flowBranchPanel__branchCard--editing");
@@ -2744,14 +2760,10 @@ initSlideshow();
     editorCol.setAttribute("aria-hidden", "false");
     branchRoot.classList.toggle("flowBranchPanelRoot--editorWide", wide);
     branchPanel.classList.toggle("flowBranchPanel--editorWide", wide);
+    branchPanel.classList.toggle("flowBranchPanel--editingBranch3", isBranch3);
     resetBranchEditorConditionUi();
-    if (
-      card &&
-      !card.hasAttribute("data-flow-branch-else") &&
-      card.querySelector(".flowBranchPanel__branchLabel")?.textContent?.trim() ===
-        "Prospective subscribers"
-    ) {
-      applyProspectiveSubscribersBranchEditorConditionPreset();
+    if (!card?.hasAttribute("data-flow-branch-else") && !isBranch3) {
+      applyBranchEditorCustomerSubscriptionEqualsPreset("1");
     }
     syncBranchApplyDisabledState();
   }
@@ -2783,6 +2795,7 @@ initSlideshow();
     if (label) label.textContent = nextBranchNumberLabel();
     elseEl.before(card);
     normalizeElseBranchLast();
+    syncConditionalBranchNodeSubtitle();
   }
 
   /**
@@ -2846,6 +2859,50 @@ initSlideshow();
     }
   }
 
+  function resetBranchEditorSecondConditionCard() {
+    const c2 = document.getElementById("flowBranchEditorConditionCard2");
+    const addRow = document.getElementById("flowBranchEditorConditionCardAddRow");
+    if (c2 instanceof HTMLElement) c2.hidden = true;
+    if (addRow instanceof HTMLElement) addRow.hidden = false;
+    const o2Btn = document.getElementById("flowBranchEditor2ObjectBtn");
+    const o2Span = o2Btn?.querySelector(".flowTriggerPanel__selectText");
+    if (o2Span) {
+      o2Span.textContent = "Object";
+      o2Span.classList.remove("flowTriggerPanel__selectText--hasValue");
+    }
+  }
+
+  function collapseBranchEditorConditionExtension() {
+    const extended = document.getElementById("flowBranchEditorConditionExtended");
+    const addBtn = branchPanel.querySelector("[data-flow-branch-editor-add-condition]");
+    if (extended instanceof HTMLElement) extended.hidden = true;
+    if (addBtn instanceof HTMLButtonElement) addBtn.hidden = false;
+    const object2Btn = document.getElementById("flowBranchEditorObject2Btn");
+    const object2Span = object2Btn?.querySelector(".flowTriggerPanel__selectText");
+    if (object2Span) {
+      object2Span.textContent = "Object";
+      object2Span.classList.remove("flowTriggerPanel__selectText--hasValue");
+    }
+  }
+
+  function expandBranchEditorConditionExtension() {
+    const details = document.getElementById("flowBranchEditorConditionDetails");
+    if (!details || details.hidden) return;
+    const extended = document.getElementById("flowBranchEditorConditionExtended");
+    const addBtn = branchPanel.querySelector("[data-flow-branch-editor-add-condition]");
+    if (!(extended instanceof HTMLElement)) return;
+    const operatorBtn = document.getElementById("flowBranchEditorOperatorBtn");
+    const operatorSpan = operatorBtn?.querySelector(".flowTriggerPanel__selectText");
+    if (operatorSpan) {
+      operatorSpan.textContent = "Is greater than or equal to";
+      operatorSpan.classList.add("flowTriggerPanel__selectText--hasValue");
+    }
+    const valueInput = document.getElementById("flowBranchEditorValueInput");
+    if (valueInput instanceof HTMLInputElement) valueInput.value = "1";
+    extended.hidden = false;
+    if (addBtn instanceof HTMLButtonElement) addBtn.hidden = true;
+  }
+
   function resetBranchEditorConditionUi() {
     closeAllSelects();
     const details = document.getElementById("flowBranchEditorConditionDetails");
@@ -2883,6 +2940,8 @@ initSlideshow();
     if (branchCompoundInput instanceof HTMLInputElement) {
       branchCompoundInput.value = "";
     }
+    collapseBranchEditorConditionExtension();
+    resetBranchEditorSecondConditionCard();
   }
 
   /**
@@ -2891,18 +2950,26 @@ initSlideshow();
   function syncBranchEditorConditionDetailsFromObject(selectedLabel) {
     const details = document.getElementById("flowBranchEditorConditionDetails");
     const objectBtn = document.getElementById("flowBranchEditorObjectBtn");
-    if (!details || !objectBtn) return;
+    if (!details || !objectBtn) {
+      collapseBranchEditorConditionExtension();
+      return;
+    }
     const textEl = objectBtn.querySelector(".flowTriggerPanel__selectText");
     const trimmed = selectedLabel.trim();
     details.hidden = false;
+    details.removeAttribute("hidden");
     if (textEl) {
       textEl.textContent = trimmed;
       textEl.classList.add("flowTriggerPanel__selectText--hasValue");
     }
+    collapseBranchEditorConditionExtension();
   }
 
-  /** Pre-filled condition row for the "Prospective subscribers" branch only (portfolio demo). */
-  function applyProspectiveSubscribersBranchEditorConditionPreset() {
+  /**
+   * Portfolio demo: Customer / active subscriptions / ≥ / comparison value (matches condition card reference).
+   * @param {string} comparisonValue
+   */
+  function applyBranchEditorCustomerSubscriptionEqualsPreset(comparisonValue) {
     syncBranchEditorConditionDetailsFromObject("Customer");
     const metricBtn = document.getElementById("flowBranchEditorMetricBtn");
     const metricSpan = metricBtn?.querySelector(".flowTriggerPanel__selectText");
@@ -2913,12 +2980,12 @@ initSlideshow();
     const operatorBtn = document.getElementById("flowBranchEditorOperatorBtn");
     const operatorSpan = operatorBtn?.querySelector(".flowTriggerPanel__selectText");
     if (operatorSpan) {
-      operatorSpan.textContent = "Equals";
+      operatorSpan.textContent = "Is greater than or equal to";
       operatorSpan.classList.add("flowTriggerPanel__selectText--hasValue");
     }
     const valueInput = document.getElementById("flowBranchEditorValueInput");
     if (valueInput instanceof HTMLInputElement) {
-      valueInput.value = "0";
+      valueInput.value = comparisonValue;
     }
   }
 
@@ -3092,9 +3159,52 @@ initSlideshow();
   branchPanel.addEventListener("click", (e) => {
     const el = e.target instanceof Element ? e.target : null;
     if (!el) return;
+    if (el.closest("[data-flow-branch-editor-add-condition-card]")) {
+      e.stopPropagation();
+      const c2 = document.getElementById("flowBranchEditorConditionCard2");
+      const addRow = document.getElementById("flowBranchEditorConditionCardAddRow");
+      if (c2 instanceof HTMLElement) c2.hidden = false;
+      if (addRow instanceof HTMLElement) addRow.hidden = true;
+      syncBranchApplyDisabledState();
+      return;
+    }
+    if (el.closest("[data-flow-branch-editor-remove-condition-2]")) {
+      e.stopPropagation();
+      resetBranchEditorSecondConditionCard();
+      syncBranchApplyDisabledState();
+      return;
+    }
+    if (el.closest("[data-flow-branch-editor-add-condition]")) {
+      e.stopPropagation();
+      expandBranchEditorConditionExtension();
+      syncBranchApplyDisabledState();
+      return;
+    }
+    if (el.closest("[data-flow-branch-editor-condition-delete]")) {
+      e.stopPropagation();
+      applyBranchEditorCustomerSubscriptionEqualsPreset("1");
+      syncBranchApplyDisabledState();
+      return;
+    }
     if (el.closest("[data-flow-branch-add]")) {
       e.stopPropagation();
       addBranchRowFromTemplate();
+      return;
+    }
+    if (el.closest("[data-flow-branch-delete]")) {
+      e.stopPropagation();
+      const card = el.closest(".flowBranchPanel__branchCard");
+      if (!(card instanceof HTMLElement)) return;
+      if (card.hasAttribute("data-flow-branch-else")) return;
+      const userBranches = branchStack?.querySelectorAll(
+        ".flowBranchPanel__branchCard:not([data-flow-branch-else])",
+      );
+      if (!userBranches || userBranches.length <= 1) return;
+      const wasEditing = card.classList.contains("flowBranchPanel__branchCard--editing");
+      card.remove();
+      normalizeElseBranchLast();
+      syncConditionalBranchNodeSubtitle();
+      if (wasEditing) exitBranchEditor();
       return;
     }
     if (el.closest("[data-flow-branch-edit]")) {
@@ -3104,6 +3214,7 @@ initSlideshow();
         wide: true,
         card: card instanceof HTMLElement ? card : null,
       });
+      return;
     }
   });
 
@@ -3256,7 +3367,16 @@ initSlideshow();
   attachFlowSelect(
     document.getElementById("flowBranchEditorObjectBtn"),
     document.getElementById("flowBranchEditorObjectList"),
-    { onPick: (v) => syncBranchEditorConditionDetailsFromObject(v) },
+    {
+      onPick: (v) => {
+        const label = v.trim();
+        if (label === "Customer") {
+          applyBranchEditorCustomerSubscriptionEqualsPreset("1");
+        } else {
+          syncBranchEditorConditionDetailsFromObject(v);
+        }
+      },
+    },
   );
 
   attachFlowSelect(
@@ -3267,6 +3387,16 @@ initSlideshow();
   attachFlowSelect(
     document.getElementById("flowBranchEditorOperatorBtn"),
     document.getElementById("flowBranchEditorOperatorList"),
+  );
+
+  attachFlowSelect(
+    document.getElementById("flowBranchEditorObject2Btn"),
+    document.getElementById("flowBranchEditorObject2List"),
+  );
+
+  attachFlowSelect(
+    document.getElementById("flowBranchEditor2ObjectBtn"),
+    document.getElementById("flowBranchEditor2ObjectList"),
   );
 
   const scrollArea = triggerPanel.querySelector(".flowTriggerPanel__scroll");
@@ -3360,6 +3490,7 @@ initSlideshow();
   });
 
   syncBranchApplyDisabledState();
+  syncConditionalBranchNodeSubtitle();
 })();
 
 loadGraph()

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
-    <link rel="stylesheet" href="./spark.css?v=155" />
+    <link rel="stylesheet" href="./spark.css?v=162" />
     <link rel="stylesheet" href="./styles.css?v=120" />
   </head>
   <body>
@@ -882,6 +882,32 @@
                                   </button>
                                 </div>
                               </div>
+                              <div class="flowBranchPanel__conditionCardAddRow" id="flowBranchEditorConditionCardAddRow">
+                                <button
+                                  type="button"
+                                  class="flowTriggerPanel__pillBtn flowBranchPanel__conditionCardAddPill"
+                                  data-flow-branch-editor-add-condition-card
+                                  aria-label="Add condition"
+                                  tabindex="-1"
+                                >
+                                  <span class="flowTriggerPanel__pillInner">
+                                    <span
+                                      class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                      aria-hidden="true"
+                                    >
+                                      <img
+                                        class="flowTriggerPanel__pillPlusImg"
+                                        src="./assets/icons/add.svg"
+                                        width="20"
+                                        height="20"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                    <span class="flowTriggerPanel__pillLabel">Add</span>
+                                  </span>
+                                </button>
+                              </div>
                               <div
                                 id="flowBranchEditorConditionDetails"
                                 class="flowTriggerPanel__customerDetails"
@@ -954,22 +980,51 @@
                                   aria-hidden="true"
                                 >
                                   <button type="button" class="flowTriggerPanel__selectOption" role="option">
-                                    Equals
+                                    Is equal to
                                   </button>
                                   <button type="button" class="flowTriggerPanel__selectOption" role="option">
                                     Is greater than
                                   </button>
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Is greater than or equal to
+                                  </button>
                                 </div>
                               </div>
                               <label class="sr-only" for="flowBranchEditorValueInput">Comparison value</label>
-                              <input
-                                type="text"
-                                id="flowBranchEditorValueInput"
-                                class="flowTriggerPanel__valueReadout"
-                                value=""
-                                autocomplete="off"
-                                aria-label="Comparison value"
-                              />
+                              <div class="flowBranchPanel__conditionValueRow">
+                                <input
+                                  type="text"
+                                  id="flowBranchEditorValueInput"
+                                  class="flowTriggerPanel__valueReadout"
+                                  value=""
+                                  autocomplete="off"
+                                  aria-label="Comparison value"
+                                />
+                                <button
+                                  type="button"
+                                  class="flowTriggerPanel__pillBtn flowBranchPanel__conditionRowAdd"
+                                  data-flow-branch-editor-add-condition
+                                  aria-label="Add condition"
+                                  tabindex="-1"
+                                >
+                                  <span class="flowTriggerPanel__pillInner">
+                                    <span
+                                      class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                      aria-hidden="true"
+                                    >
+                                      <img
+                                        class="flowTriggerPanel__pillPlusImg"
+                                        src="./assets/icons/add.svg"
+                                        width="20"
+                                        height="20"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                    <span class="flowTriggerPanel__pillLabel">Add</span>
+                                  </span>
+                                </button>
+                              </div>
                               <div class="flowBranchPanel__compoundCurrencyField flowBranchPanel__compoundCurrencyField--secondColumn">
                                 <div class="flowBranchPanel__compoundCurrencyInner">
                                   <span class="flowBranchPanel__compoundCurrencyPrefix" aria-hidden="true">$</span>
@@ -997,25 +1052,173 @@
                                       This is the number of active subscriptions this particular shopper has.
                                     </p>
                                   </div>
-                                  <button type="button" class="flowTriggerPanel__pillBtn" aria-label="Add" tabindex="-1">
-                                    <span class="flowTriggerPanel__pillInner">
-                                      <span
-                                        class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                  <div
+                                    id="flowBranchEditorConditionExtended"
+                                    class="flowBranchPanel__conditionExtended"
+                                    hidden
+                                  >
+                                    <div class="flowBranchPanel__conditionAndChipWrap">
+                                      <span class="flowBranchPanel__conditionAndChip">AND</span>
+                                    </div>
+                                    <div class="flowTriggerPanel__selectField">
+                                      <label class="sr-only" for="flowBranchEditorObject2Btn">Object</label>
+                                      <button
+                                        type="button"
+                                        id="flowBranchEditorObject2Btn"
+                                        class="flowTriggerPanel__selectRow"
+                                        aria-haspopup="listbox"
+                                        aria-expanded="false"
+                                        aria-controls="flowBranchEditorObject2List"
+                                      >
+                                        <span class="flowTriggerPanel__selectText">Object</span>
+                                        <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                          <img
+                                            class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                            src="./assets/icons/chevron-down.svg"
+                                            width="24"
+                                            height="24"
+                                            alt=""
+                                            decoding="async"
+                                          />
+                                        </span>
+                                      </button>
+                                      <div
+                                        id="flowBranchEditorObject2List"
+                                        class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                        role="listbox"
+                                        aria-labelledby="flowBranchEditorObject2Btn"
                                         aria-hidden="true"
                                       >
+                                        <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                          Customer
+                                        </button>
+                                        <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                          Line item
+                                        </button>
+                                        <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                          Shipping address
+                                        </button>
+                                        <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                          Subscription
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <div class="flowBranchPanel__innerAndBlock">
+                                      <button
+                                        type="button"
+                                        class="flowTriggerPanel__bannerAction flowTriggerPanel__bannerAction--delete flowBranchPanel__innerExtendedDelete"
+                                        data-flow-branch-editor-condition-delete
+                                        aria-label="Delete added condition group"
+                                        tabindex="-1"
+                                      >
+                                        <span class="flowTriggerPanel__bannerActionIcon" aria-hidden="true">
+                                          <img
+                                            class="flowTriggerPanel__bannerActionImg"
+                                            src="./assets/icons/delete.svg"
+                                            width="20"
+                                            height="20"
+                                            alt=""
+                                            decoding="async"
+                                          />
+                                        </span>
+                                        <span class="flowTriggerPanel__bannerActionLabel">Delete</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        class="flowTriggerPanel__pillBtn flowBranchPanel__innerAndPill"
+                                        aria-label="Add condition"
+                                        tabindex="-1"
+                                      >
+                                      <span class="flowTriggerPanel__pillInner">
+                                        <span
+                                          class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                          aria-hidden="true"
+                                        >
+                                          <img
+                                            class="flowTriggerPanel__pillPlusImg"
+                                            src="./assets/icons/add.svg"
+                                            width="20"
+                                            height="20"
+                                            alt=""
+                                            decoding="async"
+                                          />
+                                        </span>
+                                        <span class="flowTriggerPanel__pillLabel">Add</span>
+                                      </span>
+                                    </button>
+                                    </div>
+                                  </div>
+                              </div>
+                                </div>
+                                <div
+                                  id="flowBranchEditorConditionCard2"
+                                  class="flowTriggerPanel__conditionCard flowBranchPanel__conditionsEngine flowBranchPanel__extraConditionCard"
+                                  hidden
+                                >
+                                  <div class="flowTriggerPanel__conditionHead flowBranchPanel__extraConditionHead">
+                                    <span class="flowTriggerPanel__conditionTitle">Condition 2</span>
+                                    <button
+                                      type="button"
+                                      class="flowTriggerPanel__iconBtnMicro"
+                                      data-flow-branch-editor-remove-condition-2
+                                      aria-label="Remove condition 2"
+                                      tabindex="-1"
+                                    >
+                                      <span class="flowTriggerPanel__bannerActionIcon" aria-hidden="true">
                                         <img
-                                          class="flowTriggerPanel__pillPlusImg"
-                                          src="./assets/icons/add.svg"
-                                          width="20"
-                                          height="20"
+                                          class="flowTriggerPanel__bannerActionImg"
+                                          src="./assets/icons/delete.svg"
+                                          width="16"
+                                          height="16"
                                           alt=""
                                           decoding="async"
                                         />
                                       </span>
-                                      <span class="flowTriggerPanel__pillLabel">Add</span>
-                                    </span>
-                                  </button>
-                              </div>
+                                    </button>
+                                  </div>
+                                  <div class="flowTriggerPanel__selectField">
+                                    <label class="sr-only" for="flowBranchEditor2ObjectBtn">Object</label>
+                                    <button
+                                      type="button"
+                                      id="flowBranchEditor2ObjectBtn"
+                                      class="flowTriggerPanel__selectRow"
+                                      aria-haspopup="listbox"
+                                      aria-expanded="false"
+                                      aria-controls="flowBranchEditor2ObjectList"
+                                    >
+                                      <span class="flowTriggerPanel__selectText">Object</span>
+                                      <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                        <img
+                                          class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                          src="./assets/icons/chevron-down.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                    </button>
+                                    <div
+                                      id="flowBranchEditor2ObjectList"
+                                      class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                      role="listbox"
+                                      aria-labelledby="flowBranchEditor2ObjectBtn"
+                                      aria-hidden="true"
+                                    >
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Customer
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Line item
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Shipping address
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Subscription
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
                                 <div class="flowBranchPanel__secondaryButtonWrapper">
                                   <button type="button" class="flowTriggerPanel__pillBtn" aria-label="Or" tabindex="-1">
@@ -1132,6 +1335,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-112"></script>
+    <script type="module" src="./app.js?v=slideshow-119"></script>
   </body>
 </html>
