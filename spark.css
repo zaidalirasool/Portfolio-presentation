@@ -1442,7 +1442,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
+  gap: 10px;
 }
 
 .flowBranchPanel__conditionExtended[hidden] {
@@ -2198,6 +2198,11 @@
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
+}
+
+/* Branch Condition 1 details: +2px vertical rhythm (And row ↔ AND chip ↔ Object 2 chain). */
+#flowBranchEditorConditionDetails.flowTriggerPanel__customerDetails {
+  gap: 10px;
 }
 
 /* Native text input — value/type color is always primary (midnight-100).
