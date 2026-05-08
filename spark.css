@@ -99,25 +99,13 @@
   --trigger-purple: var(--spark-color-purple);
 }
 
-@keyframes flowBranchEditorColSlideIn {
-  from {
-    transform: translateX(100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes flowBranchEditorColSlideInStacked {
+@keyframes flowBranchEditorColDissolveIn {
   from {
     opacity: 0;
-    transform: translateY(14px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1508,16 +1496,22 @@
 
 #flowBranchPanel .flowBranchPanel__conditionsEngine .flowBranchPanel__compoundCurrencyField--extCondition .flowBranchPanel__compoundCurrencyInner {
   align-items: center;
-  gap: 12px;
+  gap: 2px;
 }
 
 #flowBranchPanel .flowBranchPanel__conditionsEngine .flowBranchPanel__compoundCurrencyField--extCondition .flowBranchPanel__compoundCurrencyPrefix {
-  padding: 0 4px;
+  padding: 0;
 }
 
 #flowBranchPanel .flowBranchPanel__conditionsEngine .flowBranchPanel__compoundCurrencyField--extCondition .flowBranchPanel__compoundCurrencyInput {
-  padding: 0 4px;
+  padding: 0;
   line-height: 24px;
+}
+
+#flowBranchPanel
+  .flowBranchPanel__conditionsEngine
+  #flowBranchEditorExtCurrencyInput.flowBranchPanel__compoundCurrencyInput--hasValue {
+  color: var(--spark-palette-midnight-100);
 }
 
 .flowBranchPanel__extValueCurrencyWrap,
@@ -1721,7 +1715,7 @@
     width: calc(50% - 0.5px);
     align-self: auto;
     flex: none;
-    animation: flowBranchEditorColSlideIn 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: flowBranchEditorColDissolveIn 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }
 
@@ -1792,7 +1786,7 @@
 .flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide {
   min-width: min(var(--spark-branch-editor-wide-width), calc(100vw - 48px));
   max-width: min(var(--spark-branch-editor-wide-width), calc(100vw - 48px));
-  /* Snap shell width; second column uses a slide-in (see #flowBranchEditorCol). */
+  /* Snap shell width; second column uses opacity dissolve (see #flowBranchEditorCol). */
   transition:
     max-height 500ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 380ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -2083,8 +2077,17 @@
   z-index: 100020;
 }
 
-/* Open branch dropdowns mount on document.body; when closed they stay in the field under #flowBranchPanel. */
-#flowBranchPanel .flowTriggerPanel__selectDropdown {
+/*
+ * Branch panel: lists stay in the .flowTriggerPanel__selectField (position: absolute below).
+ * They sit under the sticky Apply footer (sibling z-index 20) and clip with the scroll column
+ * so long menus are reached by scrolling, not drawn over the CTA.
+ */
+#flowBranchPanel .flowTriggerPanel__selectField > .flowTriggerPanel__selectDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  width: auto;
   z-index: 5;
 }
 
@@ -2627,16 +2630,21 @@
   transform: translateX(-50%);
   z-index: 3;
   max-width: min(280px, calc(100vw - 48px));
-  padding: 8px 12px;
+  padding: 12px 16px;
   box-sizing: border-box;
   border-radius: 6px;
-  background-color: var(--spark-color-white);
+  background-color: #191d48;
   box-shadow:
-    0 8px 20px rgba(25, 29, 72, 0.12),
-    0 2px 4px rgba(25, 29, 72, 0.08);
+    0 8px 20px rgba(25, 29, 72, 0.25),
+    0 2px 4px rgba(0, 0, 0, 0.12);
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
   transition:
     opacity 140ms cubic-bezier(0.4, 0, 1, 1),
     visibility 0ms linear 140ms;
@@ -2651,13 +2659,17 @@
 }
 
 .flowBranchPanel__applyTooltipInner {
+  align-self: stretch;
   margin: 0;
+  padding: 4px;
+  box-sizing: border-box;
   font-family: var(--spark-font-body);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
-  line-height: 18px;
-  color: var(--spark-palette-midnight-100);
+  line-height: 20px;
+  color: #ffffff;
   text-align: center;
+  word-wrap: break-word;
 }
 
 .triggerNode,
@@ -2774,7 +2786,7 @@
     border-radius: 0;
     box-shadow: none;
     overflow-x: hidden;
-    animation: flowBranchEditorColSlideInStacked 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: flowBranchEditorColDissolveIn 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnFieldset {
@@ -2838,6 +2850,7 @@
 
   #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol {
     animation: none;
+    opacity: 1;
     transform: none;
   }
 }

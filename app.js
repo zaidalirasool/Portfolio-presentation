@@ -2662,6 +2662,15 @@ initSlideshow();
   const branchApplyWrap = document.getElementById("flowBranchApplyWrap");
   const branchApplyBtn = document.getElementById("flowBranchApplyBtn");
   const branchCompoundInput = branchPanel.querySelector(".flowBranchPanel__compoundCurrencyInput");
+  const FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV = "Subscription AOV";
+
+  function isBranchApplyDisabledByExtAovRule() {
+    const extDetails = document.getElementById("flowBranchEditorExtendedConditionDetails");
+    if (!(extDetails instanceof HTMLElement) || extDetails.hidden) return false;
+    const metricBtn = document.getElementById("flowBranchEditorExtMetricBtn");
+    const span = metricBtn?.querySelector(".flowTriggerPanel__selectText");
+    return (span?.textContent?.trim() ?? "") === FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV;
+  }
 
   function countNonElseBranches() {
     if (!branchStack) return 0;
@@ -2709,7 +2718,7 @@ initSlideshow();
       branchApplyBtn.removeAttribute("aria-describedby");
       return;
     }
-    const invalid = isBranchApplyDisabledByCurrencyRule();
+    const invalid = isBranchApplyDisabledByCurrencyRule() || isBranchApplyDisabledByExtAovRule();
     branchApplyWrap.classList.toggle("flowBranchPanel__applyWrap--invalid", invalid);
     branchApplyBtn.disabled = invalid;
     if (invalid) branchApplyBtn.setAttribute("aria-describedby", "flowBranchApplyTooltip");
@@ -2899,10 +2908,21 @@ initSlideshow();
     addRow.hidden = !details.hidden;
   }
 
-  const FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV = "Subscription AOV";
-
   /** Last extended-metric label for migrating comparison values when the metric changes. */
   let branchEditorExtMetricLabelSnapshot = "";
+
+  /** Midnight-100 text when extended AOV amount is non-zero; muted placeholder tone for 0 / empty. */
+  function syncBranchEditorExtCurrencyInputValueClass() {
+    const el = document.getElementById("flowBranchEditorExtCurrencyInput");
+    if (!(el instanceof HTMLInputElement)) return;
+    const raw = el.value.trim().replace(/^\$\s*/, "").replace(/,/g, "");
+    if (raw === "") {
+      el.classList.remove("flowBranchPanel__compoundCurrencyInput--hasValue");
+      return;
+    }
+    const n = parseFloat(raw);
+    el.classList.toggle("flowBranchPanel__compoundCurrencyInput--hasValue", !Number.isNaN(n) && n !== 0);
+  }
 
   /**
    * Toggle plain vs currency comparison field for the extended condition row.
@@ -2916,6 +2936,8 @@ initSlideshow();
     if (plainWrap instanceof HTMLElement) plainWrap.hidden = isAov;
     if (currencyWrap instanceof HTMLElement) currencyWrap.hidden = !isAov;
     branchEditorExtMetricLabelSnapshot = trimmed;
+    syncBranchEditorExtCurrencyInputValueClass();
+    syncBranchApplyDisabledState();
   }
 
   /**
@@ -2937,11 +2959,13 @@ initSlideshow();
       }
     } else if (!wasAov && isAov) {
       if (currencyInput instanceof HTMLInputElement && plainInput instanceof HTMLInputElement) {
-        const v = plainInput.value.trim().replace(/^\$\s*/, "");
+        let v = plainInput.value.trim().replace(/^\$\s*/, "");
+        if (v === "1") v = "0";
         if (v) currencyInput.value = v;
         plainInput.value = "";
       }
     }
+    syncBranchEditorExtCurrencyInputValueClass();
   }
 
   function syncBranchEditorPanelModeFromEditedName(trimmed) {
@@ -3250,6 +3274,7 @@ initSlideshow();
     if (!(elTrigger instanceof HTMLElement) || !(elList instanceof HTMLElement)) return;
     const field = elTrigger.closest(".flowTriggerPanel__selectField");
     if (!field) return;
+    const inBranchPanel = Boolean(elTrigger.closest("#flowBranchPanel"));
 
     function isExpanded() {
       return elTrigger.getAttribute("aria-expanded") === "true";
@@ -3257,6 +3282,12 @@ initSlideshow();
 
     function position() {
       if (elList.getAttribute("aria-hidden") === "true") return;
+      if (inBranchPanel) {
+        elList.style.top = "";
+        elList.style.left = "";
+        elList.style.width = "";
+        return;
+      }
       const r = elTrigger.getBoundingClientRect();
       const viewportPad = 12;
       const maxW = Math.max(1, Math.round(window.innerWidth - r.left - viewportPad));
@@ -3275,11 +3306,12 @@ initSlideshow();
       elTrigger.setAttribute("aria-expanded", String(expanded));
       elList.setAttribute("aria-hidden", String(!expanded));
       field.classList.toggle("flowTriggerPanel__selectField--open", expanded);
-      /* Always mount the open list on document.body so it isn't clipped by
-       * #flowBranchPanel overflow:hidden (same viewport positioning as trigger selects). */
-      const mountRoot = document.body;
       if (expanded) {
-        mountRoot.appendChild(elList);
+        if (inBranchPanel) {
+          field.appendChild(elList);
+        } else {
+          document.body.appendChild(elList);
+        }
         window.requestAnimationFrame(() => position());
       } else {
         elList.style.top = "";
@@ -3717,6 +3749,11 @@ initSlideshow();
     document.getElementById("flowBranchEditorExtOperatorBtn"),
     document.getElementById("flowBranchEditorExtOperatorList"),
   );
+
+  const flowBranchEditorExtCurrencyInput = document.getElementById("flowBranchEditorExtCurrencyInput");
+  if (flowBranchEditorExtCurrencyInput instanceof HTMLInputElement) {
+    flowBranchEditorExtCurrencyInput.addEventListener("input", syncBranchEditorExtCurrencyInputValueClass);
+  }
 
   attachFlowSelect(
     document.getElementById("flowBranchEditor2ObjectBtn"),
