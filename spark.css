@@ -242,24 +242,8 @@
     var(--spark-shadow-focus-ring);
 }
 
-/* Node with saved conditions (e.g. Customer) — cobalt ring while panel is closed */
-.triggerNode--hasConditions:not([aria-expanded="true"]) .triggerNode__card {
-  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm);
-}
-
-.triggerNode--hasConditions:not([aria-expanded="true"]):hover .triggerNode__card {
-  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover);
-}
-
-.triggerNode--hasConditions:not([aria-expanded="true"]):focus-visible .triggerNode__card {
-  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm),
-    var(--spark-shadow-focus-ring);
-}
-
-.triggerNode--hasConditions:not([aria-expanded="true"]):hover:focus-visible .triggerNode__card {
-  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover),
-    var(--spark-shadow-focus-ring);
-}
+/* Cobalt ring only while the configure panel is open (aria-expanded). When closed or
+   not on slide 5, keep the default card chrome — conditions summary stays visible. */
 
 .triggerNode__conditions[hidden] {
   display: none !important;
@@ -819,8 +803,8 @@
 }
 
 .flowTriggerPanel__selectOption:focus-visible {
-  outline: 2px solid var(--spark-color-active-ring);
-  outline-offset: -2px;
+  outline: 1px solid var(--spark-color-active-ring);
+  outline-offset: -1px;
 }
 
 /* Single Chevrons.svg asset: down = default; micro control uses 16px + rotate for “up” */
@@ -878,13 +862,13 @@
 
 /* Keyboard focus + open/selected */
 .flowTriggerPanel__selectRow:focus-visible {
-  outline: 2px solid var(--spark-color-active-ring);
+  outline: 1px solid var(--spark-color-active-ring);
   outline-offset: -1px;
   box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
 }
 
 .flowTriggerPanel__selectRow[aria-expanded="true"] {
-  outline: 2px solid var(--spark-color-active-ring);
+  outline: 1px solid var(--spark-color-active-ring);
   outline-offset: -1px;
   background: var(--spark-color-white);
 }
@@ -936,11 +920,18 @@
   gap: 8px;
 }
 
+/* Native text input — state is “focused” via :focus / :focus-visible only.
+   Do not use aria-expanded or listbox “active/open” chrome here; see
+   WAI-ARIA AP: textbox role / HTML <input>, and WCAG 2.4.7 Focus Visible,
+   2.4.13 Focus Appearance. Custom selects above use aria-expanded instead. */
 .flowTriggerPanel__valueReadout {
   align-self: stretch;
+  display: block;
+  width: 100%;
   margin: 0;
   padding: 8px 8px 8px 12px;
   background: var(--spark-color-white);
+  border: none;
   border-radius: 6px;
   outline: 1px solid var(--spark-color-panel-outline);
   outline-offset: -1px;
@@ -951,6 +942,26 @@
   line-height: 24px;
   color: var(--spark-palette-midnight-100);
   word-wrap: break-word;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    outline-color 180ms cubic-bezier(0.4, 0, 1, 1),
+    outline-width 180ms cubic-bezier(0.4, 0, 1, 1),
+    box-shadow 180ms cubic-bezier(0.4, 0, 1, 1),
+    background 180ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__valueReadout:hover {
+  outline-color: rgba(25, 29, 72, 0.35);
+}
+
+.flowTriggerPanel__valueReadout:focus {
+  outline: 1px solid var(--spark-color-active-ring);
+  outline-offset: -1px;
+}
+
+.flowTriggerPanel__valueReadout:focus-visible {
+  box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
 }
 
 .flowTriggerPanel__infoCallout {
@@ -1014,6 +1025,34 @@
 
 .flowTriggerPanel__bannerAction:hover {
   opacity: 0.88;
+}
+
+/* Hit target + hover chrome only around icon + label (not full panel width) */
+.flowTriggerPanel__bannerAction--delete {
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  transition: opacity 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__bannerAction--delete:hover {
+  opacity: 1;
+}
+
+.flowTriggerPanel__bannerAction--delete:hover .flowTriggerPanel__bannerActionLabel {
+  color: var(--spark-color-active-ring);
+}
+
+.flowTriggerPanel__bannerAction--delete:hover .flowTriggerPanel__bannerActionImg {
+  filter: brightness(0) saturate(100%) invert(20%) sepia(95%) saturate(7152%) hue-rotate(253deg)
+    brightness(92%) contrast(104%);
+}
+
+.flowTriggerPanel__bannerAction--delete .flowTriggerPanel__bannerActionLabel,
+.flowTriggerPanel__bannerAction--delete .flowTriggerPanel__bannerActionImg {
+  transition:
+    color 160ms cubic-bezier(0.4, 0, 1, 1),
+    filter 160ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 .flowTriggerPanel__bannerAction:focus-visible {

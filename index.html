@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-    <link rel="stylesheet" href="./spark.css?v=33" />
+    <link rel="stylesheet" href="./spark.css?v=39" />
     <link rel="stylesheet" href="./styles.css?v=117" />
   </head>
   <body>
@@ -351,26 +351,63 @@
                                       </button>
                                     </div>
                                   </div>
-                                  <button
-                                    type="button"
-                                    class="flowTriggerPanel__selectRow flowTriggerPanel__selectRow--demo"
-                                    tabindex="-1"
-                                  >
-                                    <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
-                                      Is greater than or equal to
-                                    </span>
-                                    <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
-                                      <img
-                                        class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
-                                        src="./assets/icons/chevron-down.svg"
-                                        width="24"
-                                        height="24"
-                                        alt=""
-                                        decoding="async"
-                                      />
-                                    </span>
-                                  </button>
-                                  <div class="flowTriggerPanel__valueReadout">0</div>
+                                  <div class="flowTriggerPanel__selectField">
+                                    <label class="sr-only" for="flowTriggerOperatorBtn">Comparison operator</label>
+                                    <button
+                                      type="button"
+                                      id="flowTriggerOperatorBtn"
+                                      class="flowTriggerPanel__selectRow"
+                                      aria-haspopup="listbox"
+                                      aria-expanded="false"
+                                      aria-controls="flowTriggerOperatorList"
+                                    >
+                                      <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
+                                        Is greater than or equal to
+                                      </span>
+                                      <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                        <img
+                                          class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                          src="./assets/icons/chevron-down.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                    </button>
+                                    <div
+                                      id="flowTriggerOperatorList"
+                                      class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                      role="listbox"
+                                      aria-labelledby="flowTriggerOperatorBtn"
+                                      aria-hidden="true"
+                                    >
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Is less than
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Is less than or equal to
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Is equal to
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Is greater than or equal to
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Is greater than
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <label class="sr-only" for="flowTriggerValueInput">Comparison value</label>
+                                  <input
+                                    type="text"
+                                    id="flowTriggerValueInput"
+                                    class="flowTriggerPanel__valueReadout"
+                                    value="0"
+                                    autocomplete="off"
+                                    aria-label="Comparison value"
+                                  />
                                   <div class="flowTriggerPanel__infoCallout" role="status">
                                     <span class="flowTriggerPanel__infoCalloutIcon" aria-hidden="true">
                                       <img

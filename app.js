@@ -2720,13 +2720,15 @@ initSlideshow();
     window.requestAnimationFrame(() => panel.focus({ preventScroll: true }));
   }
 
-  function close() {
+  function close(options = {}) {
+    const refocusTrigger = options.refocusTrigger !== false;
     closeAllSelects();
     root.classList.remove(OPEN_CLASS);
     flowLayout?.classList.remove(FLOW_LAYOUT_OPEN_CLASS);
     root.setAttribute("aria-hidden", "true");
     trigger.setAttribute("aria-expanded", "false");
-    trigger.focus({ preventScroll: true });
+    if (!refocusTrigger) trigger.blur();
+    else trigger.focus({ preventScroll: true });
   }
 
   trigger.addEventListener("click", (e) => {
@@ -2746,6 +2748,11 @@ initSlideshow();
   attachFlowSelect(
     document.getElementById("flowTriggerCustomerMetricBtn"),
     document.getElementById("flowTriggerCustomerMetricList"),
+  );
+
+  attachFlowSelect(
+    document.getElementById("flowTriggerOperatorBtn"),
+    document.getElementById("flowTriggerOperatorList"),
   );
 
   const scrollArea = panel.querySelector(".flowTriggerPanel__scroll");
@@ -2790,6 +2797,15 @@ initSlideshow();
       objectSelectTrigger.querySelector(".flowTriggerPanel__selectText")?.textContent?.trim() ?? ""
     );
   }
+
+  /** Slide 5 is data-slide-index="4" — leaving it closes the panel and clears “active” */
+  const FLOW_SLIDE_INDEX = 4;
+
+  document.addEventListener("slideshow:change", (e) => {
+    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
+    if (e.detail.index === FLOW_SLIDE_INDEX) return;
+    close({ refocusTrigger: false });
+  });
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
