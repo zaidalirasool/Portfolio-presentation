@@ -2749,7 +2749,9 @@ initSlideshow();
     const branchLabel = card?.querySelector(".flowBranchPanel__branchLabel")?.textContent?.trim() ?? "";
     const isBranch3 = branchLabel === "Branch 3";
     const hideEditorCardConditionAdd =
-      branchLabel === "Prospective subscribers" || branchLabel === "Existing subscribers";
+      branchLabel === "Prospective subscribers" ||
+      branchLabel === "Existing subscribers" ||
+      branchLabel === "Branch 3";
     clearEditingBranchCard();
     if (card && !card.hasAttribute("data-flow-branch-else")) {
       card.classList.add("flowBranchPanel__branchCard--editing");
@@ -2766,12 +2768,8 @@ initSlideshow();
     branchPanel.classList.toggle("flowBranchPanel--editingBranch3", isBranch3);
     branchPanel.classList.toggle("flowBranchPanel--hideEditorCardConditionAdd", hideEditorCardConditionAdd);
     resetBranchEditorConditionUi();
-    if (!card?.hasAttribute("data-flow-branch-else")) {
-      if (isBranch3) {
-        applyBranchEditorCustomerBranch3EqualsOnePreset();
-      } else {
-        applyBranchEditorCustomerSubscriptionEqualsPreset("1");
-      }
+    if (!card?.hasAttribute("data-flow-branch-else") && !isBranch3) {
+      applyBranchEditorCustomerSubscriptionEqualsPreset("1");
     }
     syncBranchApplyDisabledState();
   }
@@ -2867,6 +2865,20 @@ initSlideshow();
     }
   }
 
+  function syncBranchEditorBranch3Affordances() {
+    const details = document.getElementById("flowBranchEditorConditionDetails");
+    const branch3AndRow = document.getElementById("flowBranchEditorBranch3AndRow");
+    const isB3 = branchPanel.classList.contains("flowBranchPanel--editingBranch3");
+    const rowAddLabel = branchPanel.querySelector(".flowBranchPanel__conditionRowAdd .flowTriggerPanel__pillLabel");
+    if (rowAddLabel) rowAddLabel.textContent = isB3 ? "And" : "Add";
+    const rowAddBtn = branchPanel.querySelector("[data-flow-branch-editor-add-condition]");
+    if (rowAddBtn instanceof HTMLButtonElement) {
+      rowAddBtn.setAttribute("aria-label", isB3 ? "And condition" : "Add condition");
+    }
+    if (!(branch3AndRow instanceof HTMLElement) || !details) return;
+    branch3AndRow.hidden = !isB3 || !details.hidden;
+  }
+
   function resetBranchEditorSecondConditionCard() {
     const c2 = document.getElementById("flowBranchEditorConditionCard2");
     const addRow = document.getElementById("flowBranchEditorConditionCardAddRow");
@@ -2902,7 +2914,9 @@ initSlideshow();
     const operatorBtn = document.getElementById("flowBranchEditorOperatorBtn");
     const operatorSpan = operatorBtn?.querySelector(".flowTriggerPanel__selectText");
     if (operatorSpan) {
-      operatorSpan.textContent = "Is greater than or equal to";
+      operatorSpan.textContent = branchPanel.classList.contains("flowBranchPanel--editingBranch3")
+        ? "Is equal to"
+        : "Is greater than or equal to";
       operatorSpan.classList.add("flowTriggerPanel__selectText--hasValue");
     }
     const valueInput = document.getElementById("flowBranchEditorValueInput");
@@ -2950,6 +2964,7 @@ initSlideshow();
     }
     collapseBranchEditorConditionExtension();
     resetBranchEditorSecondConditionCard();
+    syncBranchEditorBranch3Affordances();
   }
 
   /**
@@ -2960,6 +2975,7 @@ initSlideshow();
     const objectBtn = document.getElementById("flowBranchEditorObjectBtn");
     if (!details || !objectBtn) {
       collapseBranchEditorConditionExtension();
+      syncBranchEditorBranch3Affordances();
       return;
     }
     const textEl = objectBtn.querySelector(".flowTriggerPanel__selectText");
@@ -2971,6 +2987,7 @@ initSlideshow();
       textEl.classList.add("flowTriggerPanel__selectText--hasValue");
     }
     collapseBranchEditorConditionExtension();
+    syncBranchEditorBranch3Affordances();
   }
 
   /**
@@ -3016,6 +3033,7 @@ initSlideshow();
     if (valueInput instanceof HTMLInputElement) {
       valueInput.value = "1";
     }
+    syncBranchEditorBranch3Affordances();
   }
 
   /**
@@ -3188,6 +3206,14 @@ initSlideshow();
   branchPanel.addEventListener("click", (e) => {
     const el = e.target instanceof Element ? e.target : null;
     if (!el) return;
+    if (el.closest("[data-flow-branch-editor-branch3-and]")) {
+      e.stopPropagation();
+      const d = document.getElementById("flowBranchEditorConditionDetails");
+      if (!d || d.hidden) return;
+      expandBranchEditorConditionExtension();
+      syncBranchApplyDisabledState();
+      return;
+    }
     if (el.closest("[data-flow-branch-editor-add-condition-card]")) {
       e.stopPropagation();
       const c2 = document.getElementById("flowBranchEditorConditionCard2");
