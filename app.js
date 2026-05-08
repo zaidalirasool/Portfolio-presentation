@@ -2633,6 +2633,8 @@ initSlideshow();
   const branchNodeWrap = document.getElementById("flowBranchNodeWrap");
   const creditNodeWrap = document.getElementById("flowCreditNodeWrap");
   const creditBtn = document.getElementById("flowCreditNode");
+  const freeGiftNodeWrap = document.getElementById("flowFreeGiftNodeWrap");
+  const freeGiftBtn = document.getElementById("flowFreeGiftNode");
   const slide5Canvas = document.getElementById("slide5Canvas");
   const creditRoot = document.getElementById("flowCreditPanelRoot");
   const creditPanel = document.getElementById("flowCreditPanel");
@@ -2643,10 +2645,12 @@ initSlideshow();
   const creditPeriodValueInput = document.getElementById("flowCreditPeriodValue");
   let slide5BranchSpawnEligible = false;
   let slide5CreditSpawnEligible = false;
+  let slide5FreeGiftSpawnEligible = false;
 
   function resetSlide5BranchSpawnState() {
     slide5BranchSpawnEligible = false;
     slide5CreditSpawnEligible = false;
+    slide5FreeGiftSpawnEligible = false;
     if (branchNodeWrap) {
       branchNodeWrap.hidden = true;
       branchNodeWrap.setAttribute("aria-hidden", "true");
@@ -2656,6 +2660,11 @@ initSlideshow();
       creditNodeWrap.hidden = true;
       creditNodeWrap.setAttribute("aria-hidden", "true");
       creditNodeWrap.classList.remove("flowCreditNodeWrap--enter", "flowCreditNodeWrap--enter-active");
+    }
+    if (freeGiftNodeWrap) {
+      freeGiftNodeWrap.hidden = true;
+      freeGiftNodeWrap.setAttribute("aria-hidden", "true");
+      freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
     }
     if (creditRoot) {
       creditRoot.classList.remove(CREDIT_OPEN);
@@ -2723,6 +2732,21 @@ initSlideshow();
     });
     window.setTimeout(() => {
       creditNodeWrap.classList.remove("flowCreditNodeWrap--enter", "flowCreditNodeWrap--enter-active");
+    }, 900);
+  }
+
+  function revealFreeGiftNode() {
+    if (!freeGiftNodeWrap || !freeGiftNodeWrap.hasAttribute("hidden")) return;
+    freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
+    void freeGiftNodeWrap.offsetWidth;
+    freeGiftNodeWrap.classList.add("flowFreeGiftNodeWrap--enter");
+    freeGiftNodeWrap.removeAttribute("hidden");
+    freeGiftNodeWrap.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => {
+      freeGiftNodeWrap.classList.add("flowFreeGiftNodeWrap--enter-active");
+    });
+    window.setTimeout(() => {
+      freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
     }, 900);
   }
 
@@ -3620,6 +3644,7 @@ initSlideshow();
 
   function closeCredit(options = {}) {
     if (!creditRoot) return;
+    const wasOpen = creditRoot.classList.contains(CREDIT_OPEN);
     const refocusCredit = options.refocusCredit !== false;
     creditRoot.classList.remove(CREDIT_OPEN);
     creditRoot.setAttribute("aria-hidden", "true");
@@ -3627,6 +3652,7 @@ initSlideshow();
     syncFlowLayout();
     if (!refocusCredit) creditBtn?.blur();
     else creditBtn?.focus({ preventScroll: true });
+    if (wasOpen) slide5FreeGiftSpawnEligible = true;
   }
 
   function openCredit() {
@@ -3722,7 +3748,7 @@ initSlideshow();
     if (!(t instanceof Element)) return;
     if (
       t.closest(
-        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot",
+        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot",
       )
     ) {
       return;
@@ -3738,6 +3764,15 @@ initSlideshow();
       !branchNodeWrap.hidden
     ) {
       revealCreditNode();
+      return;
+    }
+    if (
+      slide5FreeGiftSpawnEligible &&
+      freeGiftNodeWrap?.hidden &&
+      creditNodeWrap &&
+      !creditNodeWrap.hidden
+    ) {
+      revealFreeGiftNode();
     }
   });
 
@@ -3745,6 +3780,10 @@ initSlideshow();
     e.stopPropagation();
     if (isCreditOpen()) closeCredit();
     else openCredit();
+  });
+
+  freeGiftBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
   });
 
   triggerRoot.querySelectorAll("[data-flow-trigger-dismiss]").forEach((el) => {
