@@ -1477,7 +1477,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px 0 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
