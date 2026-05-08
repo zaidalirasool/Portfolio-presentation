@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
-    <link rel="stylesheet" href="./spark.css?v=187" />
+    <link rel="stylesheet" href="./spark.css?v=205" />
     <link rel="stylesheet" href="./styles.css?v=120" />
   </head>
   <body>
@@ -217,6 +217,8 @@
                         type="button"
                         id="flowCreditNode"
                         class="triggerNode flowCreditNode"
+                        aria-expanded="false"
+                        aria-controls="flowCreditPanel"
                         aria-label="Issue credit. Configure."
                       >
                         <div class="triggerNode__outer" data-node="Issue credit">
@@ -229,7 +231,7 @@
                                       <div class="triggerNode__iconArt">
                                         <img
                                           class="triggerNode__iconImg"
-                                          src="./assets/icons/chip-icon.svg"
+                                          src="./assets/icons/coins.svg"
                                           width="24"
                                           height="24"
                                           alt=""
@@ -1485,6 +1487,357 @@
                       </div>
                       </div>
                     </div>
+                    <div
+                      id="flowCreditPanelRoot"
+                      class="flowCreditPanelRoot"
+                      aria-hidden="true"
+                    >
+                      <div
+                        id="flowCreditPanel"
+                        class="flowTriggerPanel flowCreditPanel"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="flowCreditPanelTitle"
+                        tabindex="-1"
+                      >
+                        <header class="flowTriggerPanel__masthead flowCreditPanel__masthead">
+                          <div class="flowTriggerPanel__mastheadRow">
+                            <div class="flowTriggerPanel__titleGroup">
+                              <h2 id="flowCreditPanelTitle" class="flowTriggerPanel__title">
+                                Configure issue credit
+                              </h2>
+                            </div>
+                            <button
+                              type="button"
+                              class="flowTriggerPanel__closeBtn flowCreditPanel__closeBtn"
+                              data-flow-credit-dismiss
+                              aria-label="Close"
+                            >
+                              <span class="flowTriggerPanel__closeArt flowCreditPanel__closeArt" aria-hidden="true">
+                                <img
+                                  class="flowTriggerPanel__closeImg"
+                                  src="./assets/icons/close.svg"
+                                  width="16"
+                                  height="16"
+                                  alt=""
+                                  decoding="async"
+                                />
+                              </span>
+                            </button>
+                          </div>
+                          <p class="flowTriggerPanel__lede flowCreditPanel__lede">
+                            Issue credits as a fixed amount or a percentage on an order.
+                          </p>
+                        </header>
+                        <div class="flowTriggerPanel__scroll flowCreditPanel__scroll">
+                          <div class="flowTriggerPanel__block">
+                            <h3 class="flowTriggerPanel__sectionTitle">Specify credit type and amount</h3>
+                            <div class="flowCreditPanel__typeAmountRow">
+                              <div class="flowTriggerPanel__selectField flowCreditPanel__creditTypeField">
+                                <label class="sr-only" for="flowCreditTypeSelectBtn">Credit type</label>
+                                <button
+                                  type="button"
+                                  id="flowCreditTypeSelectBtn"
+                                  class="flowTriggerPanel__selectRow flowCreditPanel__creditTypeTrigger"
+                                  aria-haspopup="listbox"
+                                  aria-expanded="false"
+                                  aria-controls="flowCreditTypeSelectList"
+                                >
+                                  <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue"
+                                    >Fixed amount</span
+                                  >
+                                  <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                    <img
+                                      class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                      src="./assets/icons/chevron-down.svg"
+                                      width="24"
+                                      height="24"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </span>
+                                </button>
+                                <div
+                                  id="flowCreditTypeSelectList"
+                                  class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                  role="listbox"
+                                  aria-labelledby="flowCreditTypeSelectBtn"
+                                  aria-hidden="true"
+                                >
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Fixed amount
+                                  </button>
+                                  <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                    Percentage
+                                  </button>
+                                </div>
+                              </div>
+                              <div class="flowCreditPanel__amountColumn">
+                                <label class="sr-only" for="flowCreditAmountInput">Credit amount</label>
+                                <div
+                                  class="flowBranchPanel__compoundCurrencyField flowCreditPanel__compoundCurrencyField"
+                                >
+                                  <div
+                                    class="flowBranchPanel__compoundCurrencyInner flowCreditPanel__compoundInner"
+                                    id="flowCreditCompoundInner"
+                                  >
+                                    <span
+                                      class="flowBranchPanel__compoundCurrencyPrefix flowCreditPanel__amountPrefix"
+                                      id="flowCreditAmountPrefix"
+                                      aria-hidden="true"
+                                      >$</span
+                                    >
+                                    <input
+                                      type="text"
+                                      id="flowCreditAmountInput"
+                                      class="flowBranchPanel__compoundCurrencyInput"
+                                      placeholder="0.00"
+                                      autocomplete="off"
+                                      inputmode="decimal"
+                                      aria-label="Credit amount in dollars"
+                                    />
+                                    <span
+                                      class="flowCreditPanel__amountSuffix"
+                                      id="flowCreditAmountSuffix"
+                                      aria-hidden="true"
+                                      >%</span
+                                    >
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flowTriggerPanel__block flowCreditPanel__block--expiry">
+                            <h3 class="flowTriggerPanel__sectionTitle">When should credits expire?</h3>
+                            <fieldset class="flowCreditPanel__radioFieldset">
+                              <legend class="sr-only">Credit expiration</legend>
+                              <label class="flowCreditPanel__radioRow">
+                                <input
+                                  type="radio"
+                                  name="flowCreditExpiry"
+                                  value="store"
+                                  class="flowCreditPanel__radioInput"
+                                  checked
+                                />
+                                <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                <span class="flowCreditPanel__radioBody">
+                                  <span class="flowCreditPanel__radioTitle">Use credit store settings</span>
+                                  <span class="flowCreditPanel__radioHint">
+                                    <span class="flowCreditPanel__radioHintMuted">Manage store expiration </span>
+                                    <span class="flowCreditPanel__radioHintLink">here</span>
+                                  </span>
+                                </span>
+                              </label>
+                              <label class="flowCreditPanel__radioRow">
+                                <input
+                                  type="radio"
+                                  name="flowCreditExpiry"
+                                  value="period"
+                                  class="flowCreditPanel__radioInput"
+                                />
+                                <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                <span class="flowCreditPanel__radioBody">
+                                  <span class="flowCreditPanel__radioTitle">After a set time period</span>
+                                </span>
+                              </label>
+                              <label class="flowCreditPanel__radioRow">
+                                <input
+                                  type="radio"
+                                  name="flowCreditExpiry"
+                                  value="never"
+                                  class="flowCreditPanel__radioInput"
+                                />
+                                <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                <span class="flowCreditPanel__radioBody">
+                                  <span class="flowCreditPanel__radioTitle">Never expire</span>
+                                </span>
+                              </label>
+                            </fieldset>
+                            <div
+                              id="flowCreditPeriodSection"
+                              class="flowCreditPanel__periodSection"
+                              hidden
+                              aria-hidden="true"
+                            >
+                              <div class="flowCreditPanel__periodInner">
+                                <div class="flowCreditPanel__periodHead">
+                                  <h4 class="flowCreditPanel__periodTitle">Credits expire in</h4>
+                                  <p class="flowCreditPanel__periodHint">
+                                    Credits will become unusable after the set date at 23:59:59 in the store’s
+                                    default timezone.
+                                  </p>
+                                </div>
+                                <div class="flowCreditPanel__periodControls">
+                                  <div class="flowCreditPanel__stepper" role="group" aria-label="Expiration length">
+                                    <button
+                                      type="button"
+                                      class="flowCreditPanel__stepperBtn flowCreditPanel__stepperBtn--dec"
+                                      data-flow-credit-period-step="-1"
+                                      aria-label="Decrease days"
+                                    >
+                                      <span class="flowCreditPanel__stepperIcon" aria-hidden="true">
+                                        <img
+                                          class="flowCreditPanel__stepperSvg"
+                                          src="./assets/icons/stepper-minus.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                    </button>
+                                    <label class="sr-only" id="flowCreditPeriodValueLabel" for="flowCreditPeriodValue"
+                                      >Days until credit expires</label
+                                    >
+                                    <input
+                                      type="number"
+                                      id="flowCreditPeriodValue"
+                                      class="flowCreditPanel__stepperValue"
+                                      value="45"
+                                      min="1"
+                                      max="9999"
+                                      inputmode="numeric"
+                                    />
+                                    <button
+                                      type="button"
+                                      class="flowCreditPanel__stepperBtn flowCreditPanel__stepperBtn--inc"
+                                      data-flow-credit-period-step="1"
+                                      aria-label="Increase days"
+                                    >
+                                      <span class="flowCreditPanel__stepperIcon" aria-hidden="true">
+                                        <img
+                                          class="flowCreditPanel__stepperSvg"
+                                          src="./assets/icons/stepper-add.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                    </button>
+                                  </div>
+                                  <div class="flowTriggerPanel__selectField flowCreditPanel__unitSelectField">
+                                    <label class="sr-only" for="flowCreditPeriodUnitSelectBtn"
+                                      >Expiration period unit</label
+                                    >
+                                    <button
+                                      type="button"
+                                      id="flowCreditPeriodUnitSelectBtn"
+                                      class="flowTriggerPanel__selectRow flowCreditPanel__unitSelectTrigger"
+                                      aria-haspopup="listbox"
+                                      aria-expanded="false"
+                                      aria-controls="flowCreditPeriodUnitSelectList"
+                                    >
+                                      <span
+                                        class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue"
+                                        >Days</span
+                                      >
+                                      <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                        <img
+                                          class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                          src="./assets/icons/chevron-down.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                        />
+                                      </span>
+                                    </button>
+                                    <div
+                                      id="flowCreditPeriodUnitSelectList"
+                                      class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                      role="listbox"
+                                      aria-labelledby="flowCreditPeriodUnitSelectBtn"
+                                      aria-hidden="true"
+                                    >
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Days
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Weeks
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Months
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              class="flowCreditPanel__infoBanner"
+                              role="status"
+                              data-dismissable="false"
+                              data-has-subtle-button="false"
+                              data-show-action="true"
+                              data-type="Info"
+                            >
+                              <span class="flowCreditPanel__infoBannerIcon" aria-hidden="true">
+                                <img
+                                  class="flowCreditPanel__infoBannerImg"
+                                  src="./assets/icons/info.svg?v=1"
+                                  width="24"
+                                  height="24"
+                                  alt=""
+                                />
+                              </span>
+                              <div class="flowCreditPanel__infoBannerText">
+                                <p class="flowCreditPanel__infoBannerTitle">
+                                  Your store settings may impact credit expiration here
+                                </p>
+                                <p class="flowCreditPanel__infoBannerBody">
+                                  Based on your store settings, credit expiration here may be overridden.
+                                </p>
+                                <div class="flowCreditPanel__infoBannerActionGap" aria-hidden="true"></div>
+                                <button
+                                  type="button"
+                                  class="flowCreditPanel__learnMore"
+                                  data-icon-left="false"
+                                  data-icon-right="true"
+                                  data-size="Small"
+                                  data-state="Default"
+                                  aria-label="Learn more about store credit expiration"
+                                >
+                                  <span class="flowCreditPanel__learnMoreLabel">Learn more</span>
+                                  <span class="flowCreditPanel__learnMoreIcon" aria-hidden="true">
+                                    <img
+                                      class="flowCreditPanel__learnMoreImg"
+                                      src="./assets/icons/external-link.svg?v=1"
+                                      width="16"
+                                      height="16"
+                                      alt=""
+                                    />
+                                  </span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <footer class="flowTriggerPanel__footer flowCreditPanel__footer">
+                          <div class="flowTriggerPanel__footerInner">
+                            <div class="flowCreditPanel__applyWrap" id="flowCreditApplyWrap">
+                              <div
+                                class="flowCreditPanel__applyTooltip"
+                                id="flowCreditApplyTooltip"
+                                role="tooltip"
+                              >
+                                <div class="flowCreditPanel__applyTooltipInner">
+                                  Please complete all required fields.
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                class="flowTriggerPanel__apply flowCreditPanel__apply"
+                                id="flowCreditApplyBtn"
+                                data-flow-credit-dismiss
+                                disabled
+                              >
+                                <span class="flowTriggerPanel__applyLabel">Apply</span>
+                              </button>
+                            </div>
+                          </div>
+                        </footer>
+                      </div>
+                    </div>
               </div>
               </div>
               </section>
@@ -1548,6 +1901,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-135"></script>
+    <script type="module" src="./app.js?v=slideshow-145"></script>
   </body>
 </html>

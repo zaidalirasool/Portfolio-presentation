@@ -2625,6 +2625,7 @@ initSlideshow();
 
   const TRIGGER_OPEN = "flowTriggerPanelRoot--open";
   const BRANCH_OPEN = "flowBranchPanelRoot--open";
+  const CREDIT_OPEN = "flowCreditPanelRoot--open";
   const FLOW_LAYOUT_OPEN = "slide5FlowLayout--panelOpen";
 
   const flowLayout = triggerBtn.closest(".slide5FlowLayout");
@@ -2633,6 +2634,13 @@ initSlideshow();
   const creditNodeWrap = document.getElementById("flowCreditNodeWrap");
   const creditBtn = document.getElementById("flowCreditNode");
   const slide5Canvas = document.getElementById("slide5Canvas");
+  const creditRoot = document.getElementById("flowCreditPanelRoot");
+  const creditPanel = document.getElementById("flowCreditPanel");
+  const creditApplyWrap = document.getElementById("flowCreditApplyWrap");
+  const creditApplyBtn = document.getElementById("flowCreditApplyBtn");
+  const creditAmountInput = document.getElementById("flowCreditAmountInput");
+  const creditPeriodSection = document.getElementById("flowCreditPeriodSection");
+  const creditPeriodValueInput = document.getElementById("flowCreditPeriodValue");
   let slide5BranchSpawnEligible = false;
   let slide5CreditSpawnEligible = false;
 
@@ -2648,6 +2656,42 @@ initSlideshow();
       creditNodeWrap.hidden = true;
       creditNodeWrap.setAttribute("aria-hidden", "true");
       creditNodeWrap.classList.remove("flowCreditNodeWrap--enter", "flowCreditNodeWrap--enter-active");
+    }
+    if (creditRoot) {
+      creditRoot.classList.remove(CREDIT_OPEN);
+      creditRoot.setAttribute("aria-hidden", "true");
+    }
+    if (creditBtn) creditBtn.setAttribute("aria-expanded", "false");
+    if (creditAmountInput instanceof HTMLInputElement) {
+      creditAmountInput.value = "";
+      creditAmountInput.classList.remove("flowBranchPanel__compoundCurrencyInput--hasValue");
+      creditAmountInput.placeholder = "0.00";
+      creditAmountInput.setAttribute("aria-label", "Credit amount in dollars");
+    }
+    const creditPrefix = document.getElementById("flowCreditAmountPrefix");
+    if (creditPrefix) creditPrefix.textContent = "$";
+    document.getElementById("flowCreditCompoundInner")?.classList.remove("flowCreditPanel__compoundInner--percentage");
+    const creditPeriodUnitSpan = document
+      .getElementById("flowCreditPeriodUnitSelectBtn")
+      ?.querySelector(".flowTriggerPanel__selectText");
+    if (creditPeriodUnitSpan) {
+      creditPeriodUnitSpan.textContent = "Days";
+      creditPeriodUnitSpan.classList.add("flowTriggerPanel__selectText--hasValue");
+    }
+    syncCreditPeriodUnitAffordances("Days");
+    const creditTypeSpan = document
+      .getElementById("flowCreditTypeSelectBtn")
+      ?.querySelector(".flowTriggerPanel__selectText");
+    if (creditTypeSpan) {
+      creditTypeSpan.textContent = "Fixed amount";
+      creditTypeSpan.classList.add("flowTriggerPanel__selectText--hasValue");
+    }
+    if (creditApplyBtn instanceof HTMLButtonElement) {
+      creditApplyBtn.disabled = true;
+      creditApplyBtn.setAttribute("aria-describedby", "flowCreditApplyTooltip");
+    }
+    if (creditApplyWrap instanceof HTMLElement) {
+      creditApplyWrap.classList.add("flowCreditPanel__applyWrap--invalid");
     }
   }
 
@@ -2754,6 +2798,87 @@ initSlideshow();
     branchApplyBtn.disabled = invalid;
     if (invalid) branchApplyBtn.setAttribute("aria-describedby", "flowBranchApplyTooltip");
     else branchApplyBtn.removeAttribute("aria-describedby");
+  }
+
+  function syncCreditAmountValueClass() {
+    if (!(creditAmountInput instanceof HTMLInputElement)) return;
+    const raw = creditAmountInput.value.trim().replace(/[$,%\s]/g, "");
+    if (raw === "") {
+      creditAmountInput.classList.remove("flowBranchPanel__compoundCurrencyInput--hasValue");
+      return;
+    }
+    const n = Number.parseFloat(raw);
+    creditAmountInput.classList.toggle(
+      "flowBranchPanel__compoundCurrencyInput--hasValue",
+      Number.isFinite(n) && n !== 0,
+    );
+  }
+
+  /** True when Apply must stay disabled: empty field or amount parses to exactly 0 (e.g. 0, 0.0, 0.00). */
+  function isCreditApplyBlockedByAmount() {
+    if (!(creditAmountInput instanceof HTMLInputElement)) return true;
+    const raw = creditAmountInput.value.trim().replace(/[$,%\s]/g, "");
+    if (raw === "") return true;
+    const n = Number.parseFloat(raw);
+    if (!Number.isFinite(n)) return true;
+    return n === 0;
+  }
+
+  function syncCreditApplyDisabledState() {
+    if (!(creditApplyBtn instanceof HTMLButtonElement) || !(creditApplyWrap instanceof HTMLElement)) return;
+    if (!(creditAmountInput instanceof HTMLInputElement)) {
+      creditApplyWrap.classList.remove("flowCreditPanel__applyWrap--invalid");
+      creditApplyBtn.disabled = false;
+      creditApplyBtn.removeAttribute("aria-describedby");
+      return;
+    }
+    const blocked = isCreditApplyBlockedByAmount();
+    creditApplyWrap.classList.toggle("flowCreditPanel__applyWrap--invalid", blocked);
+    creditApplyBtn.disabled = blocked;
+    if (blocked) creditApplyBtn.setAttribute("aria-describedby", "flowCreditApplyTooltip");
+    else creditApplyBtn.removeAttribute("aria-describedby");
+  }
+
+  function syncCreditPeriodSection() {
+    const periodRadio = creditPanel?.querySelector(
+      'input[name="flowCreditExpiry"][value="period"]',
+    );
+    const show = periodRadio instanceof HTMLInputElement && periodRadio.checked;
+    if (creditPeriodSection instanceof HTMLElement) {
+      creditPeriodSection.toggleAttribute("hidden", !show);
+      creditPeriodSection.setAttribute("aria-hidden", String(!show));
+    }
+  }
+
+  /** @param {string} unitLabel e.g. "Days", "Weeks", "Months" */
+  function syncCreditPeriodUnitAffordances(unitLabel) {
+    const unit = unitLabel.trim();
+    if (!(creditPeriodSection instanceof HTMLElement)) return;
+    const dec = creditPeriodSection.querySelector(".flowCreditPanel__stepperBtn--dec");
+    const inc = creditPeriodSection.querySelector(".flowCreditPanel__stepperBtn--inc");
+    const u = unit.toLowerCase();
+    if (dec instanceof HTMLButtonElement) dec.setAttribute("aria-label", `Decrease ${u}`);
+    if (inc instanceof HTMLButtonElement) inc.setAttribute("aria-label", `Increase ${u}`);
+    const lbl = document.getElementById("flowCreditPeriodValueLabel");
+    if (lbl) lbl.textContent = `${unit} until credit expires`;
+  }
+
+  /** @param {string} choiceLabel */
+  function syncCreditAmountTypeUi(choiceLabel) {
+    const isPercentage = choiceLabel.trim() === "Percentage";
+    const inner = document.getElementById("flowCreditCompoundInner");
+    inner?.classList.toggle("flowCreditPanel__compoundInner--percentage", isPercentage);
+    const amountPrefix = document.getElementById("flowCreditAmountPrefix");
+    if (amountPrefix) amountPrefix.textContent = "$";
+    if (creditAmountInput instanceof HTMLInputElement) {
+      creditAmountInput.placeholder = isPercentage ? "0" : "0.00";
+      creditAmountInput.setAttribute(
+        "aria-label",
+        isPercentage ? "Credit as percentage of order" : "Credit amount in dollars",
+      );
+    }
+    syncCreditAmountValueClass();
+    syncCreditApplyDisabledState();
   }
 
   function removeBranchDropSlot() {
@@ -2883,7 +3008,9 @@ initSlideshow();
 
   function syncFlowLayout() {
     const anyOpen =
-      triggerRoot.classList.contains(TRIGGER_OPEN) || branchRoot.classList.contains(BRANCH_OPEN);
+      triggerRoot.classList.contains(TRIGGER_OPEN) ||
+      branchRoot.classList.contains(BRANCH_OPEN) ||
+      Boolean(creditRoot?.classList.contains(CREDIT_OPEN));
     flowLayout?.classList.toggle(FLOW_LAYOUT_OPEN, anyOpen);
   }
 
@@ -2994,8 +3121,10 @@ initSlideshow();
     } else if (!wasAov && isAov) {
       if (currencyInput instanceof HTMLInputElement && plainInput instanceof HTMLInputElement) {
         let v = plainInput.value.trim().replace(/^\$\s*/, "");
-        if (v === "1") v = "0";
+        /* Subscription count "1" is not a dollar amount — leave empty so placeholder 0.00 shows. */
+        if (v === "1") v = "";
         if (v) currencyInput.value = v;
+        else currencyInput.value = "";
         plainInput.value = "";
       }
     }
@@ -3302,13 +3431,15 @@ initSlideshow();
   /**
    * @param {HTMLElement | null} elTrigger
    * @param {HTMLElement | null} elList
-   * @param {{ onPick?: (value: string) => void }} [options]
+   * @param {{ onPick?: (value: string) => void, afterExpand?: () => void }} [options]
    */
   function attachFlowSelect(elTrigger, elList, options = {}) {
     if (!(elTrigger instanceof HTMLElement) || !(elList instanceof HTMLElement)) return;
     const field = elTrigger.closest(".flowTriggerPanel__selectField");
     if (!field) return;
-    const inBranchPanel = Boolean(elTrigger.closest("#flowBranchPanel"));
+    const inBranchPanel = Boolean(
+      elTrigger.closest("#flowBranchPanel") || elTrigger.closest("#flowCreditPanel"),
+    );
 
     function isExpanded() {
       return elTrigger.getAttribute("aria-expanded") === "true";
@@ -3346,7 +3477,10 @@ initSlideshow();
         } else {
           document.body.appendChild(elList);
         }
-        window.requestAnimationFrame(() => position());
+        window.requestAnimationFrame(() => {
+          position();
+          if (options.afterExpand) options.afterExpand();
+        });
       } else {
         elList.style.top = "";
         elList.style.left = "";
@@ -3386,6 +3520,47 @@ initSlideshow();
     return branchRoot.classList.contains(BRANCH_OPEN);
   }
 
+  function isCreditOpen() {
+    return Boolean(creditRoot?.classList.contains(CREDIT_OPEN));
+  }
+
+  function closeCredit(options = {}) {
+    if (!creditRoot) return;
+    const refocusCredit = options.refocusCredit !== false;
+    creditRoot.classList.remove(CREDIT_OPEN);
+    creditRoot.setAttribute("aria-hidden", "true");
+    if (creditBtn) creditBtn.setAttribute("aria-expanded", "false");
+    syncFlowLayout();
+    if (!refocusCredit) creditBtn?.blur();
+    else creditBtn?.focus({ preventScroll: true });
+  }
+
+  function openCredit() {
+    if (!creditRoot || !creditPanel || creditNodeWrap?.hidden) return;
+    closeTrigger({ refocusTrigger: false });
+    closeBranch({ refocusBranch: false });
+    closeAllSelects();
+    creditRoot.classList.add(CREDIT_OPEN);
+    creditRoot.setAttribute("aria-hidden", "false");
+    if (creditBtn) creditBtn.setAttribute("aria-expanded", "true");
+    syncFlowLayout();
+    syncCreditAmountValueClass();
+    syncCreditApplyDisabledState();
+    syncCreditPeriodSection();
+    syncCreditPeriodUnitAffordances(
+      document
+        .getElementById("flowCreditPeriodUnitSelectBtn")
+        ?.querySelector(".flowTriggerPanel__selectText")
+        ?.textContent?.trim() ?? "Days",
+    );
+    const creditTypeLabel = document
+      .getElementById("flowCreditTypeSelectBtn")
+      ?.querySelector(".flowTriggerPanel__selectText")
+      ?.textContent?.trim();
+    syncCreditAmountTypeUi(creditTypeLabel || "Fixed amount");
+    window.requestAnimationFrame(() => creditPanel.focus({ preventScroll: true }));
+  }
+
   function closeBranch(options = {}) {
     const wasOpen = branchRoot.classList.contains(BRANCH_OPEN);
     const refocusBranch = options.refocusBranch !== false;
@@ -3403,6 +3578,7 @@ initSlideshow();
     if (branchNodeWrap?.hidden) return;
     exitBranchEditor();
     closeTrigger({ refocusTrigger: false });
+    closeCredit({ refocusCredit: false });
     closeAllSelects();
     branchRoot.classList.add(BRANCH_OPEN);
     branchRoot.setAttribute("aria-hidden", "false");
@@ -3426,6 +3602,7 @@ initSlideshow();
 
   function openTrigger() {
     closeBranch({ refocusBranch: false });
+    closeCredit({ refocusCredit: false });
     closeAllSelects();
     triggerRoot.classList.add(TRIGGER_OPEN);
     triggerRoot.setAttribute("aria-hidden", "false");
@@ -3451,7 +3628,7 @@ initSlideshow();
     if (!(t instanceof Element)) return;
     if (
       t.closest(
-        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowTriggerPanelRoot, #flowBranchPanelRoot",
+        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot",
       )
     ) {
       return;
@@ -3472,6 +3649,8 @@ initSlideshow();
 
   creditBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
+    if (isCreditOpen()) closeCredit();
+    else openCredit();
   });
 
   triggerRoot.querySelectorAll("[data-flow-trigger-dismiss]").forEach((el) => {
@@ -3489,8 +3668,77 @@ initSlideshow();
     });
   });
 
+  creditRoot?.querySelectorAll("[data-flow-credit-dismiss]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (el instanceof HTMLButtonElement && el.disabled) return;
+      closeCredit();
+    });
+  });
+
   branchCompoundInput?.addEventListener("input", syncBranchApplyDisabledState);
   branchCompoundInput?.addEventListener("change", syncBranchApplyDisabledState);
+
+  creditAmountInput?.addEventListener("input", () => {
+    syncCreditAmountValueClass();
+    syncCreditApplyDisabledState();
+  });
+  creditAmountInput?.addEventListener("change", () => {
+    syncCreditAmountValueClass();
+    syncCreditApplyDisabledState();
+  });
+  creditAmountInput?.addEventListener("blur", () => {
+    syncCreditAmountValueClass();
+    syncCreditApplyDisabledState();
+  });
+
+  creditPanel?.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t instanceof HTMLInputElement && t.name === "flowCreditExpiry") syncCreditPeriodSection();
+  });
+
+  creditPanel?.addEventListener("click", (e) => {
+    const btn = e.target instanceof Element ? e.target.closest("[data-flow-credit-period-step]") : null;
+    if (!(btn instanceof HTMLButtonElement)) return;
+    const raw = btn.getAttribute("data-flow-credit-period-step");
+    const delta = Number.parseInt(raw ?? "", 10);
+    if (!Number.isFinite(delta) || !(creditPeriodValueInput instanceof HTMLInputElement)) return;
+    e.preventDefault();
+    let n = Number.parseInt(creditPeriodValueInput.value, 10);
+    if (!Number.isFinite(n)) n = 45;
+    n = Math.max(1, Math.min(9999, n + delta));
+    creditPeriodValueInput.value = String(n);
+  });
+
+  attachFlowSelect(
+    document.getElementById("flowCreditTypeSelectBtn"),
+    document.getElementById("flowCreditTypeSelectList"),
+    {
+      afterExpand: () => {
+        if (creditAmountInput instanceof HTMLElement) {
+          creditAmountInput.focus({ preventScroll: true });
+        }
+      },
+      onPick: (v) => {
+        syncCreditAmountTypeUi(v);
+      },
+    },
+  );
+
+  attachFlowSelect(
+    document.getElementById("flowCreditPeriodUnitSelectBtn"),
+    document.getElementById("flowCreditPeriodUnitSelectList"),
+    {
+      afterExpand: () => {
+        if (creditPeriodValueInput instanceof HTMLElement) {
+          creditPeriodValueInput.focus({ preventScroll: true });
+        }
+      },
+      onPick: (v) => {
+        syncCreditPeriodUnitAffordances(v);
+      },
+    },
+  );
 
   document.getElementById("flowBranchEditorBranchNameInput")?.addEventListener("input", () => {
     const branchNameInput = document.getElementById("flowBranchEditorBranchNameInput");
@@ -3871,11 +4119,13 @@ initSlideshow();
     if (e.detail.index === FLOW_SLIDE_INDEX) {
       closeTrigger({ refocusTrigger: false });
       closeBranch({ refocusBranch: false });
+      closeCredit({ refocusCredit: false });
       resetSlide5BranchSpawnState();
       return;
     }
     closeTrigger({ refocusTrigger: false });
     closeBranch({ refocusBranch: false });
+    closeCredit({ refocusCredit: false });
   });
 
   document.addEventListener("keydown", (e) => {
@@ -3896,11 +4146,26 @@ initSlideshow();
       e.preventDefault();
       return;
     }
+    if (isCreditOpen()) {
+      closeCredit();
+      e.preventDefault();
+      return;
+    }
     if (isTriggerOpen()) closeTrigger();
   });
 
   syncBranchApplyDisabledState();
   syncConditionalBranchNodeSubtitle();
+  syncCreditAmountValueClass();
+  syncCreditApplyDisabledState();
+  syncCreditPeriodSection();
+  syncCreditPeriodUnitAffordances(
+    document
+      .getElementById("flowCreditPeriodUnitSelectBtn")
+      ?.querySelector(".flowTriggerPanel__selectText")
+      ?.textContent?.trim() ?? "Days",
+  );
+  syncCreditAmountTypeUi("Fixed amount");
 })();
 
 loadGraph()

@@ -175,7 +175,8 @@
     margin-right: calc(-1 * var(--slide5-panel-gap));
   }
 
-  .slide5FlowLayout--panelOpen .flowBranchPanelRoot:not(.flowBranchPanelRoot--open) {
+  .slide5FlowLayout--panelOpen .flowBranchPanelRoot:not(.flowBranchPanelRoot--open),
+  .slide5FlowLayout--panelOpen .flowCreditPanelRoot:not(.flowCreditPanelRoot--open) {
     margin-left: calc(-1 * var(--slide5-panel-gap));
   }
 }
@@ -244,6 +245,11 @@
 
 .flowCreditNode .triggerNode__subtitle {
   color: #191d48;
+}
+
+/* Credit node icon disc — Accent / Cobalt / 100 */
+.flowCreditNode .triggerNode__iconDisc {
+  background: var(--spark-palette-cobalt-100);
 }
 
 /* ── Trigger node ─────────────────────────────────────────────────── */
@@ -1588,7 +1594,8 @@
 /* ── Configure panel (right of node, centered group in canvas) ───── */
 
 .flowTriggerPanelRoot,
-.flowBranchPanelRoot {
+.flowBranchPanelRoot,
+.flowCreditPanelRoot {
   flex: 0 1 0;
   min-width: 0;
   min-height: 0;
@@ -1624,11 +1631,14 @@
 }
 
 .flowBranchPanelRoot,
-.flowBranchPanelRoot--open {
+.flowBranchPanelRoot--open,
+.flowCreditPanelRoot,
+.flowCreditPanelRoot--open {
   transform: none;
 }
 
-.flowBranchPanelRoot {
+.flowBranchPanelRoot,
+.flowCreditPanelRoot {
   transition:
     max-width 0ms linear,
     min-width 0ms linear,
@@ -1638,7 +1648,8 @@
 }
 
 .flowTriggerPanelRoot--open,
-.flowBranchPanelRoot--open {
+.flowBranchPanelRoot--open,
+.flowCreditPanelRoot--open {
   flex: 0 0 auto;
   min-width: min(var(--spark-panel-width), calc(100vw - 48px));
   max-width: min(var(--spark-panel-width), calc(100vw - 48px));
@@ -1796,6 +1807,23 @@
 }
 
 .flowBranchPanelRoot--open .flowTriggerPanel {
+  opacity: 1;
+  transform: none;
+}
+
+/* Credit panel inner: same opacity dissolve as trigger / branch */
+.flowCreditPanelRoot .flowTriggerPanel {
+  transform: none;
+  transition:
+    opacity 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 530ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flowCreditPanelRoot:not(.flowCreditPanelRoot--open) .flowTriggerPanel {
+  opacity: 0;
+}
+
+.flowCreditPanelRoot--open .flowTriggerPanel {
   opacity: 1;
   transform: none;
 }
@@ -2106,6 +2134,21 @@
   right: 0;
   width: auto;
   z-index: 5;
+}
+
+/* Credit panel: same inline dropdown positioning as branch editor */
+#flowCreditPanel .flowTriggerPanel__selectField > .flowTriggerPanel__selectDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  width: auto;
+  z-index: 5;
+}
+
+#flowCreditPanel .flowTriggerPanel__footer {
+  position: relative;
+  z-index: 20;
 }
 
 #flowBranchPanel .flowTriggerPanel__footer {
@@ -2646,7 +2689,8 @@
   bottom: calc(100% + 4px);
   transform: translateX(-50%);
   z-index: 3;
-  max-width: min(280px, calc(100vw - 48px));
+  width: max-content;
+  max-width: calc(100vw - 48px);
   padding: 12px 16px;
   box-sizing: border-box;
   border-radius: 6px;
@@ -2686,7 +2730,628 @@
   line-height: 20px;
   color: #ffffff;
   text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Credit panel (Configure issue credit) ───────────────────────── */
+#flowCreditPanel.flowTriggerPanel {
+  box-shadow:
+    0 8px 20px rgba(25, 29, 72, 0.2),
+    0 2px 4px rgba(25, 29, 72, 0.15);
+}
+
+#flowCreditPanel .flowTriggerPanel__mastheadRow > .flowTriggerPanel__closeBtn {
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: #e2e3ed;
+}
+
+#flowCreditPanel .flowTriggerPanel__closeBtn:hover {
+  background: #d5d8e8;
+}
+
+#flowCreditPanel .flowTriggerPanel__closeBtn:active {
+  background: #c9cee0;
+}
+
+#flowCreditPanel .flowTriggerPanel__closeImg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+#flowCreditPanel .flowTriggerPanel__closeArt {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowCreditPanel__creditTypeField {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.flowCreditPanel__creditTypeField .flowTriggerPanel__selectRow {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 8px 8px 12px;
+  border-radius: 6px;
+  background: var(--spark-color-white);
+  outline: 1px solid #b1bcc2;
+  outline-offset: -1px;
+  border: none;
+  gap: 16px;
+}
+
+.flowCreditPanel__creditTypeField .flowTriggerPanel__selectRow[aria-expanded="true"],
+.flowCreditPanel__unitSelectField .flowTriggerPanel__selectRow.flowCreditPanel__unitSelectTrigger[aria-expanded="true"] {
+  outline: 1px solid var(--spark-color-active-ring);
+  outline-offset: -1px;
+  background: var(--spark-color-white);
+}
+
+.flowCreditPanel__creditTypeField .flowTriggerPanel__selectRow[aria-expanded="true"]:focus-visible,
+.flowCreditPanel__unitSelectField .flowTriggerPanel__selectRow.flowCreditPanel__unitSelectTrigger[aria-expanded="true"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
+}
+
+.flowCreditPanel__creditTypeField .flowTriggerPanel__selectRow[aria-expanded="true"]:active,
+.flowCreditPanel__unitSelectField .flowTriggerPanel__selectRow.flowCreditPanel__unitSelectTrigger[aria-expanded="true"]:active {
+  background: var(--spark-color-white);
+}
+
+.flowCreditPanel__typeAmountRow {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.flowCreditPanel__amountColumn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#flowCreditPanel .flowCreditPanel__compoundCurrencyField {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+#flowCreditPanel .flowCreditPanel__compoundCurrencyField .flowBranchPanel__compoundCurrencyInner {
+  align-items: center;
+  width: 100%;
+}
+
+#flowCreditPanel .flowCreditPanel__compoundCurrencyField .flowBranchPanel__compoundCurrencyInput--hasValue,
+#flowCreditPanel #flowCreditAmountInput.flowBranchPanel__compoundCurrencyInput--hasValue {
+  color: var(--spark-palette-midnight-100);
+}
+
+#flowCreditPanel #flowCreditAmountInput::placeholder {
+  color: #6e7381;
+  opacity: 1;
+}
+
+#flowCreditPanel .flowCreditPanel__compoundCurrencyField .flowBranchPanel__compoundCurrencyPrefix {
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 24px;
+}
+
+.flowCreditPanel__amountSuffix {
+  display: none;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0 4px 0 0;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--spark-color-ink);
   word-wrap: break-word;
+}
+
+.flowCreditPanel__compoundInner--percentage.flowBranchPanel__compoundCurrencyInner {
+  gap: 12px;
+}
+
+.flowCreditPanel__compoundInner--percentage .flowCreditPanel__amountPrefix {
+  display: none;
+}
+
+.flowCreditPanel__compoundInner--percentage .flowCreditPanel__amountSuffix {
+  display: block;
+}
+
+.flowCreditPanel__radioFieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.flowCreditPanel__radioRow {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.flowCreditPanel__radioInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.flowCreditPanel__radioMark {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 0;
+  box-sizing: border-box;
+  border-radius: 9999px;
+  border: 1px solid #b1bcc2;
+  background: var(--spark-color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowCreditPanel__radioInput:checked + .flowCreditPanel__radioMark {
+  border: 1px solid transparent;
+  box-shadow: inset 0 0 0 1px #3901f1;
+}
+
+.flowCreditPanel__radioInput:checked + .flowCreditPanel__radioMark::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #3901f1;
+}
+
+/* Keyboard focus: ring sits outside the 20px control so it doesn’t stack on the 1px selected stroke */
+.flowCreditPanel__radioInput:focus-visible + .flowCreditPanel__radioMark {
+  box-shadow: 0 0 0 2px var(--spark-color-active-ring);
+}
+
+.flowCreditPanel__radioInput:focus-visible:checked + .flowCreditPanel__radioMark {
+  box-shadow:
+    inset 0 0 0 1px #3901f1,
+    0 0 0 2px var(--spark-color-active-ring);
+}
+
+.flowCreditPanel__radioBody {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.flowCreditPanel__radioTitle {
+  align-self: stretch;
+  margin: 0;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-color-ink);
+  word-wrap: break-word;
+}
+
+.flowCreditPanel__radioHint {
+  align-self: stretch;
+  margin: 0;
+  margin-top: 2px;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  word-wrap: break-word;
+}
+
+.flowCreditPanel__radioHintMuted {
+  color: #6e7381;
+}
+
+.flowCreditPanel__radioHintLink {
+  color: #6e7381;
+  text-decoration: underline;
+}
+
+.flowCreditPanel__block--expiry {
+  gap: 8px;
+}
+
+.flowCreditPanel__block--expiry .flowCreditPanel__infoBanner {
+  margin-top: 8px;
+}
+
+.flowCreditPanel__periodSection {
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  /* Cancels .flowTriggerPanel__block flex gap above this section (fieldset → period). */
+  margin-top: -8px;
+  padding-top: 20px;
+  padding-inline: 0;
+  padding-bottom: 0;
+}
+
+.flowCreditPanel__periodInner {
+  align-self: stretch;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.flowCreditPanel__periodHead {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0px;
+}
+
+.flowCreditPanel__periodTitle {
+  margin: 0;
+  align-self: stretch;
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: #000000;
+  word-wrap: break-word;
+}
+
+.flowCreditPanel__periodHint {
+  margin: 0;
+  align-self: stretch;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #6e7381;
+  word-wrap: break-word;
+}
+
+.flowCreditPanel__periodControls {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.flowCreditPanel__stepper {
+  width: 96px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 6px;
+  background: var(--spark-color-white);
+  outline: 1px solid #b1bcc2;
+  outline-offset: -1px;
+}
+
+.flowCreditPanel__stepperIcon {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.flowCreditPanel__stepperSvg {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.flowCreditPanel__stepperBtn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.flowCreditPanel__stepperBtn:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
+}
+
+.flowCreditPanel__stepperValue {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--spark-color-ink);
+  word-wrap: break-word;
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.flowCreditPanel__stepperValue::-webkit-outer-spin-button,
+.flowCreditPanel__stepperValue::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.flowCreditPanel__unitSelectField {
+  flex: 0 0 auto;
+  width: 124px;
+  align-self: stretch;
+}
+
+.flowCreditPanel__unitSelectField .flowCreditPanel__unitSelectTrigger,
+.flowCreditPanel__unitSelectField .flowTriggerPanel__selectRow.flowCreditPanel__unitSelectTrigger {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 8px 8px 12px;
+  border-radius: 6px;
+  background: var(--spark-color-white);
+  outline: 1px solid #b1bcc2;
+  outline-offset: -1px;
+  border: none;
+  gap: 16px;
+}
+
+.flowCreditPanel__infoBanner {
+  align-self: stretch;
+  width: 100%;
+  margin: 0;
+  padding: 12px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  background: #e2e3ed;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.flowCreditPanel__infoBannerIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.flowCreditPanel__infoBannerImg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  object-fit: contain;
+}
+
+.flowCreditPanel__infoBannerText {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.flowCreditPanel__infoBannerTitle {
+  margin: 0;
+  font-family: var(--spark-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--spark-color-ink);
+  word-wrap: break-word;
+}
+
+.flowCreditPanel__infoBannerBody {
+  margin: 0;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-color-ink);
+  word-wrap: break-word;
+}
+
+.flowCreditPanel__infoBannerActionGap {
+  align-self: stretch;
+  flex-shrink: 0;
+  height: 8px;
+}
+
+.flowCreditPanel__learnMore {
+  align-self: flex-start;
+  padding: 4px 14px;
+  margin: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  outline: 1.5px solid #191d48;
+  outline-offset: -1.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: inherit;
+}
+
+.flowCreditPanel__learnMore:hover {
+  background: rgba(25, 29, 72, 0.04);
+}
+
+.flowCreditPanel__learnMore:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
+}
+
+.flowCreditPanel__learnMoreLabel {
+  padding: 1px 0 0;
+  font-family: var(--spark-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--spark-color-ink);
+}
+
+.flowCreditPanel__learnMoreIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowCreditPanel__learnMoreImg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.flowCreditPanel__applyWrap {
+  flex: 1 1 0;
+  min-width: 0;
+  align-self: stretch;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+#flowCreditPanel .flowCreditPanel__applyWrap .flowTriggerPanel__apply {
+  width: 100%;
+}
+
+#flowCreditPanel .flowTriggerPanel__apply:disabled {
+  background-color: #d5dadd;
+  color: #8a95a0;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
+#flowCreditPanel .flowTriggerPanel__apply:disabled:hover,
+#flowCreditPanel .flowTriggerPanel__apply:disabled:active {
+  filter: none;
+  transform: none;
+}
+
+.flowCreditPanel__applyTooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  z-index: 3;
+  width: max-content;
+  max-width: calc(100vw - 48px);
+  padding: 12px 16px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  background-color: #191d48;
+  box-shadow:
+    0 8px 20px rgba(25, 29, 72, 0.25),
+    0 2px 4px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition:
+    opacity 140ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0ms linear 140ms;
+}
+
+.flowCreditPanel__applyWrap--invalid:hover .flowCreditPanel__applyTooltip {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 140ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0ms linear 0ms;
+}
+
+.flowCreditPanel__applyTooltipInner {
+  align-self: stretch;
+  margin: 0;
+  padding: 4px;
+  box-sizing: border-box;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .triggerNode,
@@ -2710,12 +3375,14 @@
     margin-bottom: calc(-1 * var(--slide5-panel-gap));
   }
 
-  .slide5FlowLayout--panelOpen .flowBranchPanelRoot:not(.flowBranchPanelRoot--open) {
+  .slide5FlowLayout--panelOpen .flowBranchPanelRoot:not(.flowBranchPanelRoot--open),
+  .slide5FlowLayout--panelOpen .flowCreditPanelRoot:not(.flowCreditPanelRoot--open) {
     margin-top: calc(-1 * var(--slide5-panel-gap));
   }
 
   .flowTriggerPanelRoot,
-  .flowBranchPanelRoot {
+  .flowBranchPanelRoot,
+  .flowCreditPanelRoot {
     transform: translateY(16px);
   }
 
@@ -2725,12 +3392,15 @@
   }
 
   .flowBranchPanelRoot,
-  .flowBranchPanelRoot--open {
+  .flowBranchPanelRoot--open,
+  .flowCreditPanelRoot,
+  .flowCreditPanelRoot--open {
     transform: none;
   }
 
   .flowTriggerPanelRoot--open,
-  .flowBranchPanelRoot--open {
+  .flowBranchPanelRoot--open,
+  .flowCreditPanelRoot--open {
     min-width: min(var(--spark-panel-width), calc(100vw - 32px));
     max-width: min(var(--spark-panel-width), calc(100vw - 32px));
   }
@@ -2850,8 +3520,10 @@
 
   .flowTriggerPanelRoot,
   .flowBranchPanelRoot,
+  .flowCreditPanelRoot,
   .flowTriggerPanelRoot--open,
-  .flowBranchPanelRoot--open {
+  .flowBranchPanelRoot--open,
+  .flowCreditPanelRoot--open {
     transition: none;
   }
 
@@ -2861,7 +3533,8 @@
   }
 
   .flowTriggerPanelRoot--open .flowTriggerPanel,
-  .flowBranchPanelRoot--open .flowTriggerPanel {
+  .flowBranchPanelRoot--open .flowTriggerPanel,
+  .flowCreditPanelRoot--open .flowTriggerPanel {
     transform: none;
   }
 
