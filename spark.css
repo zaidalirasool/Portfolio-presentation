@@ -173,11 +173,6 @@
   font: inherit;
   text-align: left;
   -webkit-tap-highlight-color: transparent;
-  transition: filter 160ms ease;
-}
-
-.triggerNode:hover {
-  filter: brightness(0.99);
 }
 
 .triggerNode:focus-visible {
@@ -216,8 +211,9 @@
   transition: box-shadow 180ms ease;
 }
 
+/* Figma hover: 1px midnight-80 ring + shadow-2 (0 1px 4px @ 20%) */
 .triggerNode:hover .triggerNode__card {
-  box-shadow: var(--spark-shadow-sm-hover);
+  box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm);
 }
 
 .triggerNode[aria-expanded="true"] .triggerNode__card {
@@ -230,6 +226,11 @@
 
 .triggerNode:focus-visible .triggerNode__card {
   box-shadow: var(--spark-shadow-sm), var(--spark-shadow-focus-ring);
+}
+
+.triggerNode:hover:focus-visible .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
 }
 
 .triggerNode[aria-expanded="true"]:focus-visible .triggerNode__card {
@@ -852,7 +853,7 @@
 }
 
 .flowTriggerPanel__selectRow:hover {
-  outline-color: rgba(25, 29, 72, 0.35);
+  outline-color: var(--spark-palette-structure-80);
 }
 
 .flowTriggerPanel__selectRow:focus {
@@ -890,6 +891,7 @@
   min-width: 0;
   font-family: var(--spark-font-body);
   font-size: 14px;
+  font-weight: 400;
   line-height: 24px;
   color: var(--spark-color-panel-muted-text);
 }
@@ -903,7 +905,7 @@
 }
 
 .flowTriggerPanel__selectRow--demo:hover {
-  outline-color: var(--spark-color-panel-outline);
+  outline-color: var(--spark-palette-structure-80);
 }
 
 /* `[hidden]` must win over `display: flex` / `inline-flex` from component classes */
@@ -940,7 +942,7 @@
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
-  color: var(--spark-palette-midnight-100);
+  color: var(--spark-color-panel-muted-text);
   word-wrap: break-word;
   -webkit-appearance: none;
   appearance: none;
@@ -952,16 +954,18 @@
 }
 
 .flowTriggerPanel__valueReadout:hover {
-  outline-color: rgba(25, 29, 72, 0.35);
+  outline-color: var(--spark-palette-structure-80);
 }
 
 .flowTriggerPanel__valueReadout:focus {
   outline: 1px solid var(--spark-color-active-ring);
   outline-offset: -1px;
+  color: var(--spark-palette-midnight-100);
 }
 
 .flowTriggerPanel__valueReadout:focus-visible {
   box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
+  color: var(--spark-palette-midnight-100);
 }
 
 .flowTriggerPanel__infoCallout {
@@ -1113,7 +1117,7 @@
   align-items: center;
   height: 24px;
   padding: 1px 6px 0;
-  gap: 8px;
+  gap: 0;
 }
 
 .flowTriggerPanel__pillIcon {
@@ -1206,9 +1210,7 @@
 
 .triggerNode,
 .triggerNode__card {
-  transition:
-    box-shadow 320ms cubic-bezier(0.4, 0, 1, 1),
-    filter 200ms cubic-bezier(0.4, 0, 1, 1);
+  transition: box-shadow 320ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 @media (max-width: 900px) {
