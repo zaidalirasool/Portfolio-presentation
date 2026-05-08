@@ -3541,6 +3541,22 @@ initSlideshow();
     normalizeElseBranchLast();
   });
 
+  function syncBranchEditorMetricListsFromTriggerPanel() {
+    const src = document.getElementById("flowTriggerCustomerMetricList");
+    if (!src) return;
+    const options = src.querySelectorAll('.flowTriggerPanel__selectOption[role="option"]');
+    if (!options.length) return;
+    for (const id of ["flowBranchEditorMetricList", "flowBranchEditorExtMetricList"]) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      el.replaceChildren(
+        ...Array.from(options, (node) => /** @type {Node} */ (node.cloneNode(true))),
+      );
+    }
+  }
+
+  syncBranchEditorMetricListsFromTriggerPanel();
+
   attachFlowSelect(document.getElementById("flowTriggerSelectObj"), document.getElementById("flowTriggerSelectList"), {
     onPick: (v) => syncCustomerConditionUi(v),
   });
