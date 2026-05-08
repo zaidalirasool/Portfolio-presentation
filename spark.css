@@ -1373,8 +1373,14 @@
   gap: 12px;
 }
 
+.flowBranchPanel__conditionRowAddWrap {
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .flowBranchPanel__conditionRowAdd {
-  align-self: flex-start;
+  width: 100%;
 }
 
 .flowBranchPanel__conditionCardAddRow {
