@@ -2611,6 +2611,9 @@ initSlideshow();
   if (!root || !panel || !trigger) return;
 
   const OPEN_CLASS = "flowTriggerPanelRoot--open";
+  const FLOW_LAYOUT_OPEN_CLASS = "slide5FlowLayout--panelOpen";
+
+  const flowLayout = trigger.closest(".slide5FlowLayout");
 
   const customerDetails = document.getElementById("flowTriggerCustomerDetails");
   const conditionAndPill = document.getElementById("flowTriggerConditionAndPill");
@@ -2711,6 +2714,7 @@ initSlideshow();
 
   function open() {
     root.classList.add(OPEN_CLASS);
+    flowLayout?.classList.add(FLOW_LAYOUT_OPEN_CLASS);
     root.setAttribute("aria-hidden", "false");
     trigger.setAttribute("aria-expanded", "true");
     window.requestAnimationFrame(() => panel.focus({ preventScroll: true }));
@@ -2719,6 +2723,7 @@ initSlideshow();
   function close() {
     closeAllSelects();
     root.classList.remove(OPEN_CLASS);
+    flowLayout?.classList.remove(FLOW_LAYOUT_OPEN_CLASS);
     root.setAttribute("aria-hidden", "true");
     trigger.setAttribute("aria-expanded", "false");
     trigger.focus({ preventScroll: true });

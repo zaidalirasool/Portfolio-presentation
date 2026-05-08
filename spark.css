@@ -70,6 +70,16 @@
   --spark-color-icon-tile: #d9d9d9;
   --spark-color-canvas: #f8f9fb;
 
+  /* Full-deck background (same dot grid as slide 5 flow canvas) */
+  --spark-deck-surface-color: var(--spark-color-canvas);
+  --spark-deck-surface-image: radial-gradient(
+    circle,
+    var(--spark-color-canvas-dot) 1px,
+    transparent 1px
+  );
+  --spark-deck-surface-size: 18px 18px;
+  --spark-deck-surface-position: -1px -1px;
+
   /* Radii: --spark-radius-* mapped from DS in spark-tokens.generated.css (--spark-palette-radii-*) */
 
   --spark-trigger-card-width: 359px;
@@ -120,29 +130,31 @@
   align-items: center;
   overflow: auto;
   padding: 28px 32px;
-  background-color: var(--spark-color-canvas);
-  background-image: radial-gradient(
-    circle,
-    var(--spark-color-canvas-dot) 1px,
-    transparent 1px
-  );
-  background-size: 18px 18px;
-  background-position: -1px -1px;
+  /* Dots come from `.stageWrap`; stay transparent so the grid is not double-painted */
+  background: transparent;
 }
 
 .slide5FlowLayout {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
-  align-items: flex-start;
-  gap: 24px;
+  align-items: center;
+  gap: 0;
   width: 100%;
   max-width: 100%;
+  min-height: 0;
+  transition: gap 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.slide5FlowLayout--panelOpen {
+  gap: 24px;
 }
 
 .slide5FlowLayout__node {
   flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   justify-content: center;
 }
@@ -427,7 +439,9 @@
 .flowTriggerPanelRoot {
   flex: 0 1 0;
   min-width: 0;
+  min-height: 0;
   max-width: 0;
+  max-height: 0;
   opacity: 0;
   transform: translateX(24px);
   overflow: hidden;
@@ -436,6 +450,7 @@
   transition:
     max-width 400ms cubic-bezier(0.22, 1, 0.36, 1),
     min-width 400ms cubic-bezier(0.22, 1, 0.36, 1),
+    max-height 400ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
     transform 400ms cubic-bezier(0.22, 1, 0.36, 1),
     flex-basis 400ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -445,6 +460,7 @@
   flex: 0 0 auto;
   min-width: min(var(--spark-panel-width), calc(100vw - 48px));
   max-width: min(var(--spark-panel-width), calc(100vw - 48px));
+  max-height: min(var(--spark-panel-height), 92vh);
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
@@ -460,20 +476,21 @@
   justify-content: flex-start;
   align-items: center;
   background: var(--spark-color-white);
-  transform: scale(0.93);
-  transform-origin: center center;
+  /* Pop-in: grow from the node side; keep in sync with root translateX */
+  transform: scale(0.82) translateX(12px);
+  transform-origin: left center;
   border-radius: var(--spark-radius-lg);
   overflow: hidden;
   /* Same elevation as .triggerNode__card */
   box-shadow: var(--spark-shadow-sm);
   isolation: isolate;
   transition:
-    transform 420ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    transform 450ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
     box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .flowTriggerPanelRoot--open .flowTriggerPanel {
-  transform: scale(1);
+  transform: scale(1) translateX(0);
   box-shadow: var(--spark-shadow-sm);
 }
 
@@ -1159,6 +1176,11 @@
   .slide5FlowLayout {
     flex-direction: column;
     align-items: center;
+    gap: 0;
+  }
+
+  .slide5FlowLayout--panelOpen {
+    gap: 24px;
   }
 
   .flowTriggerPanelRoot {
@@ -1174,10 +1196,20 @@
   .flowTriggerPanel {
     width: min(var(--spark-panel-width), calc(100vw - 32px));
     height: min(640px, 85vh);
+    transform-origin: center top;
+    transform: scale(0.82) translateY(10px);
+  }
+
+  .flowTriggerPanelRoot--open .flowTriggerPanel {
+    transform: scale(1) translateY(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .slide5FlowLayout {
+    transition: none;
+  }
+
   .flowTriggerPanelRoot,
   .flowTriggerPanelRoot--open {
     transition: none;
