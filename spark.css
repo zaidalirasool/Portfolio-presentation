@@ -1494,6 +1494,42 @@
   display: none;
 }
 
+.flowBranchPanel__compoundCurrencyField--extCondition {
+  padding: 8px;
+  margin: 0;
+  border-radius: 6px;
+  background: var(--spark-color-white);
+  box-shadow: none;
+  outline: 1px solid #b1bcc2;
+  outline-offset: -1px;
+  box-sizing: border-box;
+  min-height: 40px;
+}
+
+#flowBranchPanel .flowBranchPanel__conditionsEngine .flowBranchPanel__compoundCurrencyField--extCondition .flowBranchPanel__compoundCurrencyInner {
+  align-items: center;
+  gap: 12px;
+}
+
+#flowBranchPanel .flowBranchPanel__conditionsEngine .flowBranchPanel__compoundCurrencyField--extCondition .flowBranchPanel__compoundCurrencyPrefix {
+  padding: 0 4px;
+}
+
+#flowBranchPanel .flowBranchPanel__conditionsEngine .flowBranchPanel__compoundCurrencyField--extCondition .flowBranchPanel__compoundCurrencyInput {
+  padding: 0 4px;
+  line-height: 24px;
+}
+
+.flowBranchPanel__extValueCurrencyWrap,
+.flowBranchPanel__extValuePlainWrap {
+  align-self: stretch;
+}
+
+.flowBranchPanel__extValuePlainWrap[hidden],
+.flowBranchPanel__extValueCurrencyWrap[hidden] {
+  display: none !important;
+}
+
 .flowBranchPanel__compoundCurrencyField {
   align-self: stretch;
   width: 100%;
@@ -1561,13 +1597,27 @@
     flex-basis 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Trigger panel shell: fade in place (no slide). Branch panel keeps translateX. */
+/* Trigger + branch panel shells: fade in place (no root slide). */
 .flowTriggerPanelRoot,
 .flowTriggerPanelRoot--open {
   transform: none;
 }
 
 .flowTriggerPanelRoot {
+  transition:
+    max-width 0ms linear,
+    min-width 0ms linear,
+    max-height 0ms linear,
+    opacity 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    flex-basis 0ms linear;
+}
+
+.flowBranchPanelRoot,
+.flowBranchPanelRoot--open {
+  transform: none;
+}
+
+.flowBranchPanelRoot {
   transition:
     max-width 0ms linear,
     min-width 0ms linear,
@@ -1588,10 +1638,6 @@
   overflow: visible;
 }
 
-.flowBranchPanelRoot--open {
-  transform: translateX(0);
-}
-
 .flowBranchPanel__dock {
   display: flex;
   flex-direction: column;
@@ -1600,7 +1646,7 @@
   width: 100%;
 }
 
-/* Match trigger panel: fixed shell width so scale(0.82)→(1) reads the same (not width-animate with root). */
+/* Match trigger panel: fixed shell width; inner panel uses opacity fade (see .flowBranchPanelRoot .flowTriggerPanel). */
 .flowBranchPanel__dock > #flowBranchPanel {
   flex: 0 0 auto;
   width: min(var(--spark-panel-width), calc(100vw - 48px));
@@ -1622,7 +1668,6 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  /* Same pop-in anchor as .flowTriggerPanel */
   transform-origin: left center;
 }
 
@@ -1710,13 +1755,7 @@
     box-shadow 530ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.flowTriggerPanelRoot--open .flowTriggerPanel,
-.flowBranchPanelRoot--open .flowTriggerPanel {
-  transform: scale(1) translateX(0);
-  box-shadow: var(--spark-shadow-sm);
-}
-
-/* Trigger inner panel: fade (dissolve) — no scale/slide pop; branch panel unchanged above. */
+/* Trigger inner panel: fade (dissolve) — no scale/slide pop. */
 .flowTriggerPanelRoot .flowTriggerPanel {
   transform: none;
   transition:
@@ -1733,14 +1772,30 @@
   transform: none;
 }
 
+/* Branch inner panel: same opacity dissolve as trigger (no scale pop-over). */
+.flowBranchPanelRoot .flowTriggerPanel {
+  transform: none;
+  transition:
+    opacity 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 530ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flowBranchPanelRoot:not(.flowBranchPanelRoot--open) .flowTriggerPanel {
+  opacity: 0;
+}
+
+.flowBranchPanelRoot--open .flowTriggerPanel {
+  opacity: 1;
+  transform: none;
+}
+
 .flowBranchPanelRoot--open.flowBranchPanelRoot--editorWide {
   min-width: min(var(--spark-branch-editor-wide-width), calc(100vw - 48px));
   max-width: min(var(--spark-branch-editor-wide-width), calc(100vw - 48px));
   /* Snap shell width; second column uses a slide-in (see #flowBranchEditorCol). */
   transition:
     max-height 500ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 325ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 380ms cubic-bezier(0.22, 1, 0.36, 1),
     flex-basis 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -2028,7 +2083,7 @@
   z-index: 100020;
 }
 
-/* Branch panel: keep menus under the sticky Apply footer (dropdown mounts on #flowBranchPanel when open). */
+/* Open branch dropdowns mount on document.body; when closed they stay in the field under #flowBranchPanel. */
 #flowBranchPanel .flowTriggerPanel__selectDropdown {
   z-index: 5;
 }
@@ -2640,14 +2695,15 @@
     transform: none;
   }
 
+  .flowBranchPanelRoot,
+  .flowBranchPanelRoot--open {
+    transform: none;
+  }
+
   .flowTriggerPanelRoot--open,
   .flowBranchPanelRoot--open {
     min-width: min(var(--spark-panel-width), calc(100vw - 32px));
     max-width: min(var(--spark-panel-width), calc(100vw - 32px));
-  }
-
-  .flowBranchPanelRoot--open {
-    transform: translateY(0);
   }
 
   .flowTriggerPanelRoot--open {
@@ -2659,11 +2715,6 @@
     height: min(640px, 85vh);
     transform-origin: center top;
     transform: scale(0.82) translateY(10px);
-  }
-
-  .flowTriggerPanelRoot--open .flowTriggerPanel,
-  .flowBranchPanelRoot--open .flowTriggerPanel {
-    transform: scale(1) translateY(0);
   }
 
   /* Trigger (stacked layout): same opacity dissolve as desktop — undo scale/translateY pop. */

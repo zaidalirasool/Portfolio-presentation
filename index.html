@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
-    <link rel="stylesheet" href="./spark.css?v=178" />
+    <link rel="stylesheet" href="./spark.css?v=181" />
     <link rel="stylesheet" href="./styles.css?v=120" />
   </head>
   <body>
@@ -1200,15 +1200,46 @@
                                         </div>
                                       </div>
                                       <label class="sr-only" for="flowBranchEditorExtValueInput">Comparison value</label>
-                                      <div class="flowBranchPanel__conditionValueRow">
-                                        <input
-                                          type="text"
-                                          id="flowBranchEditorExtValueInput"
-                                          class="flowTriggerPanel__valueReadout"
-                                          value=""
-                                          autocomplete="off"
-                                          aria-label="Comparison value (extended condition)"
-                                        />
+                                      <div class="flowBranchPanel__conditionValueRow" id="flowBranchEditorExtValueRowWrap">
+                                        <div
+                                          id="flowBranchEditorExtValuePlainWrap"
+                                          class="flowBranchPanel__extValuePlainWrap"
+                                        >
+                                          <input
+                                            type="text"
+                                            id="flowBranchEditorExtValueInput"
+                                            class="flowTriggerPanel__valueReadout"
+                                            value=""
+                                            autocomplete="off"
+                                            aria-label="Comparison value (extended condition)"
+                                          />
+                                        </div>
+                                        <div
+                                          id="flowBranchEditorExtValueCurrencyWrap"
+                                          class="flowBranchPanel__extValueCurrencyWrap"
+                                          hidden
+                                        >
+                                          <label class="sr-only" for="flowBranchEditorExtCurrencyInput">
+                                            Amount in dollars (extended condition)
+                                          </label>
+                                          <div
+                                            class="flowBranchPanel__compoundCurrencyField flowBranchPanel__compoundCurrencyField--extCondition"
+                                          >
+                                            <div class="flowBranchPanel__compoundCurrencyInner">
+                                              <span class="flowBranchPanel__compoundCurrencyPrefix" aria-hidden="true"
+                                                >$</span
+                                              >
+                                              <input
+                                                type="text"
+                                                id="flowBranchEditorExtCurrencyInput"
+                                                class="flowBranchPanel__compoundCurrencyInput"
+                                                placeholder="0.00"
+                                                autocomplete="off"
+                                                aria-label="Amount in dollars (extended condition)"
+                                              />
+                                            </div>
+                                          </div>
+                                        </div>
                                       </div>
                                       <div class="flowTriggerPanel__infoCallout" role="status">
                                         <span class="flowTriggerPanel__infoCalloutIcon" aria-hidden="true">
@@ -1461,6 +1492,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-127"></script>
+    <script type="module" src="./app.js?v=slideshow-130"></script>
   </body>
 </html>

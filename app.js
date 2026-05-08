@@ -2899,6 +2899,51 @@ initSlideshow();
     addRow.hidden = !details.hidden;
   }
 
+  const FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV = "Subscription AOV";
+
+  /** Last extended-metric label for migrating comparison values when the metric changes. */
+  let branchEditorExtMetricLabelSnapshot = "";
+
+  /**
+   * Toggle plain vs currency comparison field for the extended condition row.
+   * @param {string} metricLabel
+   */
+  function syncBranchEditorExtComparisonValueControl(metricLabel) {
+    const plainWrap = document.getElementById("flowBranchEditorExtValuePlainWrap");
+    const currencyWrap = document.getElementById("flowBranchEditorExtValueCurrencyWrap");
+    const trimmed = metricLabel.trim();
+    const isAov = trimmed === FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV;
+    if (plainWrap instanceof HTMLElement) plainWrap.hidden = isAov;
+    if (currencyWrap instanceof HTMLElement) currencyWrap.hidden = !isAov;
+    branchEditorExtMetricLabelSnapshot = trimmed;
+  }
+
+  /**
+   * When the extended metric pick changes, move the value between plain and currency inputs.
+   * @param {string} nextMetricLabel
+   */
+  function migrateBranchEditorExtComparisonValueForMetricChange(nextMetricLabel) {
+    const next = nextMetricLabel.trim();
+    const prev = branchEditorExtMetricLabelSnapshot.trim();
+    const plainInput = document.getElementById("flowBranchEditorExtValueInput");
+    const currencyInput = document.getElementById("flowBranchEditorExtCurrencyInput");
+    const wasAov = prev === FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV;
+    const isAov = next === FLOW_BRANCH_EXT_METRIC_SUBSCRIPTION_AOV;
+    if (wasAov && !isAov) {
+      if (currencyInput instanceof HTMLInputElement && plainInput instanceof HTMLInputElement) {
+        const v = currencyInput.value.trim();
+        if (v) plainInput.value = v;
+        currencyInput.value = "";
+      }
+    } else if (!wasAov && isAov) {
+      if (currencyInput instanceof HTMLInputElement && plainInput instanceof HTMLInputElement) {
+        const v = plainInput.value.trim().replace(/^\$\s*/, "");
+        if (v) currencyInput.value = v;
+        plainInput.value = "";
+      }
+    }
+  }
+
   function syncBranchEditorPanelModeFromEditedName(trimmed) {
     const isBranch3 = trimmed === "Branch 3";
     const hideEditorCardConditionAdd =
@@ -2932,6 +2977,11 @@ initSlideshow();
     if (extValueInput instanceof HTMLInputElement) {
       extValueInput.value = "";
     }
+    const extCurrencyInput = document.getElementById("flowBranchEditorExtCurrencyInput");
+    if (extCurrencyInput instanceof HTMLInputElement) {
+      extCurrencyInput.value = "";
+    }
+    syncBranchEditorExtComparisonValueControl("Metric");
   }
 
   /**
@@ -2957,6 +3007,11 @@ initSlideshow();
     if (extValueInput instanceof HTMLInputElement) {
       extValueInput.value = "";
     }
+    const extCurrencyInput = document.getElementById("flowBranchEditorExtCurrencyInput");
+    if (extCurrencyInput instanceof HTMLInputElement) {
+      extCurrencyInput.value = "";
+    }
+    syncBranchEditorExtComparisonValueControl("Metric");
     const textEl = object2Btn.querySelector(".flowTriggerPanel__selectText");
     const trimmed = selectedLabel.trim();
     extDetails.hidden = false;
@@ -2986,6 +3041,11 @@ initSlideshow();
     if (valueInput instanceof HTMLInputElement) {
       valueInput.value = comparisonValue;
     }
+    const extCurrencyInput = document.getElementById("flowBranchEditorExtCurrencyInput");
+    if (extCurrencyInput instanceof HTMLInputElement) {
+      extCurrencyInput.value = "";
+    }
+    syncBranchEditorExtComparisonValueControl("Number of active subscriptions");
   }
 
   /** Extended AND row: Branch 3 Customer → subscriptions, Is equal to, 1. */
@@ -3007,6 +3067,11 @@ initSlideshow();
     if (valueInput instanceof HTMLInputElement) {
       valueInput.value = "1";
     }
+    const extCurrencyInput = document.getElementById("flowBranchEditorExtCurrencyInput");
+    if (extCurrencyInput instanceof HTMLInputElement) {
+      extCurrencyInput.value = "";
+    }
+    syncBranchEditorExtComparisonValueControl("Number of active subscriptions");
   }
 
   function resetBranchEditorSecondConditionCard() {
@@ -3210,11 +3275,9 @@ initSlideshow();
       elTrigger.setAttribute("aria-expanded", String(expanded));
       elList.setAttribute("aria-hidden", String(!expanded));
       field.classList.toggle("flowTriggerPanel__selectField--open", expanded);
-      const branchPanelMount = document.getElementById("flowBranchPanel");
-      const mountRoot =
-        elTrigger.closest("#flowBranchPanel") && branchPanelMount instanceof HTMLElement
-          ? branchPanelMount
-          : document.body;
+      /* Always mount the open list on document.body so it isn't clipped by
+       * #flowBranchPanel overflow:hidden (same viewport positioning as trigger selects). */
+      const mountRoot = document.body;
       if (expanded) {
         mountRoot.appendChild(elList);
         window.requestAnimationFrame(() => position());
@@ -3642,6 +3705,12 @@ initSlideshow();
   attachFlowSelect(
     document.getElementById("flowBranchEditorExtMetricBtn"),
     document.getElementById("flowBranchEditorExtMetricList"),
+    {
+      onPick: (v) => {
+        migrateBranchEditorExtComparisonValueForMetricChange(v);
+        syncBranchEditorExtComparisonValueControl(v);
+      },
+    },
   );
 
   attachFlowSelect(
