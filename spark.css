@@ -1360,6 +1360,12 @@
   gap: 12px;
 }
 
+/* Branch editor: Object / Metric / Operator / value — 12px padding (condition cards). */
+#flowBranchPanel .flowBranchPanel__conditionsEngine .flowTriggerPanel__selectRow,
+#flowBranchPanel .flowBranchPanel__conditionsEngine .flowTriggerPanel__valueReadout {
+  padding: 12px;
+}
+
 /* Prospective / Existing subscribers: hide card-level Add under Object; keep Add under value + Or. */
 #flowBranchPanel.flowBranchPanel--hideEditorCardConditionAdd .flowBranchPanel__conditionCardAddRow {
   display: none !important;
