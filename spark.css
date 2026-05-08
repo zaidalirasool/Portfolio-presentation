@@ -61,7 +61,7 @@
 
 :root {
   /* Local OTF names first; stack ends with DS tokens from spark-tokens.generated.css */
-  --spark-font-display: "Greycliff CF", Inter, ui-sans-serif, system-ui, var(--spark-palette-font-heading);
+  --spark-font-display: "Greycliff CF", ui-sans-serif, system-ui, var(--spark-palette-font-heading);
   --spark-font-body: "Avenir", "Avenir Next", -apple-system, BlinkMacSystemFont, system-ui,
     var(--spark-palette-font-body);
   --spark-font-serif: "Quincy CF", ui-serif, Georgia, "Times New Roman", serif;

@@ -44,7 +44,24 @@ html, body {
   /* White outside the framed stage; dotted Spark surface lives on `.stageWrap` (maps + flow). */
   background: var(--bg);
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: var(--spark-font-body), "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Inline links: hover/focus matches flow panel Delete (label → cobalt active ring). */
+a:link,
+a:visited {
+  color: var(--spark-palette-midnight-100);
+  transition: color 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+a:hover,
+a:active {
+  color: var(--spark-color-active-ring);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
 }
 
 .sr-only {
@@ -101,9 +118,9 @@ html, body {
 
 .introSlide__title {
   margin: 0;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: var(--spark-font-display);
   font-size: clamp(28px, 5vw, 56px);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.05;
   text-transform: uppercase;
@@ -486,6 +503,7 @@ html, body {
   cursor: pointer;
   transform: translate(-50%, -50%);
   text-align: left;
+  font-family: var(--spark-font-body);
   transition:
     opacity 220ms ease,
     transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -607,8 +625,8 @@ html, body {
   box-shadow: none;
   border: none;
   text-align: center;
-  /* Match the cardHanger label's font style (Inter / 14 / 500) without its indigo color. */
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  /* Match card hanger label weight; Avenir (spark body). */
+  font-family: var(--spark-font-body);
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
@@ -685,18 +703,18 @@ html, body {
 }
 
 .cardHanger__label {
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--spark-font-display);
   font-size: 14px;
-  font-weight: 500;
-  color: rgba(55, 48, 163, 0.9);          /* indigo-800 */
+  font-weight: 700;
+  color: var(--spark-palette-midnight-100);
   text-decoration: underline;
   text-underline-offset: 2px;
   white-space: nowrap;
-  transition: color 150ms ease;
+  transition: color 160ms cubic-bezier(0.4, 0, 1, 1);
 }
 
 .cardHanger:hover .cardHanger__label {
-  color: #0129F1;
+  color: var(--spark-color-active-ring);
 }
 
 /* hide the icon placeholder entirely */
@@ -774,7 +792,7 @@ html, body {
 }
 
 .hubText {
-  font-family: Inter, sans-serif;
+  font-family: var(--spark-font-display);
   font-size: 16px;
   font-weight: 700;
   font-style: normal;
@@ -788,7 +806,8 @@ html, body {
   text-overflow: ellipsis;
 }
 .node__title {
-  font-weight: 650;
+  font-family: var(--spark-font-display);
+  font-weight: 700;
   font-size: 16px;
   letter-spacing: -0.3px;
   line-height: 1.2em;
@@ -856,7 +875,7 @@ html, body {
 }
 
 .node.node--merchant .node__title {
-  font-family: Inter, sans-serif;
+  font-family: var(--spark-font-display);
   font-size: 16px;
   font-weight: 700;
   line-height: 1.2em;
@@ -1181,11 +1200,13 @@ html, body {
   color: var(--muted2);
   font-size: 12px;
   letter-spacing: -0.2px;
+  font-family: var(--spark-font-body);
 }
 
 .side__title {
   grid-column: 1 / -1;
   margin: 4px 0 0 0;
+  font-family: var(--spark-font-display);
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.3px;
@@ -1347,7 +1368,7 @@ html, body {
 
 .modal__eyebrow {
   margin: 0;
-  font-family: Inter, ui-sans-serif, sans-serif;
+  font-family: var(--spark-font-body);
   font-size: 12px;
   font-weight: 500;
   color: rgba(0, 0, 0, 0.44);
@@ -1357,7 +1378,7 @@ html, body {
 
 .modal__title {
   margin: 0;
-  font-family: Inter, ui-sans-serif, sans-serif;
+  font-family: var(--spark-font-display);
   font-size: 16px;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.9);
@@ -1366,7 +1387,7 @@ html, body {
 
 .modal__desc {
   margin: 4px 0 0;
-  font-family: Inter, ui-sans-serif, sans-serif;
+  font-family: var(--spark-font-body);
   font-size: 14px;
   font-weight: 400;
   color: rgba(0, 0, 0, 0.62);
@@ -1385,12 +1406,20 @@ html, body {
 }
 
 .modal__learnMore {
-  font-family: Inter, ui-sans-serif, sans-serif;
+  font-family: var(--spark-font-body);
   font-size: 14px;
   font-weight: 500;
   color: rgba(55, 48, 163, 0.9);
   text-decoration: underline;
   text-underline-offset: 2px;
-  transition: color 150ms ease;
+  transition: color 160ms cubic-bezier(0.4, 0, 1, 1);
 }
-.modal__learnMore:hover { color: #0129F1; }
+.modal__learnMore:hover {
+  color: var(--spark-color-active-ring);
+}
+
+.modal__learnMore:focus-visible {
+  color: var(--spark-color-active-ring);
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
+}
