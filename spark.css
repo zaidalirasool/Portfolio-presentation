@@ -922,10 +922,8 @@
   gap: 8px;
 }
 
-/* Native text input — state is “focused” via :focus / :focus-visible only.
-   Do not use aria-expanded or listbox “active/open” chrome here; see
-   WAI-ARIA AP: textbox role / HTML <input>, and WCAG 2.4.7 Focus Visible,
-   2.4.13 Focus Appearance. Custom selects above use aria-expanded instead. */
+/* Native text input — value/type color is always primary (midnight-100).
+   Focus uses :focus / :focus-visible only (not aria-expanded). */
 .flowTriggerPanel__valueReadout {
   align-self: stretch;
   display: block;
@@ -942,7 +940,7 @@
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
-  color: var(--spark-color-panel-muted-text);
+  color: var(--spark-palette-midnight-100);
   word-wrap: break-word;
   -webkit-appearance: none;
   appearance: none;
@@ -960,12 +958,10 @@
 .flowTriggerPanel__valueReadout:focus {
   outline: 1px solid var(--spark-color-active-ring);
   outline-offset: -1px;
-  color: var(--spark-palette-midnight-100);
 }
 
 .flowTriggerPanel__valueReadout:focus-visible {
   box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
-  color: var(--spark-palette-midnight-100);
 }
 
 .flowTriggerPanel__infoCallout {
