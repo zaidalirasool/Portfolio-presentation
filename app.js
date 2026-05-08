@@ -2446,8 +2446,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 4) {
-    console.error(`[slideshow] expected 4 slide sections, found ${slides.length}`);
+  if (slides.length < 5) {
+    console.error(`[slideshow] expected 5 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -2470,7 +2470,8 @@ function initSlideshow() {
     const mount3 = document.getElementById("mapSlideMount3");
     const viewport = document.getElementById("viewport");
 
-    if (index === 0 || index === 1 || index === 2) {
+    // Park the shared map under slide 2’s mount whenever we’re not on the recap (slide 4).
+    if (index === 0 || index === 1 || index === 2 || index === 4) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
     } else if (index === 3) {
@@ -2599,6 +2600,201 @@ initSlideshow();
     if (e.key !== "Escape") return;
     if (!modal1.hidden) modal1.hidden = true;
     if (!modal2.hidden) modal2.hidden = true;
+  });
+})();
+
+// ── Slide 5: flow trigger → configure panel ───────────────────────────────────
+(function initFlowTriggerPanel() {
+  const root = document.getElementById("flowTriggerPanelRoot");
+  const panel = document.getElementById("flowTriggerPanel");
+  const trigger = document.getElementById("flowTriggerNode");
+  if (!root || !panel || !trigger) return;
+
+  const OPEN_CLASS = "flowTriggerPanelRoot--open";
+
+  const customerDetails = document.getElementById("flowTriggerCustomerDetails");
+  const conditionAndPill = document.getElementById("flowTriggerConditionAndPill");
+  const triggerNodeConditions = document.getElementById("flowTriggerNodeConditions");
+
+  /** @type {{ trigger: HTMLElement; list: HTMLElement; field: HTMLElement; position: () => void; setExpanded: (v: boolean) => void; isExpanded: () => boolean }[]} */
+  const flowSelects = [];
+
+  function syncCustomerConditionUi(selectedLabel) {
+    const isCustomer = selectedLabel === "Customer";
+    if (customerDetails) {
+      customerDetails.hidden = !isCustomer;
+    }
+    if (conditionAndPill) conditionAndPill.hidden = isCustomer;
+    trigger.classList.toggle("triggerNode--hasConditions", isCustomer);
+    if (triggerNodeConditions) {
+      triggerNodeConditions.hidden = !isCustomer;
+    }
+  }
+
+  function closeAllSelects() {
+    for (const s of flowSelects) {
+      if (s.isExpanded()) s.setExpanded(false);
+    }
+  }
+
+  /**
+   * @param {HTMLElement | null} elTrigger
+   * @param {HTMLElement | null} elList
+   * @param {{ onPick?: (value: string) => void }} [options]
+   */
+  function attachFlowSelect(elTrigger, elList, options = {}) {
+    if (!(elTrigger instanceof HTMLElement) || !(elList instanceof HTMLElement)) return;
+    const field = elTrigger.closest(".flowTriggerPanel__selectField");
+    if (!field) return;
+
+    function isExpanded() {
+      return elTrigger.getAttribute("aria-expanded") === "true";
+    }
+
+    function position() {
+      if (elList.getAttribute("aria-hidden") === "true") return;
+      const r = elTrigger.getBoundingClientRect();
+      const viewportPad = 12;
+      const maxW = Math.max(1, Math.round(window.innerWidth - r.left - viewportPad));
+      const w = Math.min(Math.round(r.width), maxW);
+      elList.style.top = `${Math.round(r.bottom + 4)}px`;
+      elList.style.left = `${Math.round(r.left)}px`;
+      elList.style.width = `${w}px`;
+    }
+
+    function setExpanded(expanded) {
+      if (expanded) {
+        for (const s of flowSelects) {
+          if (s.trigger !== elTrigger && s.isExpanded()) s.setExpanded(false);
+        }
+      }
+      elTrigger.setAttribute("aria-expanded", String(expanded));
+      elList.setAttribute("aria-hidden", String(!expanded));
+      field.classList.toggle("flowTriggerPanel__selectField--open", expanded);
+      if (expanded) {
+        document.body.appendChild(elList);
+        window.requestAnimationFrame(() => position());
+      } else {
+        elList.style.top = "";
+        elList.style.left = "";
+        elList.style.width = "";
+        if (elList.parentNode !== field) field.appendChild(elList);
+      }
+    }
+
+    const api = { trigger: elTrigger, list: elList, field, position, setExpanded, isExpanded };
+    flowSelects.push(api);
+
+    elTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setExpanded(!isExpanded());
+    });
+
+    elList.querySelectorAll('.flowTriggerPanel__selectOption[role="option"]').forEach((opt) => {
+      opt.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const label = elTrigger.querySelector(".flowTriggerPanel__selectText");
+        const value = opt.textContent?.trim() ?? "";
+        if (label) {
+          label.textContent = value;
+          label.classList.add("flowTriggerPanel__selectText--hasValue");
+        }
+        if (options.onPick) options.onPick(value);
+        setExpanded(false);
+      });
+    });
+  }
+
+  function isOpen() {
+    return root.classList.contains(OPEN_CLASS);
+  }
+
+  function open() {
+    root.classList.add(OPEN_CLASS);
+    root.setAttribute("aria-hidden", "false");
+    trigger.setAttribute("aria-expanded", "true");
+    window.requestAnimationFrame(() => panel.focus({ preventScroll: true }));
+  }
+
+  function close() {
+    closeAllSelects();
+    root.classList.remove(OPEN_CLASS);
+    root.setAttribute("aria-hidden", "true");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.focus({ preventScroll: true });
+  }
+
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (isOpen()) close();
+    else open();
+  });
+
+  root.querySelectorAll("[data-flow-trigger-dismiss]").forEach((el) => {
+    el.addEventListener("click", close);
+  });
+
+  attachFlowSelect(document.getElementById("flowTriggerSelectObj"), document.getElementById("flowTriggerSelectList"), {
+    onPick: (v) => syncCustomerConditionUi(v),
+  });
+
+  attachFlowSelect(
+    document.getElementById("flowTriggerCustomerMetricBtn"),
+    document.getElementById("flowTriggerCustomerMetricList"),
+  );
+
+  const scrollArea = panel.querySelector(".flowTriggerPanel__scroll");
+  scrollArea?.addEventListener(
+    "scroll",
+    () => {
+      for (const s of flowSelects) {
+        if (s.isExpanded()) s.position();
+      }
+    },
+    { passive: true }
+  );
+
+  window.addEventListener("resize", () => {
+    for (const s of flowSelects) {
+      if (s.isExpanded()) s.position();
+    }
+  });
+
+  document.addEventListener(
+    "mousedown",
+    (e) => {
+      const t = e.target;
+      if (!(t instanceof Node)) return;
+      let hitOpen = false;
+      for (const s of flowSelects) {
+        if (!s.isExpanded()) continue;
+        if (s.field.contains(t) || s.list.contains(t)) {
+          hitOpen = true;
+          break;
+        }
+      }
+      if (hitOpen) return;
+      closeAllSelects();
+    },
+    true
+  );
+
+  const objectSelectTrigger = document.getElementById("flowTriggerSelectObj");
+  if (customerDetails && objectSelectTrigger) {
+    syncCustomerConditionUi(
+      objectSelectTrigger.querySelector(".flowTriggerPanel__selectText")?.textContent?.trim() ?? ""
+    );
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const openSelect = flowSelects.find((s) => s.isExpanded());
+    if (openSelect) {
+      openSelect.setExpanded(false);
+      e.preventDefault();
+      return;
+    }
+    if (isOpen()) close();
   });
 })();
 

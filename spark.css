@@ -1,0 +1,1195 @@
+/**
+ * Spark design system — slide 5 flow-builder UI (typography + components).
+ *
+ * Colors, shadows, radii, typography scale, transition durations, and semantic
+ * panel tokens are generated from the same merchant-portal foundations as the
+ * playground: design-system/theme/foundations/ (sibling: ../RC Frontend/…).
+ *
+ * Refresh tokens after DS changes:
+ *   npm run sync-spark
+ *   MERCHANT_PORTAL_ROOT=/path/to/merchant-portal npm run sync-spark
+ *
+ * Connary Fagen / Avenir font files: ./assets/fonts/
+ */
+
+@import "./spark-tokens.generated.css";
+
+/* ── Fonts ────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "Greycliff CF";
+  src: url("./assets/fonts/greycliff-cf-regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Greycliff CF";
+  src: url("./assets/fonts/greycliff-cf-bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Quincy CF";
+  src: url("./assets/fonts/quincy-cf-regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Quincy CF";
+  src: url("./assets/fonts/quincy-cf-bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir";
+  src: url("./assets/fonts/avenir-400-roman.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Presentation-only tokens (fonts, radii, layout, deck surfaces) ─ */
+/* Colors / shadows / panel semantics: spark-tokens.generated.css (sync from merchant-portal DS) */
+
+:root {
+  /* Local OTF names first; stack ends with DS tokens from spark-tokens.generated.css */
+  --spark-font-display: "Greycliff CF", Inter, ui-sans-serif, system-ui, var(--spark-palette-font-heading);
+  --spark-font-body: "Avenir", "Avenir Next", -apple-system, BlinkMacSystemFont, system-ui,
+    var(--spark-palette-font-body);
+  --spark-font-serif: "Quincy CF", ui-serif, Georgia, "Times New Roman", serif;
+
+  /* Not in foundations — icon mask tile + slide canvas tint */
+  --spark-color-icon-tile: #d9d9d9;
+  --spark-color-canvas: #f8f9fb;
+
+  /* Radii: --spark-radius-* mapped from DS in spark-tokens.generated.css (--spark-palette-radii-*) */
+
+  --spark-trigger-card-width: 359px;
+  --spark-panel-width: 512px;
+  --spark-panel-height: 960px;
+  --spark-panel-z: 10005;
+
+  --font-greycliff: var(--spark-font-display);
+  --font-avenir: var(--spark-font-body);
+  --font-quincy: var(--spark-font-serif);
+  --utility-white: var(--spark-color-white);
+  --trigger-navy: var(--spark-color-ink);
+  --trigger-purple: var(--spark-color-purple);
+}
+
+/* ── Slide 5 canvas shell ─────────────────────────────────────────── */
+
+.slide--map.slide--outro .main.main--slide5 {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.mapSlideMount--slide5 {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.stageWrap.stageWrap--slide5 {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.slide5Canvas {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  padding: 28px 32px;
+  background-color: var(--spark-color-canvas);
+  background-image: radial-gradient(
+    circle,
+    var(--spark-color-canvas-dot) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+  background-position: -1px -1px;
+}
+
+.slide5FlowLayout {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.slide5FlowLayout__node {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Trigger node ─────────────────────────────────────────────────── */
+
+.triggerNode {
+  display: block;
+  width: min(100%, var(--spark-trigger-card-width));
+  max-width: var(--spark-trigger-card-width);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 160ms ease;
+}
+
+.triggerNode:hover {
+  filter: brightness(0.99);
+}
+
+.triggerNode:focus-visible {
+  outline: none;
+}
+
+.triggerNode__outer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.triggerNode__stretchCol {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.triggerNode__card {
+  width: var(--spark-trigger-card-width);
+  max-width: 100%;
+  background: var(--spark-color-white);
+  box-shadow: var(--spark-shadow-sm);
+  border-radius: var(--spark-radius-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  transition: box-shadow 180ms ease;
+}
+
+.triggerNode:hover .triggerNode__card {
+  box-shadow: var(--spark-shadow-sm-hover);
+}
+
+.triggerNode[aria-expanded="true"] .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm);
+}
+
+.triggerNode[aria-expanded="true"]:hover .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover);
+}
+
+.triggerNode:focus-visible .triggerNode__card {
+  box-shadow: var(--spark-shadow-sm), var(--spark-shadow-focus-ring);
+}
+
+.triggerNode[aria-expanded="true"]:focus-visible .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
+}
+
+.triggerNode[aria-expanded="true"]:hover:focus-visible .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover),
+    var(--spark-shadow-focus-ring);
+}
+
+/* Node with saved conditions (e.g. Customer) — cobalt ring while panel is closed */
+.triggerNode--hasConditions:not([aria-expanded="true"]) .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm);
+}
+
+.triggerNode--hasConditions:not([aria-expanded="true"]):hover .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover);
+}
+
+.triggerNode--hasConditions:not([aria-expanded="true"]):focus-visible .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
+}
+
+.triggerNode--hasConditions:not([aria-expanded="true"]):hover:focus-visible .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover),
+    var(--spark-shadow-focus-ring);
+}
+
+.triggerNode__conditions[hidden] {
+  display: none !important;
+}
+
+.triggerNode__conditions {
+  align-self: stretch;
+  width: 100%;
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--spark-color-panel-footer);
+  border-radius: 6px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.triggerNode__conditionsStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.triggerNode__conditionsLabel {
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-color-panel-hint);
+  word-wrap: break-word;
+}
+
+.triggerNode__conditionsValue {
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+}
+
+.triggerNode__cardPad {
+  align-self: stretch;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.triggerNode__row {
+  align-self: stretch;
+  min-height: 44px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.triggerNode__iconSlot {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.triggerNode__iconDisc {
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+  box-sizing: border-box;
+  background: var(--spark-color-teal);
+  box-shadow: var(--spark-shadow-sm);
+  border-radius: var(--spark-radius-pill);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Lightning asset: assets/icons/lightning.svg (mask + cream bolt on teal disc) */
+.triggerNode__iconArt {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.triggerNode__iconImg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: transform 320ms cubic-bezier(0.4, 0, 1, 1), filter 320ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.triggerNode[aria-expanded="true"] .triggerNode__iconImg {
+  transform: scale(1.04);
+  filter: brightness(1.05);
+}
+
+.triggerNode__textCol {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.triggerNode__titleLine {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.triggerNode__title {
+  color: var(--spark-color-ink);
+  font-size: 16px;
+  font-family: var(--spark-font-display);
+  font-weight: 700;
+  line-height: 24px;
+  word-wrap: break-word;
+}
+
+.triggerNode__subtitle {
+  align-self: stretch;
+  color: var(--spark-color-ink);
+  font-size: 14px;
+  font-family: var(--spark-font-body);
+  font-weight: 400;
+  line-height: 20px;
+  word-wrap: break-word;
+}
+
+.triggerNode__kebab {
+  padding: 4px;
+  background: var(--spark-color-kebab);
+  border-radius: var(--spark-radius-xs);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.triggerNode__kebabArt {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.triggerNode__kebabImg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* ── Configure panel (right of node, centered group in canvas) ───── */
+
+.flowTriggerPanelRoot {
+  flex: 0 1 0;
+  min-width: 0;
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(24px);
+  overflow: hidden;
+  pointer-events: none;
+  align-self: center;
+  transition:
+    max-width 400ms cubic-bezier(0.22, 1, 0.36, 1),
+    min-width 400ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 400ms cubic-bezier(0.22, 1, 0.36, 1),
+    flex-basis 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flowTriggerPanelRoot--open {
+  flex: 0 0 auto;
+  min-width: min(var(--spark-panel-width), calc(100vw - 48px));
+  max-width: min(var(--spark-panel-width), calc(100vw - 48px));
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  /* Don’t clip — shadows + rounded panel sit inside; hidden caused corner artifacts */
+  overflow: visible;
+}
+
+.flowTriggerPanel {
+  width: min(var(--spark-panel-width), calc(100vw - 48px));
+  height: min(var(--spark-panel-height), 92vh);
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background: var(--spark-color-white);
+  transform: scale(0.93);
+  transform-origin: center center;
+  border-radius: var(--spark-radius-lg);
+  overflow: hidden;
+  /* Same elevation as .triggerNode__card */
+  box-shadow: var(--spark-shadow-sm);
+  isolation: isolate;
+  transition:
+    transform 420ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flowTriggerPanelRoot--open .flowTriggerPanel {
+  transform: scale(1);
+  box-shadow: var(--spark-shadow-sm);
+}
+
+.flowTriggerPanel__masthead {
+  align-self: stretch;
+  padding: 24px 24px 20px;
+  background: var(--spark-color-white);
+  border-bottom: 1px solid var(--spark-color-panel-border);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.flowTriggerPanel__mastheadRow {
+  align-self: stretch;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.flowTriggerPanel__titleGroup {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.flowTriggerPanel__title {
+  margin: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: var(--spark-font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--spark-color-ink);
+  line-height: 28px;
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__closeBtn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition:
+    opacity 160ms cubic-bezier(0.4, 0, 1, 1),
+    background 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__closeBtn:hover {
+  background: var(--spark-color-field-bg);
+}
+
+.flowTriggerPanel__closeBtn:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
+}
+
+.flowTriggerPanel__closeArt {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowTriggerPanel__closeImg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  pointer-events: none;
+  transition: opacity 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__lede {
+  margin: 0;
+  align-self: stretch;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-color-ink);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__scroll {
+  align-self: stretch;
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+.flowTriggerPanel__block {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.flowTriggerPanel__block:last-child {
+  margin-bottom: 0;
+}
+
+.flowTriggerPanel__sectionTitle {
+  margin: 0;
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--spark-color-ink);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__labelStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.flowTriggerPanel__hint--panel {
+  margin: 0;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-color-panel-hint);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__fieldStatic {
+  align-self: stretch;
+  padding: 8px 8px 8px 12px;
+  background: var(--spark-color-panel-border);
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px var(--spark-color-panel-outline) inset;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--spark-color-panel-muted-text);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__conditionWrap {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flowTriggerPanel__conditionCard {
+  align-self: stretch;
+  padding: 16px;
+  background: var(--spark-color-white);
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--spark-color-panel-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flowTriggerPanel__conditionHead {
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.flowTriggerPanel__conditionTitle {
+  flex: 1 1 0;
+  margin: 0;
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--spark-color-ink);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__iconBtnMicro {
+  padding: 4px;
+  border: none;
+  background: var(--spark-color-kebab);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: filter 200ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__iconBtnMicro:hover {
+  filter: brightness(0.97);
+}
+
+.flowTriggerPanel__chevUpArt {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowTriggerPanel__chevDownArt {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowTriggerPanel__chevImg {
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.flowTriggerPanel__selectField {
+  align-self: stretch;
+  width: 100%;
+  position: relative;
+  z-index: 0;
+}
+
+.flowTriggerPanel__selectField.flowTriggerPanel__selectField--open {
+  z-index: 5;
+}
+
+.flowTriggerPanel__selectDropdown {
+  position: fixed;
+  min-width: 0;
+  max-width: none;
+  box-sizing: border-box;
+  background: var(--spark-color-white);
+  border-radius: 6px;
+  box-shadow: var(--spark-shadow-panel-inline);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  z-index: 100020;
+}
+
+.flowTriggerPanel__selectDropdown[aria-hidden="true"] {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition:
+    opacity 200ms cubic-bezier(0.4, 0, 1, 1),
+    transform 220ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0ms linear 220ms;
+}
+
+.flowTriggerPanel__selectDropdown[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition:
+    opacity 200ms cubic-bezier(0.4, 0, 1, 1),
+    transform 220ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0ms;
+}
+
+/* Menu panel (Figma: 8 / 20 + 2 / 4 midnight shadow stack) */
+.flowTriggerPanel__selectDropdown--lifted {
+  box-shadow:
+    0 8px 20px rgba(25, 29, 72, 0.2),
+    0 2px 4px rgba(25, 29, 72, 0.15);
+}
+
+.flowTriggerPanel__selectOption {
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 8px 8px 8px 12px;
+  border: none;
+  background: var(--spark-color-white);
+  color: var(--spark-color-ink);
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  word-wrap: break-word;
+  cursor: pointer;
+  text-align: left;
+  display: block;
+  box-sizing: border-box;
+  transition: background 150ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__selectOption:hover,
+.flowTriggerPanel__selectOption:focus-visible {
+  background: var(--spark-color-field-bg);
+}
+
+.flowTriggerPanel__selectOption:focus {
+  outline: none;
+}
+
+.flowTriggerPanel__selectOption:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: -2px;
+}
+
+/* Single Chevrons.svg asset: down = default; micro control uses 16px + rotate for “up” */
+.flowTriggerPanel__chevImg--micro {
+  width: 16px;
+  height: 16px;
+  transform: rotate(180deg);
+}
+
+.flowTriggerPanel__chevImg--select {
+  width: 24px;
+  height: 24px;
+  transition: transform 200ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__selectRow[aria-expanded="true"] .flowTriggerPanel__chevImg--select {
+  transform: rotate(180deg);
+}
+
+.flowTriggerPanel__selectRow {
+  align-self: stretch;
+  width: 100%;
+  padding: 8px 8px 8px 12px;
+  margin: 0;
+  border: none;
+  background: var(--spark-color-white);
+  border-radius: 6px;
+  outline: 1px solid var(--spark-color-panel-outline);
+  outline-offset: -1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  overflow: hidden;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    outline-color 180ms cubic-bezier(0.4, 0, 1, 1),
+    outline-width 180ms cubic-bezier(0.4, 0, 1, 1),
+    box-shadow 180ms cubic-bezier(0.4, 0, 1, 1),
+    background 180ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__selectRow:hover {
+  outline-color: rgba(25, 29, 72, 0.35);
+}
+
+.flowTriggerPanel__selectRow:focus {
+  outline: 1px solid var(--spark-color-panel-outline);
+  outline-offset: -1px;
+}
+
+/* Keyboard focus + open/selected */
+.flowTriggerPanel__selectRow:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: -1px;
+  box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
+}
+
+.flowTriggerPanel__selectRow[aria-expanded="true"] {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: -1px;
+  background: var(--spark-color-white);
+}
+
+.flowTriggerPanel__selectRow[aria-expanded="true"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(57, 1, 241, 0.22);
+}
+
+.flowTriggerPanel__selectRow:active {
+  background: var(--spark-color-field-bg);
+}
+
+.flowTriggerPanel__selectRow[aria-expanded="true"]:active {
+  background: var(--spark-color-white);
+}
+
+.flowTriggerPanel__selectText {
+  flex: 1 1 0;
+  min-width: 0;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--spark-color-panel-muted-text);
+}
+
+.flowTriggerPanel__selectText--hasValue {
+  color: var(--spark-palette-midnight-100);
+}
+
+.flowTriggerPanel__selectRow--demo {
+  cursor: default;
+}
+
+.flowTriggerPanel__selectRow--demo:hover {
+  outline-color: var(--spark-color-panel-outline);
+}
+
+/* `[hidden]` must win over `display: flex` / `inline-flex` from component classes */
+.flowTriggerPanel__customerDetails[hidden],
+#flowTriggerConditionAndPill[hidden] {
+  display: none !important;
+}
+
+.flowTriggerPanel__customerDetails {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.flowTriggerPanel__valueReadout {
+  align-self: stretch;
+  margin: 0;
+  padding: 8px 8px 8px 12px;
+  background: var(--spark-color-white);
+  border-radius: 6px;
+  outline: 1px solid var(--spark-color-panel-outline);
+  outline-offset: -1px;
+  box-sizing: border-box;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__infoCallout {
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  background: var(--spark-color-kebab);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.flowTriggerPanel__infoCalloutIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowTriggerPanel__infoCalloutIcon svg,
+.flowTriggerPanel__infoCalloutImg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.flowTriggerPanel__infoCalloutText {
+  margin: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  padding-top: 2px;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__bannerAction {
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__bannerAction:hover {
+  opacity: 0.88;
+}
+
+.flowTriggerPanel__bannerAction:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
+}
+
+.flowTriggerPanel__bannerActionIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowTriggerPanel__bannerActionIcon img,
+.flowTriggerPanel__bannerActionImg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.flowTriggerPanel__bannerActionLabel {
+  padding-top: 0.5px;
+  font-family: var(--spark-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--spark-palette-midnight-100);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__pillBtn {
+  align-self: stretch;
+  padding: 4px 8px;
+  border: none;
+  margin: 0;
+  background: transparent;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1.5px var(--spark-color-ink) inset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  transition: background 220ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.flowTriggerPanel__pillBtn:hover {
+  background: var(--spark-color-surface-hover);
+}
+
+.flowTriggerPanel__pillInner {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 1px 6px 0;
+  gap: 8px;
+}
+
+.flowTriggerPanel__pillIcon {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: block;
+}
+
+.flowTriggerPanel__pillIcon--plus,
+.flowTriggerPanel__pillIcon--chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flowTriggerPanel__pillPlusImg,
+.flowTriggerPanel__chipIconImg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.flowTriggerPanel__pillLabel {
+  text-align: center;
+  font-family: var(--spark-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 24px;
+  color: var(--spark-color-ink);
+  word-wrap: break-word;
+}
+
+.flowTriggerPanel__footer {
+  align-self: stretch;
+  padding: 24px;
+  background: var(--spark-color-panel-footer);
+  box-shadow: var(--spark-shadow-panel-footer);
+  border-top: 1px solid var(--spark-color-white);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.flowTriggerPanel__footerInner {
+  flex: 1 1 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.flowTriggerPanel__apply {
+  flex: 1 1 0;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: var(--spark-color-apply);
+  color: var(--spark-color-white);
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    filter 220ms cubic-bezier(0.4, 0, 1, 1),
+    transform 90ms ease;
+}
+
+.flowTriggerPanel__apply:hover {
+  filter: brightness(1.06);
+}
+
+.flowTriggerPanel__apply:active {
+  transform: scale(0.99);
+}
+
+.flowTriggerPanel__applyLabel {
+  padding: 1px 8px 0;
+  text-align: center;
+}
+
+.triggerNode,
+.triggerNode__card {
+  transition:
+    box-shadow 320ms cubic-bezier(0.4, 0, 1, 1),
+    filter 200ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+@media (max-width: 900px) {
+  .slide5FlowLayout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .flowTriggerPanelRoot {
+    transform: translateY(16px);
+  }
+
+  .flowTriggerPanelRoot--open {
+    transform: translateY(0);
+    min-width: min(var(--spark-panel-width), calc(100vw - 32px));
+    max-width: min(var(--spark-panel-width), calc(100vw - 32px));
+  }
+
+  .flowTriggerPanel {
+    width: min(var(--spark-panel-width), calc(100vw - 32px));
+    height: min(640px, 85vh);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flowTriggerPanelRoot,
+  .flowTriggerPanelRoot--open {
+    transition: none;
+  }
+
+  .flowTriggerPanel {
+    transition: none;
+    transform: none;
+  }
+
+  .flowTriggerPanelRoot--open .flowTriggerPanel {
+    transform: none;
+  }
+}
+

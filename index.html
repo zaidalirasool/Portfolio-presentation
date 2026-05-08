@@ -7,7 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-    <link rel="stylesheet" href="./styles.css?v=108" />
+    <link rel="stylesheet" href="./spark.css?v=27" />
+    <link rel="stylesheet" href="./styles.css?v=115" />
   </head>
   <body>
     <div class="app">
@@ -80,6 +81,373 @@
             <div id="mapSlideMount3" class="mapSlideMount"></div>
           </main>
         </section>
+
+        <section
+          class="slide slide--map slide--outro"
+          data-slide-index="4"
+          aria-label="Flow trigger"
+          aria-hidden="true"
+        >
+          <main class="main main--slide5">
+            <div class="mapSlideMount mapSlideMount--slide5">
+              <section class="stageWrap stageWrap--slide5" aria-label="Flow canvas">
+                <div class="slide5Canvas">
+                  <div class="slide5FlowLayout">
+                    <div class="slide5FlowLayout__node">
+                      <button
+                        type="button"
+                        id="flowTriggerNode"
+                        class="triggerNode"
+                        aria-expanded="false"
+                        aria-controls="flowTriggerPanel"
+                      >
+                        <div class="triggerNode__outer" data-node="Trigger">
+                          <div class="triggerNode__stretchCol">
+                            <div class="triggerNode__card">
+                              <div class="triggerNode__cardPad">
+                                <div class="triggerNode__row">
+                                  <div class="triggerNode__iconSlot">
+                                    <div class="triggerNode__iconDisc" aria-hidden="true">
+                                      <div class="triggerNode__iconArt">
+                                        <img
+                                          class="triggerNode__iconImg"
+                                          src="./assets/icons/lightning.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="triggerNode__textCol">
+                                    <div class="triggerNode__titleLine">
+                                      <span class="triggerNode__title">Trigger</span>
+                                    </div>
+                                    <div class="triggerNode__subtitle">After order is processed</div>
+                                  </div>
+                                  <div class="triggerNode__kebab" aria-hidden="true">
+                                    <div class="triggerNode__kebabArt">
+                                      <img
+                                        class="triggerNode__kebabImg"
+                                        src="./assets/icons/action.svg"
+                                        width="24"
+                                        height="24"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="triggerNode__conditions" id="flowTriggerNodeConditions" hidden>
+                                  <div class="triggerNode__conditionsStack">
+                                    <span class="triggerNode__conditionsLabel">Conditions</span>
+                                    <span class="triggerNode__conditionsValue">1 conditions set</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                    <div
+                      id="flowTriggerPanelRoot"
+                      class="flowTriggerPanelRoot"
+                      aria-hidden="true"
+                    >
+                      <div
+                        id="flowTriggerPanel"
+                        class="flowTriggerPanel"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="flowTriggerPanelTitle"
+                        tabindex="-1"
+                      >
+                        <header class="flowTriggerPanel__masthead">
+                          <div class="flowTriggerPanel__mastheadRow">
+                            <div class="flowTriggerPanel__titleGroup">
+                              <h2 id="flowTriggerPanelTitle" class="flowTriggerPanel__title">
+                                Configure flow trigger
+                              </h2>
+                            </div>
+                            <button
+                              type="button"
+                              class="flowTriggerPanel__closeBtn"
+                              data-flow-trigger-dismiss
+                              aria-label="Close"
+                            >
+                              <span class="flowTriggerPanel__closeArt" aria-hidden="true">
+                                <img
+                                  class="flowTriggerPanel__closeImg"
+                                  src="./assets/icons/close.svg"
+                                  width="24"
+                                  height="24"
+                                  alt=""
+                                  decoding="async"
+                                />
+                              </span>
+                            </button>
+                          </div>
+                          <p class="flowTriggerPanel__lede">
+                            This flow will start when the following conditions are met. Add additional
+                            filters to configure which customers qualify for this flow.
+                          </p>
+                        </header>
+                        <div class="flowTriggerPanel__scroll">
+                          <div class="flowTriggerPanel__block">
+                            <h3 class="flowTriggerPanel__sectionTitle">
+                              When will this flow be triggered?
+                            </h3>
+                            <div class="flowTriggerPanel__fieldStatic">
+                              After an order is processed
+                            </div>
+                          </div>
+                          <div class="flowTriggerPanel__block">
+                            <div class="flowTriggerPanel__labelStack">
+                              <h3 class="flowTriggerPanel__sectionTitle">Execute this flow if</h3>
+                              <p class="flowTriggerPanel__hint--panel">
+                                Edit the conditions for when this flow should start.
+                              </p>
+                            </div>
+                            <div class="flowTriggerPanel__conditionWrap">
+                              <div class="flowTriggerPanel__conditionCard">
+                                <div class="flowTriggerPanel__conditionHead">
+                                  <span class="flowTriggerPanel__conditionTitle">Condition 1</span>
+                                  <button
+                                    type="button"
+                                    class="flowTriggerPanel__iconBtnMicro"
+                                    aria-label="Collapse"
+                                  >
+                                    <span class="flowTriggerPanel__chevUpArt" aria-hidden="true">
+                                      <img
+                                        class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--micro"
+                                        src="./assets/icons/chevron-down.svg"
+                                        width="16"
+                                        height="16"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                  </button>
+                                </div>
+                                <div class="flowTriggerPanel__selectField">
+                                  <label class="sr-only" for="flowTriggerSelectObj">Select object</label>
+                                  <button
+                                    type="button"
+                                    id="flowTriggerSelectObj"
+                                    class="flowTriggerPanel__selectRow"
+                                    aria-haspopup="listbox"
+                                    aria-expanded="false"
+                                    aria-controls="flowTriggerSelectList"
+                                  >
+                                    <span class="flowTriggerPanel__selectText">Select object</span>
+                                    <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                      <img
+                                        class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                        src="./assets/icons/chevron-down.svg"
+                                        width="24"
+                                        height="24"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                  </button>
+                                  <div
+                                    id="flowTriggerSelectList"
+                                    class="flowTriggerPanel__selectDropdown"
+                                    role="listbox"
+                                    aria-labelledby="flowTriggerSelectObj"
+                                    aria-hidden="true"
+                                  >
+                                    <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                      Customer
+                                    </button>
+                                    <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                      Line item
+                                    </button>
+                                    <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                      Shipping address
+                                    </button>
+                                    <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                      Subscription
+                                    </button>
+                                  </div>
+                                </div>
+                                <button type="button" id="flowTriggerConditionAndPill" class="flowTriggerPanel__pillBtn">
+                                  <span class="flowTriggerPanel__pillInner">
+                                    <span
+                                      class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                      aria-hidden="true"
+                                    >
+                                      <img
+                                        class="flowTriggerPanel__pillPlusImg"
+                                        src="./assets/icons/add.svg"
+                                        width="20"
+                                        height="20"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                    <span class="flowTriggerPanel__pillLabel">And</span>
+                                  </span>
+                                </button>
+                                <div
+                                  id="flowTriggerCustomerDetails"
+                                  class="flowTriggerPanel__customerDetails"
+                                  hidden
+                                >
+                                  <div class="flowTriggerPanel__selectField">
+                                    <label class="sr-only" for="flowTriggerCustomerMetricBtn">Customer metric</label>
+                                    <button
+                                      type="button"
+                                      id="flowTriggerCustomerMetricBtn"
+                                      class="flowTriggerPanel__selectRow"
+                                      aria-haspopup="listbox"
+                                      aria-expanded="false"
+                                      aria-controls="flowTriggerCustomerMetricList"
+                                    >
+                                      <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
+                                        Streak count for subscription orders
+                                      </span>
+                                      <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                        <img
+                                          class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                          src="./assets/icons/chevron-down.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                    </button>
+                                    <div
+                                      id="flowTriggerCustomerMetricList"
+                                      class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                      role="listbox"
+                                      aria-labelledby="flowTriggerCustomerMetricBtn"
+                                      aria-hidden="true"
+                                    >
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Number of active subscriptions
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Number of subscription orders processed
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Program
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Segment
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Streak count for subscription orders
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Subscription AOV
+                                      </button>
+                                      <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                        Tags
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    class="flowTriggerPanel__selectRow flowTriggerPanel__selectRow--demo"
+                                    tabindex="-1"
+                                  >
+                                    <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
+                                      Is greater than or equal to
+                                    </span>
+                                    <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                      <img
+                                        class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                        src="./assets/icons/chevron-down.svg"
+                                        width="24"
+                                        height="24"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                  </button>
+                                  <div class="flowTriggerPanel__valueReadout">0</div>
+                                  <div class="flowTriggerPanel__infoCallout" role="status">
+                                    <span class="flowTriggerPanel__infoCalloutIcon" aria-hidden="true">
+                                      <img
+                                        class="flowTriggerPanel__infoCalloutImg"
+                                        src="./assets/icons/info.svg"
+                                        width="24"
+                                        height="24"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                    <p class="flowTriggerPanel__infoCalloutText">
+                                      The Streak count for subscription orders is a count of how many recent orders
+                                      have happened in sequence without a cancellation.
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    class="flowTriggerPanel__bannerAction flowTriggerPanel__bannerAction--delete"
+                                    aria-label="Delete"
+                                    tabindex="-1"
+                                  >
+                                    <span class="flowTriggerPanel__bannerActionIcon" aria-hidden="true">
+                                      <img
+                                        class="flowTriggerPanel__bannerActionImg"
+                                        src="./assets/icons/delete.svg"
+                                        width="20"
+                                        height="20"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                    <span class="flowTriggerPanel__bannerActionLabel">Delete</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="flowTriggerPanel__pillBtn"
+                                    aria-label="Add"
+                                    tabindex="-1"
+                                  >
+                                    <span class="flowTriggerPanel__pillInner">
+                                      <span
+                                        class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                        aria-hidden="true"
+                                      >
+                                        <img
+                                          class="flowTriggerPanel__pillPlusImg"
+                                          src="./assets/icons/add.svg"
+                                          width="20"
+                                          height="20"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                      <span class="flowTriggerPanel__pillLabel">Add</span>
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <footer class="flowTriggerPanel__footer">
+                          <div class="flowTriggerPanel__footerInner">
+                            <button type="button" class="flowTriggerPanel__apply" data-flow-trigger-dismiss>
+                              <span class="flowTriggerPanel__applyLabel">Apply</span>
+                            </button>
+                          </div>
+                        </footer>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </main>
+        </section>
       </div>
     </div>
 
@@ -135,10 +503,10 @@
       </div>
     </div>
 
-    <nav class="slideshowPagination" aria-label="Slide pagination" data-slide-count="4">
+    <nav class="slideshowPagination" aria-label="Slide pagination" data-slide-count="5">
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-83"></script>
+    <script type="module" src="./app.js?v=slideshow-86"></script>
   </body>
 </html>

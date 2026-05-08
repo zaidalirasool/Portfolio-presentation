@@ -21,3 +21,5 @@ node_modules/
 package.json
 package-lock.json
 
+.fonttools_pkg/
+
