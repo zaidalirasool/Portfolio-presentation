@@ -2887,6 +2887,17 @@ initSlideshow();
     branch3AndRow.hidden = !isB3 || !details.hidden;
   }
 
+  function syncBranchEditorPanelModeFromEditedName(trimmed) {
+    const isBranch3 = trimmed === "Branch 3";
+    const hideEditorCardConditionAdd =
+      trimmed === "Prospective subscribers" ||
+      trimmed === "Existing subscribers" ||
+      trimmed === "Branch 3";
+    branchPanel.classList.toggle("flowBranchPanel--editingBranch3", isBranch3);
+    branchPanel.classList.toggle("flowBranchPanel--hideEditorCardConditionAdd", hideEditorCardConditionAdd);
+    syncBranchEditorBranch3Affordances();
+  }
+
   function resetBranchEditorExtendedConditionDetailsFields() {
     const extDetails = document.getElementById("flowBranchEditorExtendedConditionDetails");
     if (extDetails instanceof HTMLElement) {
@@ -3316,6 +3327,16 @@ initSlideshow();
 
   branchCompoundInput?.addEventListener("input", syncBranchApplyDisabledState);
   branchCompoundInput?.addEventListener("change", syncBranchApplyDisabledState);
+
+  document.getElementById("flowBranchEditorBranchNameInput")?.addEventListener("input", () => {
+    const branchNameInput = document.getElementById("flowBranchEditorBranchNameInput");
+    if (!(branchNameInput instanceof HTMLInputElement)) return;
+    const card = branchStack?.querySelector(".flowBranchPanel__branchCard--editing");
+    if (!card) return;
+    const labelEl = card.querySelector(".flowBranchPanel__branchLabel");
+    if (labelEl) labelEl.textContent = branchNameInput.value;
+    syncBranchEditorPanelModeFromEditedName(branchNameInput.value.trim());
+  });
 
   branchPanel.addEventListener("click", (e) => {
     const el = e.target instanceof Element ? e.target : null;
