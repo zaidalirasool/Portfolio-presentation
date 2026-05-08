@@ -1360,8 +1360,8 @@
   gap: 12px;
 }
 
-/* Portfolio: Branch 3 only — hide metric / operator / value / callout / Add (everything in #flowBranchEditorConditionDetails). */
-#flowBranchPanel.flowBranchPanel--editingBranch3 #flowBranchEditorConditionDetails {
+/* Prospective / Existing subscribers: hide card-level Add under Object; keep Add under value + Or. */
+#flowBranchPanel.flowBranchPanel--hideEditorCardConditionAdd .flowBranchPanel__conditionCardAddRow {
   display: none !important;
 }
 
