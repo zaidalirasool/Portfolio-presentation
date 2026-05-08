@@ -2654,11 +2654,14 @@ initSlideshow();
     });
     window.setTimeout(() => {
       branchNodeWrap.classList.remove("flowBranchNodeWrap--enter", "flowBranchNodeWrap--enter-active");
-    }, 720);
+    }, 900);
   }
 
   const branchStack = branchPanel.querySelector(".flowBranchPanel__branchStack");
   const editorCol = document.getElementById("flowBranchEditorCol");
+  const branchApplyWrap = document.getElementById("flowBranchApplyWrap");
+  const branchApplyBtn = document.getElementById("flowBranchApplyBtn");
+  const branchCompoundInput = branchPanel.querySelector(".flowBranchPanel__compoundCurrencyInput");
 
   /** @type {HTMLElement | null} */
   let draggedBranchCard = null;
@@ -2667,6 +2670,38 @@ initSlideshow();
   /** @type {HTMLElement | null} */
   let branchDropSlotEl = null;
   let draggedBranchCardHeight = 48;
+
+  function isBranchCompoundFieldVisible() {
+    const wrap = branchPanel.querySelector(".flowBranchPanel__compoundCurrencyField--secondColumn");
+    if (!(wrap instanceof HTMLElement)) return false;
+    return window.getComputedStyle(wrap).display !== "none";
+  }
+
+  function isBranchApplyDisabledByCurrencyRule() {
+    if (!(branchCompoundInput instanceof HTMLInputElement)) return false;
+    if (!isBranchCompoundFieldVisible()) return false;
+    const raw = branchCompoundInput.value.trim().replace(/[$,\s]/g, "");
+    if (raw === "") return true;
+    const n = parseFloat(raw);
+    if (Number.isNaN(n)) return true;
+    return n === 0;
+  }
+
+  function syncBranchApplyDisabledState() {
+    if (!(branchApplyBtn instanceof HTMLButtonElement) || !(branchApplyWrap instanceof HTMLElement) || !editorCol)
+      return;
+    if (editorCol.hidden) {
+      branchApplyWrap.classList.remove("flowBranchPanel__applyWrap--invalid");
+      branchApplyBtn.disabled = false;
+      branchApplyBtn.removeAttribute("aria-describedby");
+      return;
+    }
+    const invalid = isBranchApplyDisabledByCurrencyRule();
+    branchApplyWrap.classList.toggle("flowBranchPanel__applyWrap--invalid", invalid);
+    branchApplyBtn.disabled = invalid;
+    if (invalid) branchApplyBtn.setAttribute("aria-describedby", "flowBranchApplyTooltip");
+    else branchApplyBtn.removeAttribute("aria-describedby");
+  }
 
   function removeBranchDropSlot() {
     branchDropSlotEl?.remove();
@@ -2688,6 +2723,8 @@ initSlideshow();
     }
     branchRoot.classList.remove("flowBranchPanelRoot--editorWide");
     branchPanel.classList.remove("flowBranchPanel--editorWide");
+    resetBranchEditorConditionUi();
+    syncBranchApplyDisabledState();
   }
 
   function enterBranchEditor(options = {}) {
@@ -2707,6 +2744,8 @@ initSlideshow();
     editorCol.setAttribute("aria-hidden", "false");
     branchRoot.classList.toggle("flowBranchPanelRoot--editorWide", wide);
     branchPanel.classList.toggle("flowBranchPanel--editorWide", wide);
+    resetBranchEditorConditionUi();
+    syncBranchApplyDisabledState();
   }
 
   function normalizeElseBranchLast() {
@@ -2796,6 +2835,61 @@ initSlideshow();
   function closeAllSelects() {
     for (const s of flowSelects) {
       if (s.isExpanded()) s.setExpanded(false);
+    }
+  }
+
+  function resetBranchEditorConditionUi() {
+    closeAllSelects();
+    const details = document.getElementById("flowBranchEditorConditionDetails");
+    if (details) {
+      details.hidden = true;
+    }
+    const objectBtn = document.getElementById("flowBranchEditorObjectBtn");
+    if (objectBtn) {
+      const span = objectBtn.querySelector(".flowTriggerPanel__selectText");
+      if (span) {
+        span.textContent = "Object";
+        span.classList.remove("flowTriggerPanel__selectText--hasValue");
+      }
+    }
+    const metricBtn = document.getElementById("flowBranchEditorMetricBtn");
+    if (metricBtn) {
+      const span = metricBtn.querySelector(".flowTriggerPanel__selectText");
+      if (span) {
+        span.textContent = "Metric";
+        span.classList.remove("flowTriggerPanel__selectText--hasValue");
+      }
+    }
+    const operatorBtn = document.getElementById("flowBranchEditorOperatorBtn");
+    if (operatorBtn) {
+      const span = operatorBtn.querySelector(".flowTriggerPanel__selectText");
+      if (span) {
+        span.textContent = "Operator";
+        span.classList.remove("flowTriggerPanel__selectText--hasValue");
+      }
+    }
+    const valueInput = document.getElementById("flowBranchEditorValueInput");
+    if (valueInput instanceof HTMLInputElement) {
+      valueInput.value = "";
+    }
+    if (branchCompoundInput instanceof HTMLInputElement) {
+      branchCompoundInput.value = "";
+    }
+  }
+
+  /**
+   * @param {string} selectedLabel
+   */
+  function syncBranchEditorConditionDetailsFromObject(selectedLabel) {
+    const details = document.getElementById("flowBranchEditorConditionDetails");
+    const objectBtn = document.getElementById("flowBranchEditorObjectBtn");
+    if (!details || !objectBtn) return;
+    const textEl = objectBtn.querySelector(".flowTriggerPanel__selectText");
+    const trimmed = selectedLabel.trim();
+    details.hidden = false;
+    if (textEl) {
+      textEl.textContent = trimmed;
+      textEl.classList.add("flowTriggerPanel__selectText--hasValue");
     }
   }
 
@@ -2949,12 +3043,22 @@ initSlideshow();
   });
 
   triggerRoot.querySelectorAll("[data-flow-trigger-dismiss]").forEach((el) => {
-    el.addEventListener("click", closeTrigger);
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeTrigger();
+    });
   });
 
   branchRoot.querySelectorAll("[data-flow-branch-dismiss]").forEach((el) => {
-    el.addEventListener("click", closeBranch);
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (el instanceof HTMLButtonElement && el.disabled) return;
+      closeBranch();
+    });
   });
+
+  branchCompoundInput?.addEventListener("input", syncBranchApplyDisabledState);
+  branchCompoundInput?.addEventListener("change", syncBranchApplyDisabledState);
 
   branchPanel.addEventListener("click", (e) => {
     const el = e.target instanceof Element ? e.target : null;
@@ -3123,6 +3227,7 @@ initSlideshow();
   attachFlowSelect(
     document.getElementById("flowBranchEditorObjectBtn"),
     document.getElementById("flowBranchEditorObjectList"),
+    { onPick: (v) => syncBranchEditorConditionDetailsFromObject(v) },
   );
 
   attachFlowSelect(
@@ -3224,6 +3329,8 @@ initSlideshow();
     }
     if (isTriggerOpen()) closeTrigger();
   });
+
+  syncBranchApplyDisabledState();
 })();
 
 loadGraph()

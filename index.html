@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
-    <link rel="stylesheet" href="./spark.css?v=107" />
+    <link rel="stylesheet" href="./spark.css?v=122" />
     <link rel="stylesheet" href="./styles.css?v=120" />
   </head>
   <body>
@@ -582,34 +582,34 @@
                         </header>
                         <div class="flowTriggerPanel__scroll">
                           <div class="flowTriggerPanel__block">
-                            <label
-                              class="flowBranchPanel__blockNameLabel"
-                              for="flowBranchBlockNameInput"
-                              >Node name</label>
-                            <input
-                              type="text"
-                              id="flowBranchBlockNameInput"
-                              class="flowBranchPanel__textInput"
-                              value=""
-                              placeholder="Conditional branch"
-                              autocomplete="off"
-                              aria-label="Node name"
-                            />
-                            <p class="flowBranchPanel__blockNameHint">
-                              Adding a name will help you keep track of the purpose of the node.
-                            </p>
-                          </div>
-                          <div class="flowTriggerPanel__block">
-                            <div class="flowBranchPanel__labelStack">
-                              <h3 class="flowTriggerPanel__sectionTitle flowBranchPanel__branchesHeading">
-                                Branches
-                              </h3>
-                              <p class="flowBranchPanel__sectionHint">
-                                Only the first branch with passing conditions will execute.
-                              </p>
-                            </div>
                             <div class="flowBranchPanel__branchColumns">
                               <div class="flowBranchPanel__branchColumnMain">
+                                <div class="flowBranchPanel__nodeNameSection">
+                                  <label
+                                    class="flowBranchPanel__blockNameLabel"
+                                    for="flowBranchBlockNameInput"
+                                    >Node name</label>
+                                  <input
+                                    type="text"
+                                    id="flowBranchBlockNameInput"
+                                    class="flowBranchPanel__textInput"
+                                    value=""
+                                    placeholder="Conditional branch"
+                                    autocomplete="off"
+                                    aria-label="Node name"
+                                  />
+                                  <p class="flowBranchPanel__blockNameHint">
+                                    Adding a name will help you keep track of the purpose of the node.
+                                  </p>
+                                </div>
+                                <div class="flowBranchPanel__labelStack">
+                                  <h3 class="flowTriggerPanel__sectionTitle flowBranchPanel__branchesHeading">
+                                    Branches
+                                  </h3>
+                                  <p class="flowBranchPanel__sectionHint">
+                                    Only the first branch with passing conditions will execute.
+                                  </p>
+                                </div>
                                 <div class="flowBranchPanel__branchStack">
                               <div class="flowBranchPanel__branchCard">
                                 <div
@@ -773,35 +773,69 @@
                           </div>
                             <aside
                               id="flowBranchEditorCol"
-                              class="flowBranchPanel__editorCol"
+                              class="flowBranchPanel__editorCol flowBranchPanel__secondColumn"
                               hidden
                               aria-hidden="true"
                               aria-label="Branch condition editor"
                             >
-                              <div class="flowBranchPanel__editorSection">
+                              <div class="flowBranchPanel__secondColumnFieldset">
                                 <label
                                   class="flowBranchPanel__blockNameLabel"
                                   for="flowBranchEditorBranchNameInput"
                                   >Branch name</label>
+                                <div class="flowBranchPanel__secondColumnSpacer flowBranchPanel__secondColumnSpacer--4" aria-hidden="true"></div>
                                 <input
                                   type="text"
                                   id="flowBranchEditorBranchNameInput"
-                                  class="flowBranchPanel__textInput"
+                                  class="flowBranchPanel__textInput flowBranchPanel__secondColumnTextInput"
                                   value="Prospective subscribers"
                                   autocomplete="off"
                                   aria-label="Branch name"
                                 />
-                                <p class="flowBranchPanel__blockNameHint">
+                                <div class="flowBranchPanel__secondColumnSpacer flowBranchPanel__secondColumnSpacer--8" aria-hidden="true"></div>
+                                <p class="flowBranchPanel__blockNameHint flowBranchPanel__secondColumnHelper">
                                   Adding a name will help you keep track of the purpose of the branch.
                                 </p>
                               </div>
-                              <div class="flowBranchPanel__editorSection">
-                                <div class="flowBranchPanel__labelStack flowBranchPanel__labelStack--tight">
-                                  <h3 class="flowTriggerPanel__sectionTitle">Execute this branch if</h3>
-                                  <p class="flowBranchPanel__sectionHint">
-                                    Only the first condition with passing actions will execute.
-                                  </p>
+
+                              <div class="flowBranchPanel__secondColumnFrameParent">
+                                <div class="flowBranchPanel__secondColumnExecute">
+                                  <div class="flowBranchPanel__secondColumnFrameGroup">
+                                    <div class="flowBranchPanel__secondColumnFrameContainer">
+                                      <div class="flowBranchPanel__secondColumnExecuteTitleRow">
+                                        <h3 class="flowTriggerPanel__sectionTitle flowBranchPanel__secondColumnExecuteTitle">
+                                          Execute this branch if
+                                        </h3>
+                                      </div>
+                                      <p class="flowBranchPanel__sectionHint flowBranchPanel__secondColumnExecuteHint">
+                                        Only the first condition with passing actions will execute.
+                                      </p>
+                                    </div>
+                                  </div>
                                 </div>
+
+                                <div class="flowBranchPanel__orderFilter">
+                                <div class="flowTriggerPanel__conditionCard flowBranchPanel__conditionsEngine">
+                                  <div class="flowTriggerPanel__conditionHead">
+                                    <span class="flowTriggerPanel__conditionTitle">Condition 1</span>
+                                    <button
+                                      type="button"
+                                      class="flowTriggerPanel__iconBtnMicro"
+                                      aria-label="Collapse condition"
+                                      tabindex="-1"
+                                    >
+                                      <span class="flowTriggerPanel__chevUpArt" aria-hidden="true">
+                                        <img
+                                          class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--micro"
+                                          src="./assets/icons/chevron-down.svg"
+                                          width="16"
+                                          height="16"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                    </button>
+                                  </div>
                               <div class="flowTriggerPanel__selectField">
                                 <label class="sr-only" for="flowBranchEditorObjectBtn">Object</label>
                                 <button
@@ -812,9 +846,7 @@
                                   aria-expanded="false"
                                   aria-controls="flowBranchEditorObjectList"
                                 >
-                                  <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
-                                    Customer
-                                  </span>
+                                  <span class="flowTriggerPanel__selectText">Object</span>
                                   <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
                                     <img
                                       class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
@@ -841,6 +873,11 @@
                                   </button>
                                 </div>
                               </div>
+                              <div
+                                id="flowBranchEditorConditionDetails"
+                                class="flowTriggerPanel__customerDetails"
+                                hidden
+                              >
                               <div class="flowTriggerPanel__selectField">
                                 <label class="sr-only" for="flowBranchEditorMetricBtn">Metric</label>
                                 <button
@@ -851,9 +888,7 @@
                                   aria-expanded="false"
                                   aria-controls="flowBranchEditorMetricList"
                                 >
-                                  <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
-                                    Number of active subscriptions
-                                  </span>
+                                  <span class="flowTriggerPanel__selectText">Metric</span>
                                   <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
                                     <img
                                       class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
@@ -890,9 +925,7 @@
                                   aria-expanded="false"
                                   aria-controls="flowBranchEditorOperatorList"
                                 >
-                                  <span class="flowTriggerPanel__selectText flowTriggerPanel__selectText--hasValue">
-                                    Is equal to
-                                  </span>
+                                  <span class="flowTriggerPanel__selectText">Operator</span>
                                   <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
                                     <img
                                       class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
@@ -912,7 +945,7 @@
                                   aria-hidden="true"
                                 >
                                   <button type="button" class="flowTriggerPanel__selectOption" role="option">
-                                    Is equal to
+                                    Equals
                                   </button>
                                   <button type="button" class="flowTriggerPanel__selectOption" role="option">
                                     Is greater than
@@ -924,11 +957,11 @@
                                 type="text"
                                 id="flowBranchEditorValueInput"
                                 class="flowTriggerPanel__valueReadout"
-                                value="0"
+                                value=""
                                 autocomplete="off"
                                 aria-label="Comparison value"
                               />
-                              <div class="flowBranchPanel__compoundCurrencyField">
+                              <div class="flowBranchPanel__compoundCurrencyField flowBranchPanel__compoundCurrencyField--secondColumn">
                                 <div class="flowBranchPanel__compoundCurrencyInner">
                                   <span class="flowBranchPanel__compoundCurrencyPrefix" aria-hidden="true">$</span>
                                   <input
@@ -940,6 +973,62 @@
                                   />
                                 </div>
                               </div>
+                                  <div class="flowTriggerPanel__infoCallout" role="status">
+                                    <span class="flowTriggerPanel__infoCalloutIcon" aria-hidden="true">
+                                      <img
+                                        class="flowTriggerPanel__infoCalloutImg"
+                                        src="./assets/icons/info.svg"
+                                        width="24"
+                                        height="24"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                    <p class="flowTriggerPanel__infoCalloutText">
+                                      This is the number of active subscriptions this particular shopper has.
+                                    </p>
+                                  </div>
+                                  <button type="button" class="flowTriggerPanel__pillBtn" aria-label="Add" tabindex="-1">
+                                    <span class="flowTriggerPanel__pillInner">
+                                      <span
+                                        class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                        aria-hidden="true"
+                                      >
+                                        <img
+                                          class="flowTriggerPanel__pillPlusImg"
+                                          src="./assets/icons/add.svg"
+                                          width="20"
+                                          height="20"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                      <span class="flowTriggerPanel__pillLabel">Add</span>
+                                    </span>
+                                  </button>
+                              </div>
+                                </div>
+                                <div class="flowBranchPanel__secondaryButtonWrapper">
+                                  <button type="button" class="flowTriggerPanel__pillBtn" aria-label="Or" tabindex="-1">
+                                    <span class="flowTriggerPanel__pillInner">
+                                      <span
+                                        class="flowTriggerPanel__pillIcon flowTriggerPanel__pillIcon--plus"
+                                        aria-hidden="true"
+                                      >
+                                        <img
+                                          class="flowTriggerPanel__pillPlusImg"
+                                          src="./assets/icons/add.svg"
+                                          width="20"
+                                          height="20"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </span>
+                                      <span class="flowTriggerPanel__pillLabel">Or</span>
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
                               </div>
                             </aside>
                             </div>
@@ -947,9 +1036,27 @@
                         </div>
                         <footer class="flowTriggerPanel__footer">
                           <div class="flowTriggerPanel__footerInner">
-                            <button type="button" class="flowTriggerPanel__apply" data-flow-branch-dismiss>
-                              <span class="flowTriggerPanel__applyLabel">Apply</span>
-                            </button>
+                            <div class="flowBranchPanel__applyWrap" id="flowBranchApplyWrap">
+                              <div
+                                class="flowBranchPanel__applyTooltip"
+                                id="flowBranchApplyTooltip"
+                                role="tooltip"
+                              >
+                                <div class="flowBranchPanel__applyTooltipInner">
+                                  Please complete all required fields.
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                class="flowTriggerPanel__apply"
+                                id="flowBranchApplyBtn"
+                                data-flow-branch-dismiss
+                              >
+                                <span class="flowBranchPanel__applyLabelWrap">
+                                  <span class="flowTriggerPanel__applyLabel flowBranchPanel__applyLabel">Apply</span>
+                                </span>
+                              </button>
+                            </div>
                           </div>
                         </footer>
                       </div>
@@ -1019,6 +1126,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-110"></script>
+    <script type="module" src="./app.js?v=slideshow-111"></script>
   </body>
 </html>
