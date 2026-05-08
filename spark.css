@@ -1360,10 +1360,18 @@
   gap: 12px;
 }
 
-/* Branch editor: Object / Metric / Operator / value — 12px padding (condition cards). */
+/* Branch editor: condition select rows + value — 40px height, horizontal inset only. */
 #flowBranchPanel .flowBranchPanel__conditionsEngine .flowTriggerPanel__selectRow,
 #flowBranchPanel .flowBranchPanel__conditionsEngine .flowTriggerPanel__valueReadout {
-  padding: 12px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+#flowBranchPanel .flowBranchPanel__conditionsEngine .flowTriggerPanel__valueReadout {
+  line-height: 40px;
 }
 
 /* Prospective / Existing subscribers: hide card-level Add under Object; keep Add under value + Or. */
@@ -2149,14 +2157,6 @@
 #flowBranchPanel #flowBranchEditorObject2Btn .flowTriggerPanel__selectText:not(.flowTriggerPanel__selectText--hasValue),
 #flowBranchPanel #flowBranchEditor2ObjectBtn .flowTriggerPanel__selectText:not(.flowTriggerPanel__selectText--hasValue) {
   color: var(--spark-palette-structure-80);
-}
-
-/* Extended AND: 12px padding on Object2 + revealed metric / operator / value (high specificity). */
-#flowBranchPanel #flowBranchEditorObject2Btn.flowTriggerPanel__selectRow,
-#flowBranchPanel #flowBranchEditorExtMetricBtn.flowTriggerPanel__selectRow,
-#flowBranchPanel #flowBranchEditorExtOperatorBtn.flowTriggerPanel__selectRow,
-#flowBranchPanel #flowBranchEditorExtValueInput.flowTriggerPanel__valueReadout {
-  padding: 12px;
 }
 
 .flowTriggerPanel__selectRow--demo {
