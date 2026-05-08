@@ -1151,10 +1151,10 @@
   box-sizing: border-box;
 }
 
-/* Tint full scroll body to match editor column; removes white above/below aside. */
+/* Scroll area matches first column (white); editor aside keeps its own grey fill. */
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__scroll {
   padding: 24px 0 24px 24px;
-  background-color: #f6f8f9;
+  background-color: var(--spark-color-white);
 }
 
 /* Fill scroll height so the branch row (and editor aside) stretch — no white gap below. */
@@ -1177,7 +1177,7 @@
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondColumnFieldset {
   width: 100%;
-  max-width: 491px;
+  max-width: none;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1218,9 +1218,13 @@
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__orderFilter {
   width: 100%;
-  max-width: 491px;
+  max-width: none;
   padding: 0 0 16px;
   box-sizing: border-box;
+}
+
+#flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondaryButtonWrapper {
+  align-items: stretch;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__compoundCurrencyField--secondColumn {
