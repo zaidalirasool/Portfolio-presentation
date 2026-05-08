@@ -480,10 +480,55 @@
 .flowBranchNode .triggerNode__card {
   background-color: #ebedfc;
   border: 1px solid #848bd4;
+  box-shadow: var(--spark-shadow-sm);
+  transition: box-shadow 180ms ease, border-color 180ms ease;
 }
 
-.flowBranchNode .triggerNode__iconDisc {
-  background: var(--spark-color-purple);
+/* Hover / open / focus — same ring language as default trigger node */
+.flowBranchNode:hover .triggerNode__card {
+  border-color: transparent;
+  box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm);
+}
+
+.flowBranchNode[aria-expanded="true"] .triggerNode__card {
+  border-color: transparent;
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm);
+}
+
+.flowBranchNode[aria-expanded="true"]:hover .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover);
+}
+
+.flowBranchNode:focus-visible .triggerNode__card {
+  border-color: transparent;
+  box-shadow: var(--spark-shadow-sm), var(--spark-shadow-focus-ring);
+}
+
+.flowBranchNode:hover:focus-visible .triggerNode__card {
+  box-shadow:
+    0 0 0 1px var(--spark-palette-midnight-80),
+    var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
+}
+
+.flowBranchNode[aria-expanded="true"]:focus-visible .triggerNode__card {
+  box-shadow:
+    0 0 0 1px var(--spark-color-active-ring),
+    var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
+}
+
+.flowBranchNode[aria-expanded="true"]:hover:focus-visible .triggerNode__card {
+  box-shadow:
+    0 0 0 1px var(--spark-color-active-ring),
+    var(--spark-shadow-sm-hover),
+    var(--spark-shadow-focus-ring);
+}
+  background: var(--spark-palette-midnight-100);
+}
+
+.flowBranchNode .triggerNode__kebab {
+  background: var(--spark-palette-midnight-20);
 }
 
 /* Conditional branch panel masthead + type (matches Figma tokens) */
@@ -666,11 +711,14 @@
   flex-direction: row;
   align-items: stretch;
   gap: 24px;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowBranchPanel__branchColumnMain {
   flex: 1 1 0;
   min-width: 0;
+  background-color: var(--spark-color-white);
 }
 
 .flowBranchPanel__editorSection {
@@ -827,26 +875,19 @@
   min-width: 32px;
   min-height: 32px;
   padding: 4px;
-  background-color: #cacce7;
+  background-color: var(--spark-palette-midnight-10);
   border: 1.2px solid transparent;
   box-shadow: none;
   border-radius: 6px;
-  transition: background-color 160ms ease;
+  transition: background-color 160ms ease, border-color 160ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* PopulatedListItemButton default: both chips use `.iconButton` (bordered). */
-.flowBranchPanel__branchCard:not(.flowBranchPanel__branchCard--editing)
-  .flowBranchPanel__iconButtonPair
-  .flowBranchPanel__iconButton.flowBranchPanel__iconAction {
-  border-color: #3901f1;
-}
-
-/* Active row (editor open): edit = `.iconButton`, delete = `.iconButton2` (no stroke). */
+/* Selected branch (editor open): PopulatedListItemButton — lavender chips; edit stroked, delete flush. */
 .flowBranchPanel__branchCard--editing
   .flowBranchPanel__iconButtonPair
-  .flowBranchPanel__iconButton.flowBranchPanel__iconAction[data-flow-branch-delete] {
-  border-color: transparent;
+  .flowBranchPanel__iconButton.flowBranchPanel__iconAction {
+  background-color: #cacce7;
 }
 
 .flowBranchPanel__branchCard--editing
@@ -856,10 +897,22 @@
 }
 
 .flowBranchPanel__iconButtonPair .flowBranchPanel__iconButton.flowBranchPanel__iconAction:hover {
+  background-color: var(--spark-palette-midnight-20);
+}
+
+.flowBranchPanel__branchCard--editing
+  .flowBranchPanel__iconButtonPair
+  .flowBranchPanel__iconButton.flowBranchPanel__iconAction:hover {
   background-color: #c0c4df;
 }
 
 .flowBranchPanel__iconButtonPair .flowBranchPanel__iconButton.flowBranchPanel__iconAction:active {
+  background-color: var(--spark-palette-midnight-30);
+}
+
+.flowBranchPanel__branchCard--editing
+  .flowBranchPanel__iconButtonPair
+  .flowBranchPanel__iconButton.flowBranchPanel__iconAction:active {
   background-color: #b5bad6;
 }
 
@@ -1088,7 +1141,8 @@
   max-width: none;
   margin-top: 0;
   border-top: none;
-  padding: 24px 24px 24px 24px;
+  /* Top inset comes from `.flowTriggerPanel__scroll`; avoid double padding vs. left column. */
+  padding: 0 24px 24px 24px;
   margin-left: 0;
   border-left: 1px solid var(--spark-color-panel-border);
   align-self: stretch;
@@ -1097,13 +1151,20 @@
   box-sizing: border-box;
 }
 
-/* Wide branch panel: fill modal width — remove dead inset on the right */
+/* Tint full scroll body to match editor column; removes white above/below aside. */
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__scroll {
   padding: 24px 0 24px 24px;
+  background-color: #f6f8f9;
+}
+
+/* Fill scroll height so the branch row (and editor aside) stretch — no white gap below. */
+#flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__block {
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__footer {
-  padding: 24px 0 24px 24px;
+  padding: 24px;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide .flowTriggerPanel__masthead {
