@@ -2028,6 +2028,16 @@
   z-index: 100020;
 }
 
+/* Branch panel: keep menus under the sticky Apply footer (dropdown mounts on #flowBranchPanel when open). */
+#flowBranchPanel .flowTriggerPanel__selectDropdown {
+  z-index: 5;
+}
+
+#flowBranchPanel .flowTriggerPanel__footer {
+  position: relative;
+  z-index: 20;
+}
+
 .flowTriggerPanel__selectDropdown[aria-hidden="true"] {
   opacity: 0;
   visibility: hidden;

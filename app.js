@@ -3210,8 +3210,13 @@ initSlideshow();
       elTrigger.setAttribute("aria-expanded", String(expanded));
       elList.setAttribute("aria-hidden", String(!expanded));
       field.classList.toggle("flowTriggerPanel__selectField--open", expanded);
+      const branchPanelMount = document.getElementById("flowBranchPanel");
+      const mountRoot =
+        elTrigger.closest("#flowBranchPanel") && branchPanelMount instanceof HTMLElement
+          ? branchPanelMount
+          : document.body;
       if (expanded) {
-        document.body.appendChild(elList);
+        mountRoot.appendChild(elList);
         window.requestAnimationFrame(() => position());
       } else {
         elList.style.top = "";
