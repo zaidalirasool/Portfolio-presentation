@@ -1117,7 +1117,7 @@
   align-items: center;
   height: 24px;
   padding: 1px 6px 0;
-  gap: 0;
+  gap: 2px;
 }
 
 .flowTriggerPanel__pillIcon {
