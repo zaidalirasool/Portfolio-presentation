@@ -1390,6 +1390,24 @@
   display: none !important;
 }
 
+/* Branch 3 stub And: span full condition card width (card Add row uses flex-start shrink-wrap). */
+.flowBranchPanel__branch3AndRow {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.flowBranchPanel__branch3AndRow[hidden] {
+  display: none !important;
+}
+
+.flowBranchPanel__branch3AndPill {
+  width: 100%;
+}
+
 .flowBranchPanel__extraConditionCard[hidden] {
   display: none !important;
 }
