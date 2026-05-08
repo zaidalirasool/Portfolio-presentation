@@ -1480,8 +1480,6 @@
 #flowBranchPanel .flowBranchPanel__innerExtendedDelete.flowTriggerPanel__bannerAction {
   align-self: flex-start;
   width: auto;
-  padding: 12px;
-  box-sizing: border-box;
 }
 
 #flowBranchPanel.flowBranchPanel--editorWide #flowBranchEditorCol .flowBranchPanel__secondaryButtonWrapper {
