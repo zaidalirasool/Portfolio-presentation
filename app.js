@@ -2612,75 +2612,24 @@ function wireRewardsStrategyVideo() {
 
 wireRewardsStrategyVideo();
 
-/** Slide 7: entrance motion for phone mock — shared by ghost preview and companion reveal */
-function playCaseFollowPhoneEnter(el) {
-  if (!(el instanceof HTMLElement)) return;
-  el.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
-  void el.offsetWidth;
-  el.classList.add("caseFollowPhone--enter");
-  window.requestAnimationFrame(() => {
-    el.classList.add("caseFollowPhone--enter-active");
-  });
-  window.setTimeout(() => {
-    el.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
-  }, 900);
-}
-
-/** Clone the case-follow mock so the duplicate shows first (left); main phone appears after canvas tap */
-function setupCaseFollowPhoneGhost() {
-  const compose = document.querySelector("#caseFollowCanvas .caseFollowCompose");
-  const phone = document.getElementById("caseFollowPhone");
-  if (!compose || !(phone instanceof HTMLElement)) return;
-  if (document.getElementById("caseFollowPhoneGhost")) return;
-
-  phone.classList.add("caseFollowPhone--companion");
-
-  const ghost = phone.cloneNode(true);
-  ghost.id = "caseFollowPhoneGhost";
-  ghost.classList.add("caseFollowPhone--ghost");
-  ghost.setAttribute("aria-hidden", "true");
-  ghost.querySelectorAll("[id]").forEach((node) => {
-    if (node !== ghost) node.removeAttribute("id");
-  });
-  compose.insertBefore(ghost, phone);
-}
-
-setupCaseFollowPhoneGhost();
-
-/** Slide 7 preview: animate visible phone into view — ghost first until pair is revealed */
-function wireCaseFollowPhoneEnter() {
-  const phone = document.getElementById("caseFollowPhone");
-  if (!(phone instanceof HTMLElement)) return;
-
-  document.addEventListener("slideshow:change", (e) => {
-    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
-    const ghost = document.getElementById("caseFollowPhoneGhost");
-    if (e.detail.index === 6) {
-      const target =
-        ghost instanceof HTMLElement ? ghost : phone;
-      playCaseFollowPhoneEnter(target);
-    } else {
-      phone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
-      if (ghost instanceof HTMLElement) {
-        ghost.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
-      }
-    }
-  });
-}
-
-wireCaseFollowPhoneEnter();
-
-/** Slide 7: canvas tap reveals companion phone (1st tap), then Orders 5–12 stamp demo (2nd tap). */
-function wireCaseFollowCanvasLoyaltyDemo() {
+/**
+ * Slide 7 (last case-follow slide): primary phone visible immediately.
+ * 1st neutral canvas tap → Maris Loyalty reward stamp sequence (orders 5–12).
+ * 2nd neutral canvas tap → reveal twin phone.
+ */
+function wireCaseFollowSlide7Canvas() {
   const canvas = document.getElementById("caseFollowCanvas");
-  const compose = document.querySelector("#caseFollowCanvas .caseFollowCompose");
-  const mainPhone = document.getElementById("caseFollowPhone");
+  const compose = document.querySelector(".caseFollowCompose");
+  const dup = document.getElementById("caseFollowPhoneDup");
+  const primaryPhone = document.getElementById("caseFollowPhone");
+  if (!(canvas instanceof HTMLElement) || !(compose instanceof HTMLElement)) return;
+  if (!(dup instanceof HTMLElement) || !(primaryPhone instanceof HTMLElement)) return;
+
   const starStamp = {
     src: "./assets/affinity/Star-1.svg?v=1",
     width: 21,
     height: 20,
   };
-  /** White strokes for contrast on teal reward disk (`Gift.svg` keeps teal for non-disk use). */
   const giftStamp = {
     src: "./assets/affinity/Gift-white-stroke.svg?v=1",
     width: 32,
@@ -2706,17 +2655,23 @@ function wireCaseFollowCanvasLoyaltyDemo() {
     })
     .filter((x) => x !== null);
 
-  if (!(canvas instanceof HTMLElement) || rewardSlots.length !== rewardSlotIds.length) return;
+  if (rewardSlots.length !== rewardSlotIds.length) return;
 
-  const ghostPhone = document.getElementById("caseFollowPhoneGhost");
-  const hasRevealFlow = ghostPhone instanceof HTMLElement;
-  /** 0 = preview only (ghost left when paired); 1 = paired, stamp demo on next tap */
-  let canvasPhase = 0;
+  /** 0 = stamps available, 1 = stamps started — next tap reveals twin, 2 = twin visible */
+  let canvasStep = 0;
 
-  function resetRevealState() {
-    canvasPhase = 0;
-    compose?.classList.remove("caseFollowCompose--pairVisible");
+  const STAGGER_MS = 300;
+  const STAMP_ANIM_MS = 880;
+
+  /** @type {number[]} */
+  let stampTimeouts = [];
+
+  function clearStampTimeouts() {
+    stampTimeouts.forEach((id) => window.clearTimeout(id));
+    stampTimeouts = [];
   }
+
+  let sequencePlaying = false;
 
   function resetRewardStamp(el, pendingType) {
     if (el.dataset.filled !== "true") return;
@@ -2755,20 +2710,6 @@ function wireCaseFollowCanvasLoyaltyDemo() {
     hole.replaceWith(disk);
   }
 
-  const STAGGER_MS = 300;
-  /** Time after last stamp starts before disk + icon motion reads as finished */
-  const STAMP_ANIM_MS = 880;
-
-  /** @type {number[]} */
-  let stampTimeouts = [];
-
-  function clearStampTimeouts() {
-    stampTimeouts.forEach((id) => window.clearTimeout(id));
-    stampTimeouts = [];
-  }
-
-  let sequencePlaying = false;
-
   function resetRewards() {
     clearStampTimeouts();
     sequencePlaying = false;
@@ -2777,22 +2718,53 @@ function wireCaseFollowCanvasLoyaltyDemo() {
     }
   }
 
+  function resetSlide7Ui() {
+    canvasStep = 0;
+    resetRewards();
+    compose.classList.remove("caseFollowCompose--twinRevealed");
+    dup.setAttribute("aria-hidden", "true");
+    primaryPhone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
+  }
+
+  document.addEventListener("slideshow:change", (e) => {
+    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
+    if (e.detail.index === 6) {
+      resetSlide7Ui();
+    } else {
+      resetRewards();
+      canvasStep = 0;
+      compose.classList.remove("caseFollowCompose--twinRevealed");
+      dup.setAttribute("aria-hidden", "true");
+      primaryPhone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
+    }
+  });
+
+  canvas.addEventListener(
+    "click",
+    (e) => {
+      const slide = canvas.closest(".slide.slide--caseFollow");
+      if (!slide?.classList.contains("is-active")) return;
+      if (e.target.closest("button, a, input, select, textarea, label")) return;
+      if (canvasStep !== 1 || compose.classList.contains("caseFollowCompose--twinRevealed")) return;
+      e.stopImmediatePropagation();
+      compose.classList.add("caseFollowCompose--twinRevealed");
+      dup.setAttribute("aria-hidden", "false");
+      canvasStep = 2;
+    },
+    true,
+  );
+
   canvas.addEventListener("click", (e) => {
     const slide = canvas.closest(".slide.slide--caseFollow");
     if (!slide?.classList.contains("is-active")) return;
     if (e.target.closest("button, a, input, select, textarea, label")) return;
+    if (canvasStep !== 0) return;
     if (sequencePlaying) return;
-
-    if (hasRevealFlow && canvasPhase === 0) {
-      canvasPhase = 1;
-      compose?.classList.add("caseFollowCompose--pairVisible");
-      if (mainPhone instanceof HTMLElement) playCaseFollowPhoneEnter(mainPhone);
-      return;
-    }
 
     const anyEmpty = rewardSlots.some(({ el }) => el.dataset.filled !== "true");
     if (!anyEmpty) return;
 
+    canvasStep = 1;
     sequencePlaying = true;
     clearStampTimeouts();
 
@@ -2810,17 +2782,11 @@ function wireCaseFollowCanvasLoyaltyDemo() {
       }, lastStartMs + STAMP_ANIM_MS),
     );
   });
-
-  document.addEventListener("slideshow:change", (e) => {
-    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
-    if (e.detail.index !== 6) {
-      resetRewards();
-      if (hasRevealFlow) resetRevealState();
-    }
-  });
 }
 
-wireCaseFollowCanvasLoyaltyDemo();
+wireCaseFollowSlide7Canvas();
+
+
 (function initLoyaltyModal() {
   const modal1 = document.getElementById("loyaltyModal");
   const modal2 = document.getElementById("loyaltyModalRerouted");
