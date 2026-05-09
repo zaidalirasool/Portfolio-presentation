@@ -2859,12 +2859,93 @@ function wireCaseFollowSlide7Canvas() {
   }
 
   function resetSlide7Ui() {
+    clearCreditsBannerAutoHide();
     canvasStep = 0;
     resetRewards();
     clearSpawnedPrimaryMocks();
     compose.classList.remove("caseFollowCompose--twinRevealed");
     dup.setAttribute("aria-hidden", "true");
     primaryPhone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
+    canvas.querySelectorAll(".caseFollowStoreCredit__switch").forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      el.setAttribute("aria-checked", "false");
+      el.classList.remove("caseFollowStoreCredit__switch--on");
+    });
+    const creditsBanner = document.getElementById("caseFollowCreditsBanner");
+    if (creditsBanner instanceof HTMLElement) {
+      creditsBanner.classList.remove("caseFollowCreditsBanner--visible");
+      creditsBanner.hidden = true;
+      creditsBanner.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  /** @type {number | null} */
+  let creditsBannerAutoHideTid = null;
+
+  function clearCreditsBannerAutoHide() {
+    if (creditsBannerAutoHideTid !== null) {
+      window.clearTimeout(creditsBannerAutoHideTid);
+      creditsBannerAutoHideTid = null;
+    }
+  }
+
+  function hideCreditsBannerAnimated() {
+    const banner = document.getElementById("caseFollowCreditsBanner");
+    if (!(banner instanceof HTMLElement)) return;
+    const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+
+    banner.classList.remove("caseFollowCreditsBanner--visible");
+    if (reduced) {
+      banner.hidden = true;
+      banner.setAttribute("aria-hidden", "true");
+      return;
+    }
+
+    const onEnd = (e) => {
+      if (e.target !== banner || e.propertyName !== "transform") return;
+      banner.removeEventListener("transitionend", onEnd);
+      window.clearTimeout(fallbackTid);
+      if (!banner.classList.contains("caseFollowCreditsBanner--visible")) {
+        banner.hidden = true;
+        banner.setAttribute("aria-hidden", "true");
+      }
+    };
+    banner.addEventListener("transitionend", onEnd);
+    const fallbackTid = window.setTimeout(() => {
+      banner.removeEventListener("transitionend", onEnd);
+      if (!banner.classList.contains("caseFollowCreditsBanner--visible")) {
+        banner.hidden = true;
+        banner.setAttribute("aria-hidden", "true");
+      }
+    }, 450);
+  }
+
+  function syncCaseFollowCreditsBanner(creditsOn) {
+    const banner = document.getElementById("caseFollowCreditsBanner");
+    if (!(banner instanceof HTMLElement)) return;
+    const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+
+    clearCreditsBannerAutoHide();
+
+    if (!creditsOn) {
+      hideCreditsBannerAnimated();
+      return;
+    }
+
+    banner.hidden = false;
+    banner.removeAttribute("aria-hidden");
+    if (reduced) {
+      banner.classList.add("caseFollowCreditsBanner--visible");
+    } else {
+      requestAnimationFrame(() => {
+        banner.classList.add("caseFollowCreditsBanner--visible");
+      });
+    }
+
+    creditsBannerAutoHideTid = window.setTimeout(() => {
+      creditsBannerAutoHideTid = null;
+      hideCreditsBannerAnimated();
+    }, 3000);
   }
 
   function caseFollowUiHit(target) {
@@ -2919,6 +3000,15 @@ function wireCaseFollowSlide7Canvas() {
   }
 
   document.addEventListener("click", onCaseFollowDocumentCapture, true);
+
+  canvas.addEventListener("click", (e) => {
+    const sw = e.target instanceof Element ? e.target.closest(".caseFollowStoreCredit__switch") : null;
+    if (!(sw instanceof HTMLElement) || !canvas.contains(sw)) return;
+    const next = sw.getAttribute("aria-checked") !== "true";
+    sw.setAttribute("aria-checked", next ? "true" : "false");
+    sw.classList.toggle("caseFollowStoreCredit__switch--on", next);
+    syncCaseFollowCreditsBanner(next);
+  });
 
   document.addEventListener("slideshow:change", (e) => {
     if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
