@@ -1,0 +1,15 @@
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_fgGiftMenuPerf)">
+<mask id="mask_fgGiftMenuPerf" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="2" y="2" width="20" height="20">
+<rect x="2" y="2" width="20" height="20" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask_fgGiftMenuPerf)">
+<path d="M4.21864 13.9784L3.60034 13.3601L8.35994 8.60046L11.0856 11.3088L15.7157 6.06573L16.4128 6.6453L11.1511 12.6282L8.35994 9.83706L4.21864 13.9784Z" fill="#191D48"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip_fgGiftMenuPerf">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>

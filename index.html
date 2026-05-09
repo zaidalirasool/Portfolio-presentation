@@ -299,49 +299,124 @@
                       hidden
                       aria-hidden="true"
                     >
-                      <button
-                        type="button"
-                        id="flowFreeGiftNode"
-                        class="triggerNode flowFreeGiftNode"
-                        aria-expanded="false"
-                        aria-controls="flowFreeGiftPanel"
-                        aria-label="Free gift. Configure."
-                      >
+                      <div class="flowFreeGiftNodeShell flowFreeGiftNode">
                         <div class="triggerNode__outer" data-node="Free gift">
                           <div class="triggerNode__stretchCol">
                             <div class="triggerNode__card">
                               <div class="triggerNode__cardPad flowFreeGiftNode__cardPad">
-                                <div class="triggerNode__row">
-                                  <div class="triggerNode__iconSlot">
-                                    <div class="triggerNode__iconDisc" aria-hidden="true">
-                                      <div class="triggerNode__iconArt">
+                                <div class="flowFreeGiftNode__grid">
+                                  <button
+                                    type="button"
+                                    id="flowFreeGiftNode"
+                                    class="flowFreeGiftNode__openBtn"
+                                    aria-expanded="false"
+                                    aria-controls="flowFreeGiftPanel"
+                                    aria-label="Free gift. Configure."
+                                  >
+                                    <div class="triggerNode__row flowFreeGiftNode__openRow">
+                                      <div class="triggerNode__iconSlot">
+                                        <div class="triggerNode__iconDisc" aria-hidden="true">
+                                          <div class="triggerNode__iconArt">
+                                            <img
+                                              class="triggerNode__iconImg"
+                                              src="./assets/icons/gift.svg"
+                                              width="24"
+                                              height="24"
+                                              alt=""
+                                              decoding="async"
+                                            />
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="triggerNode__textCol">
+                                        <div class="triggerNode__titleLine">
+                                          <span class="triggerNode__title">Free gift</span>
+                                        </div>
+                                        <div id="flowFreeGiftNodeSubtitle" class="triggerNode__subtitle">Configure</div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                  <div class="flowFreeGiftNode__kebabSlot">
+                                    <button
+                                      type="button"
+                                      id="flowFreeGiftNodeKebabBtn"
+                                      class="flowFreeGiftNode__kebabBtn"
+                                      aria-label="Free gift actions"
+                                      aria-haspopup="true"
+                                      aria-expanded="false"
+                                      aria-controls="flowFreeGiftNodeMenu"
+                                    >
+                                      <span class="flowFreeGiftNode__kebabBtnInner" aria-hidden="true">
                                         <img
-                                          class="triggerNode__iconImg"
-                                          src="./assets/icons/gift.svg"
+                                          class="flowFreeGiftNode__kebabBtnImg"
+                                          src="./assets/icons/action.svg"
                                           width="24"
                                           height="24"
                                           alt=""
                                           decoding="async"
                                         />
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div class="triggerNode__textCol">
-                                    <div class="triggerNode__titleLine">
-                                      <span class="triggerNode__title">Free gift</span>
-                                    </div>
-                                    <div class="triggerNode__subtitle">Configure</div>
-                                  </div>
-                                  <div class="triggerNode__kebab" aria-hidden="true">
-                                    <div class="triggerNode__kebabArt flowFreeGiftNode__kebabArt">
-                                      <img
-                                        class="triggerNode__kebabImg"
-                                        src="./assets/icons/action.svg"
-                                        width="24"
-                                        height="24"
-                                        alt=""
-                                        decoding="async"
-                                      />
+                                      </span>
+                                    </button>
+                                    <div
+                                      id="flowFreeGiftNodeMenu"
+                                      class="flowFreeGiftNode__menu flowFreeGiftNode__menu--contextual"
+                                      role="menu"
+                                      hidden
+                                      aria-hidden="true"
+                                      aria-labelledby="flowFreeGiftNodeKebabBtn"
+                                    >
+                                      <button type="button" role="menuitem" class="flowFreeGiftNode__menuRow">
+                                        <img
+                                          class="flowFreeGiftNode__menuIcon"
+                                          src="./assets/icons/context-menu-line-chart.svg"
+                                          width="20"
+                                          height="20"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                        <span class="flowFreeGiftNode__menuRowMeta">
+                                          <span class="flowFreeGiftNode__menuLabel">View node's performance</span>
+                                        </span>
+                                      </button>
+                                      <button type="button" role="menuitem" class="flowFreeGiftNode__menuRow">
+                                        <img
+                                          class="flowFreeGiftNode__menuIcon"
+                                          src="./assets/icons/context-menu-copy.svg"
+                                          width="20"
+                                          height="20"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                        <span class="flowFreeGiftNode__menuRowMeta">
+                                          <span class="flowFreeGiftNode__menuLabel">Copy node's configuration</span>
+                                        </span>
+                                      </button>
+                                      <button type="button" role="menuitem" class="flowFreeGiftNode__menuRow">
+                                        <img
+                                          class="flowFreeGiftNode__menuIcon"
+                                          src="./assets/icons/context-menu-paste.svg"
+                                          width="20"
+                                          height="20"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                        <span class="flowFreeGiftNode__menuRowMeta">
+                                          <span class="flowFreeGiftNode__menuLabel">Paste node's configuration</span>
+                                        </span>
+                                      </button>
+                                      <button type="button" role="menuitem" class="flowFreeGiftNode__menuRow">
+                                        <img
+                                          class="flowFreeGiftNode__menuIcon"
+                                          src="./assets/icons/context-menu-export.svg"
+                                          width="20"
+                                          height="20"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                        <span class="flowFreeGiftNode__menuRowMeta">
+                                          <span class="flowFreeGiftNode__menuLabel">Export CSV</span>
+                                        </span>
+                                      </button>
                                     </div>
                                   </div>
                                 </div>
@@ -351,19 +426,34 @@
                                   hidden
                                   aria-hidden="true"
                                 >
-                                  <div class="flowFreeGiftNode__detailCol">
-                                    <span class="flowFreeGiftNode__detailLabel">Credit reward</span>
-                                    <span
-                                      id="flowFreeGiftNodeCreditValue"
-                                      class="flowFreeGiftNode__detailValue"
-                                      >$1.00</span>
+                                  <div class="flowFreeGiftNode__detailsKicker">Gift product</div>
+                                  <div class="flowFreeGiftNode__giftSummary">
+                                    <img
+                                      id="flowFreeGiftNodeThumb"
+                                      class="flowFreeGiftNode__giftThumb"
+                                      src=""
+                                      alt=""
+                                      width="44"
+                                      height="44"
+                                      decoding="async"
+                                    />
+                                    <div class="flowFreeGiftNode__giftText">
+                                      <div id="flowFreeGiftNodeProductName" class="flowFreeGiftNode__giftName"></div>
+                                      <div class="flowFreeGiftNode__giftVariantRow">
+                                        <span class="flowFreeGiftNode__giftVariantLabel">Variants:</span>
+                                        <span
+                                          id="flowFreeGiftNodeVariantValue"
+                                          class="flowFreeGiftNode__giftVariantValue"
+                                        ></span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </button>
+                      </div>
                     </div>
                     </div>
                     <div

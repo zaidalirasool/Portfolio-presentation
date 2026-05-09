@@ -261,7 +261,7 @@
   background: var(--spark-palette-cobalt-100);
 }
 
-/* Slide 5 free gift — title/subtitle/icon match Issue credit; card uses default trigger node chrome (no extra border). */
+/* Slide 5 free gift — title/subtitle like Issue credit; apply-accent icon + ring match configure UI */
 .flowFreeGiftNode .triggerNode__title {
   color: #000000;
 }
@@ -271,53 +271,284 @@
 }
 
 .flowFreeGiftNode .triggerNode__iconDisc {
-  background: var(--spark-palette-cobalt-100);
+  background: var(--spark-color-apply);
 }
 
-.flowFreeGiftNode__cardPad {
-  padding: 24px;
-  gap: 16px;
+.flowFreeGiftNodeShell {
+  display: block;
+  width: min(100%, var(--spark-trigger-card-width));
+  max-width: var(--spark-trigger-card-width);
 }
 
-.flowFreeGiftNode__kebabArt {
-  border-radius: 6px;
-  background: #e2e3ed;
-  padding: 4px;
+.flowFreeGiftNode__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+  width: 100%;
   box-sizing: border-box;
+}
+
+.flowFreeGiftNode__openBtn {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.flowFreeGiftNode__openBtn:focus-visible {
+  outline: none;
+}
+
+.flowFreeGiftNode__openBtn[aria-expanded="true"] .triggerNode__iconImg {
+  transform: scale(1.04);
+  filter: brightness(1.05);
+}
+
+.flowFreeGiftNode__openRow {
+  justify-content: flex-start;
+}
+
+.flowFreeGiftNode__kebabSlot {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  z-index: 2;
+}
+
+/* Branch panel icon-action pattern — midnight-10 resting, midnight-20 hover */
+.flowFreeGiftNode__kebabBtn {
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px;
+  margin: 0;
+  border: 1.2px solid transparent;
+  background-color: var(--spark-palette-midnight-10);
+  border-radius: 6px;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  transition: background-color 160ms ease, border-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.flowFreeGiftNode__kebabBtn:hover {
+  background-color: var(--spark-palette-midnight-20);
+}
+
+.flowFreeGiftNode__kebabBtn:active {
+  background-color: var(--spark-palette-midnight-30);
+}
+
+.flowFreeGiftNode__kebabBtn:focus-visible {
+  outline: 2px solid var(--spark-palette-cobalt-100);
+  outline-offset: 2px;
+}
+
+.flowFreeGiftNode__kebabBtn[aria-expanded="true"] {
+  background-color: var(--spark-palette-midnight-20);
+}
+
+.flowFreeGiftNode__kebabBtnInner {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.flowFreeGiftNode__kebabBtnImg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.flowFreeGiftNode__menu.flowFreeGiftNode__menu--contextual {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: max-content;
+  min-width: 152px;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  line-height: 20px;
+  color: #191d48;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow:
+    0px 2px 8px rgba(25, 29, 72, 0.15),
+    0px 1px 4px rgba(31, 41, 55, 0.15);
+  border: none;
+  z-index: 40;
+}
+
+.flowFreeGiftNode__menu[hidden] {
+  display: none !important;
+}
+
+.flowFreeGiftNode__menu--contextual .flowFreeGiftNode__menuRow {
+  align-self: stretch;
+  width: 216px;
+  margin: 0;
+  padding: 8px;
+  border: none;
+  box-sizing: border-box;
+  background-color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  min-width: 152px;
+  transition: background-color 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.flowFreeGiftNode__menu--contextual .flowFreeGiftNode__menuRow:hover {
+  background-color: rgba(25, 29, 72, 0.06);
+}
+
+.flowFreeGiftNode__menu--contextual .flowFreeGiftNode__menuRow:focus-visible {
+  outline: none;
+  background-color: rgba(25, 29, 72, 0.06);
+}
+
+.flowFreeGiftNode__menu--contextual .flowFreeGiftNode__menuIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  display: block;
+}
+
+.flowFreeGiftNode__menu--contextual .flowFreeGiftNode__menuRowMeta {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0 0 0 4px;
+  box-sizing: border-box;
+}
+
+.flowFreeGiftNode__menu--contextual .flowFreeGiftNode__menuLabel {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  padding: 0.5px 0 0;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #191d48;
+}
+
+/* Same card rings + shadows as `.triggerNode` (Issue credit); `:has(#flowFreeGiftNode…)` because panel state lives on the inner open control. */
+.flowFreeGiftNodeShell:hover .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm);
+}
+
+.flowFreeGiftNodeShell:has(#flowFreeGiftNode[aria-expanded="true"]) .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm);
+}
+
+.flowFreeGiftNodeShell:hover:has(#flowFreeGiftNode[aria-expanded="true"]) .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover);
+}
+
+.flowFreeGiftNodeShell:has(#flowFreeGiftNode:focus-visible) .triggerNode__card {
+  box-shadow: var(--spark-shadow-sm), var(--spark-shadow-focus-ring);
+}
+
+.flowFreeGiftNodeShell:hover:has(#flowFreeGiftNode:focus-visible) .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
+}
+
+.flowFreeGiftNodeShell:has(#flowFreeGiftNode[aria-expanded="true"]:focus-visible) .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
+}
+
+.flowFreeGiftNodeShell:hover:has(#flowFreeGiftNode[aria-expanded="true"]:focus-visible) .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover),
+    var(--spark-shadow-focus-ring);
+}
+
+.flowFreeGiftNode__cardPad {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* Summary strip spans full card width (edge-to-edge inside blue ring); header row keeps inset. */
+.flowFreeGiftNode__cardPad:has(#flowFreeGiftNodeDetails:not([hidden])) {
+  gap: 0;
+  padding: 24px 0 0;
+}
+
+.flowFreeGiftNode__cardPad:has(#flowFreeGiftNodeDetails:not([hidden])) .flowFreeGiftNode__grid {
+  padding-inline: 24px;
+  padding-bottom: 16px;
+}
+
 .flowFreeGiftNode__details {
   align-self: stretch;
   width: 100%;
-  max-width: 311px;
-  border-radius: 12px;
+  max-width: none;
+  border-radius: 0 0 var(--spark-radius-lg) var(--spark-radius-lg);
   background: #f6f8f9;
-  padding: 12px 12px 12px 16px;
+  padding: 12px 24px 16px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: 4px;
+  cursor: pointer;
 }
 
 .flowFreeGiftNode__details[hidden] {
   display: none !important;
 }
 
-.flowFreeGiftNode__detailCol {
-  flex: 1 1 0;
-  align-self: stretch;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.flowFreeGiftNode__detailLabel {
+.flowFreeGiftNode__detailsKicker {
   align-self: stretch;
   font-family: var(--spark-font-body);
   font-size: 14px;
@@ -326,16 +557,71 @@
   color: #616374;
 }
 
-.flowFreeGiftNode__detailValue {
+.flowFreeGiftNode__giftSummary {
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+  min-width: 0;
+}
+
+.flowFreeGiftNode__giftThumb {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: #e2e3ed;
+}
+
+.flowFreeGiftNode__giftText {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+}
+
+.flowFreeGiftNode__giftName {
   align-self: stretch;
   font-family: var(--spark-font-body);
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
   color: #191d48;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+}
+
+.flowFreeGiftNode__giftVariantRow {
+  align-self: stretch;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.flowFreeGiftNode__giftVariantLabel {
+  font-family: var(--spark-font-body);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 16px;
+  color: #6e7381;
+}
+
+.flowFreeGiftNode__giftVariantValue {
+  flex: 1 1 0;
+  min-width: 0;
+  font-family: var(--spark-font-body);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: #6e7381;
+  overflow-wrap: anywhere;
 }
 
 /* Credit node — summary block (panel has non-zero amount) */

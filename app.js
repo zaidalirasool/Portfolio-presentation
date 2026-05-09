@@ -2655,6 +2655,8 @@ initSlideshow();
   const freeGiftVariantSelectBtn = document.getElementById("flowFreeGiftVariantSelectBtn");
   const freeGiftRemoveProductBtn = document.getElementById("flowFreeGiftRemoveProductBtn");
   const freeGiftMerchantVariantSection = document.getElementById("flowFreeGiftMerchantVariantSection");
+  const freeGiftKebabBtn = document.getElementById("flowFreeGiftNodeKebabBtn");
+  const freeGiftNodeMenu = document.getElementById("flowFreeGiftNodeMenu");
   const creditApplyWrap = document.getElementById("flowCreditApplyWrap");
   const creditApplyBtn = document.getElementById("flowCreditApplyBtn");
   const creditAmountInput = document.getElementById("flowCreditAmountInput");
@@ -2663,6 +2665,8 @@ initSlideshow();
   let slide5BranchSpawnEligible = false;
   let slide5CreditSpawnEligible = false;
   let slide5FreeGiftSpawnEligible = false;
+  let freeGiftNodeMenuOutsideCloser = null;
+  let freeGiftNodeMenuEscapeCloser = null;
 
   function resetSlide5BranchSpawnState() {
     slide5BranchSpawnEligible = false;
@@ -2679,6 +2683,7 @@ initSlideshow();
       creditNodeWrap.classList.remove("flowCreditNodeWrap--enter", "flowCreditNodeWrap--enter-active");
     }
     if (freeGiftNodeWrap) {
+      closeFreeGiftNodeMenu();
       freeGiftNodeWrap.hidden = true;
       freeGiftNodeWrap.setAttribute("aria-hidden", "true");
       freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
@@ -2770,6 +2775,7 @@ initSlideshow();
     window.setTimeout(() => {
       freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
     }, 900);
+    syncFreeGiftNodeCard();
   }
 
   const branchStack = branchPanel.querySelector(".flowBranchPanel__branchStack");
@@ -3608,6 +3614,7 @@ initSlideshow();
 
     function setExpanded(expanded) {
       if (expanded) {
+        closeFreeGiftNodeMenu();
         for (const s of flowSelects) {
           if (s.trigger !== elTrigger && s.isExpanded()) s.setExpanded(false);
         }
@@ -3672,6 +3679,49 @@ initSlideshow();
     return Boolean(freeGiftRoot?.classList.contains(FREE_GIFT_OPEN));
   }
 
+  function closeFreeGiftNodeMenu() {
+    if (!freeGiftNodeMenu || !freeGiftKebabBtn) return;
+    freeGiftNodeMenu.hidden = true;
+    freeGiftNodeMenu.setAttribute("aria-hidden", "true");
+    freeGiftKebabBtn.setAttribute("aria-expanded", "false");
+    if (freeGiftNodeMenuOutsideCloser) {
+      document.removeEventListener("click", freeGiftNodeMenuOutsideCloser, false);
+      freeGiftNodeMenuOutsideCloser = null;
+    }
+    if (freeGiftNodeMenuEscapeCloser) {
+      document.removeEventListener("keydown", freeGiftNodeMenuEscapeCloser, true);
+      freeGiftNodeMenuEscapeCloser = null;
+    }
+  }
+
+  function toggleFreeGiftNodeMenu() {
+    if (!freeGiftNodeMenu || !freeGiftKebabBtn) return;
+    if (!freeGiftNodeMenu.hidden) {
+      closeFreeGiftNodeMenu();
+      return;
+    }
+    closeAllSelects();
+    freeGiftNodeMenu.hidden = false;
+    freeGiftNodeMenu.setAttribute("aria-hidden", "false");
+    freeGiftKebabBtn.setAttribute("aria-expanded", "true");
+    freeGiftNodeMenuOutsideCloser = (e) => {
+      if (!(e.target instanceof Element)) return;
+      if (e.target.closest("#flowFreeGiftNodeKebabBtn") || e.target.closest("#flowFreeGiftNodeMenu")) return;
+      closeFreeGiftNodeMenu();
+    };
+    window.setTimeout(() => {
+      document.addEventListener("click", freeGiftNodeMenuOutsideCloser, false);
+    }, 0);
+    freeGiftNodeMenuEscapeCloser = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeFreeGiftNodeMenu();
+        freeGiftKebabBtn.focus({ preventScroll: true });
+      }
+    };
+    document.addEventListener("keydown", freeGiftNodeMenuEscapeCloser, true);
+  }
+
   function syncFreeGiftPostProductSections() {
     if (!freeGiftPostProductSections || !freeGiftProductFilledSlot) return;
     freeGiftPostProductSections.hidden = freeGiftProductFilledSlot.hidden;
@@ -3686,6 +3736,88 @@ initSlideshow();
     if (!isMerchant) {
       closeAllSelects();
       resetFreeGiftVariantUi();
+    }
+    syncFreeGiftNodeCard();
+  }
+
+  function isFreeGiftNodeIncomplete() {
+    const hasProduct = Boolean(freeGiftProductFilledSlot && !freeGiftProductFilledSlot.hidden);
+    if (!hasProduct) return true;
+    const variantChecked = document.querySelector('input[name="flowFreeGiftVariantMode"]:checked');
+    if (variantChecked?.value !== "merchant") return false;
+    const span = freeGiftVariantSelectBtn?.querySelector(".flowTriggerPanel__selectText");
+    return !span || span.classList.contains("flowFreeGiftPanel__variantSelectPlaceholder");
+  }
+
+  function getFreeGiftApplySummaryForNode() {
+    const checked = document.querySelector('input[name="flowFreeGiftApplyMode"]:checked');
+    return checked?.value === "claim" ? "Customer claims" : "Automatically added";
+  }
+
+  function getFreeGiftVariantSummaryForNode() {
+    const checked = document.querySelector('input[name="flowFreeGiftVariantMode"]:checked');
+    if (checked?.value === "customer") return "Customer selects variant";
+    const span = freeGiftVariantSelectBtn?.querySelector(".flowTriggerPanel__selectText");
+    if (!span || span.classList.contains("flowFreeGiftPanel__variantSelectPlaceholder")) {
+      return "No variant selected";
+    }
+    return span.textContent?.trim() ?? "No variant selected";
+  }
+
+  function syncFreeGiftNodeCard() {
+    if (!(freeGiftBtn instanceof HTMLElement)) return;
+    const subEl = document.getElementById("flowFreeGiftNodeSubtitle");
+    const detEl = document.getElementById("flowFreeGiftNodeDetails");
+    const thumbEl = document.getElementById("flowFreeGiftNodeThumb");
+    const nameEl = document.getElementById("flowFreeGiftNodeProductName");
+    const variantEl = document.getElementById("flowFreeGiftNodeVariantValue");
+    if (!subEl) return;
+
+    const hasProduct = Boolean(freeGiftProductFilledSlot && !freeGiftProductFilledSlot.hidden);
+    const incomplete = isFreeGiftNodeIncomplete();
+    const variantSummary = getFreeGiftVariantSummaryForNode();
+    const applySummary = getFreeGiftApplySummaryForNode();
+
+    if (!hasProduct) {
+      subEl.textContent = "Configure";
+      freeGiftBtn.classList.remove("flowFreeGiftNode--configured");
+      if (detEl) {
+        detEl.hidden = true;
+        detEl.setAttribute("aria-hidden", "true");
+      }
+      freeGiftBtn.setAttribute("aria-label", "Free gift. Configure.");
+      return;
+    }
+
+    const productName = freeGiftConfiguredName?.textContent?.trim() ?? "Product";
+
+    if (detEl) {
+      detEl.hidden = false;
+      detEl.setAttribute("aria-hidden", "false");
+    }
+
+    if (thumbEl instanceof HTMLImageElement && freeGiftConfiguredThumb instanceof HTMLImageElement) {
+      thumbEl.src = freeGiftConfiguredThumb.currentSrc || freeGiftConfiguredThumb.src;
+      thumbEl.alt = freeGiftConfiguredThumb.alt || "";
+    }
+
+    if (nameEl) nameEl.textContent = productName;
+    if (variantEl) variantEl.textContent = variantSummary;
+
+    if (incomplete) {
+      subEl.textContent = "Add gift product";
+      freeGiftBtn.classList.remove("flowFreeGiftNode--configured");
+      freeGiftBtn.setAttribute(
+        "aria-label",
+        `Free gift. Add gift product. Product ${productName}. Variants ${variantSummary}. Apply ${applySummary}.`,
+      );
+    } else {
+      subEl.textContent = "Gift product";
+      freeGiftBtn.classList.add("flowFreeGiftNode--configured");
+      freeGiftBtn.setAttribute(
+        "aria-label",
+        `Free gift. Gift product. Product ${productName}. Variants ${variantSummary}. Apply ${applySummary}.`,
+      );
     }
   }
 
@@ -3711,6 +3843,7 @@ initSlideshow();
     }
     const hasProduct = Boolean(freeGiftProductFilledSlot && !freeGiftProductFilledSlot.hidden);
     freeGiftApplyBtn.disabled = !hasProduct;
+    syncFreeGiftNodeCard();
   }
 
   function resetFreeGiftVariantUi() {
@@ -3723,6 +3856,7 @@ initSlideshow();
     if (freeGiftConfiguredVariantValue) {
       freeGiftConfiguredVariantValue.textContent = "No variant selected";
     }
+    syncFreeGiftNodeCard();
   }
 
   function syncFreeGiftProductFromPick() {
@@ -3890,6 +4024,7 @@ initSlideshow();
   function closeFreeGift(options = {}) {
     if (!freeGiftRoot) return;
     closeFlowFreeGiftCustomizeSheet();
+    closeFreeGiftNodeMenu();
     resetFreeGiftPanelView();
     const refocusFreeGift = options.refocusFreeGift !== false;
     freeGiftRoot.classList.remove(FREE_GIFT_OPEN);
@@ -3907,6 +4042,7 @@ initSlideshow();
     closeBranch({ refocusBranch: false });
     closeCredit({ refocusCredit: false });
     closeAllSelects();
+    closeFreeGiftNodeMenu();
     freeGiftRoot.classList.add(FREE_GIFT_OPEN);
     freeGiftRoot.setAttribute("aria-hidden", "false");
     if (freeGiftBtn) freeGiftBtn.setAttribute("aria-expanded", "true");
@@ -4026,7 +4162,7 @@ initSlideshow();
     if (!(t instanceof Element)) return;
     if (
       t.closest(
-        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot, #flowFreeGiftPanelRoot",
+        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowFreeGiftNodeDetails, #flowFreeGiftNodeKebabBtn, #flowFreeGiftNodeMenu, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot, #flowFreeGiftPanelRoot",
       )
     ) {
       return;
@@ -4060,10 +4196,27 @@ initSlideshow();
     else openCredit();
   });
 
-  freeGiftBtn?.addEventListener("click", (e) => {
+  function onFreeGiftPrimaryActivate(e) {
     e.stopPropagation();
+    closeFreeGiftNodeMenu();
     if (isFreeGiftOpen()) closeFreeGift();
     else openFreeGift();
+  }
+
+  freeGiftBtn?.addEventListener("click", onFreeGiftPrimaryActivate);
+
+  document.getElementById("flowFreeGiftNodeDetails")?.addEventListener("click", onFreeGiftPrimaryActivate);
+
+  freeGiftKebabBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleFreeGiftNodeMenu();
+  });
+
+  freeGiftNodeMenu?.querySelectorAll('.flowFreeGiftNode__menuRow[role="menuitem"]').forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeFreeGiftNodeMenu();
+    });
   });
 
   triggerRoot.querySelectorAll("[data-flow-trigger-dismiss]").forEach((el) => {
@@ -4600,6 +4753,7 @@ initSlideshow();
       if (freeGiftConfiguredVariantValue) freeGiftConfiguredVariantValue.textContent = label;
       const sheet = document.getElementById("flowFreeGiftCustomizeSheet");
       if (sheet && sheet.dataset.active === "1") syncFreeGiftCustomizeSheetPreview();
+      syncFreeGiftNodeCard();
     },
   });
 
