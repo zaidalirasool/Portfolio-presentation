@@ -1665,6 +1665,15 @@ a:focus-visible {
   border-radius: 32px 32px 0 0;
 }
 
+.caseFollowAppHead__bg,
+.caseFollowLoyaltyCard,
+.caseFollowSheet--checkout,
+.caseFollowPromo {
+  box-shadow:
+    0 2px 8px rgba(15, 19, 24, 0.02),
+    0 10px 42px rgba(15, 19, 24, 0.028);
+}
+
 .caseFollowAppHead__brand {
   position: absolute;
   left: 50%;
@@ -1738,6 +1747,9 @@ a:focus-visible {
   flex-direction: column;
   gap: 4px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 1;
+  box-shadow: none;
 }
 
 .caseFollowSheet__hint {
@@ -2261,7 +2273,7 @@ a:focus-visible {
 }
 
 .caseFollowTotals__row--strong .caseFollowTotals__grand {
-  font-weight: 400;
+  font-weight: 700;
 }
 
 .caseFollowTotals__row--muted {
