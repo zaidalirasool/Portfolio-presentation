@@ -274,6 +274,125 @@
   background: var(--spark-color-apply);
 }
 
+.flowFreeGiftNode__cardMetricsStack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: var(--spark-trigger-card-width);
+  box-sizing: border-box;
+}
+
+/* One shadow + ring on the stack (same stroke/elevation as `.triggerNode__card`); inner pieces keep matching radii without their own shadow. */
+.flowFreeGiftNodeShell--metricsOpen .flowFreeGiftNode__cardMetricsStack {
+  border-radius: var(--spark-radius-lg);
+  box-shadow: var(--spark-shadow-sm);
+  transition: box-shadow 180ms ease;
+}
+
+.flowFreeGiftNodeShell--metricsOpen .flowFreeGiftNode__cardMetricsStack .triggerNode__card {
+  box-shadow: none;
+  border-radius: var(--spark-radius-lg) var(--spark-radius-lg) 0 0;
+}
+
+.flowFreeGiftNodeShell--metricsOpen .flowFreeGiftNode__metricsHanger {
+  border-radius: 0 0 var(--spark-radius-lg) var(--spark-radius-lg);
+}
+
+.flowFreeGiftNode__metricsHanger {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  background: #f6f8f9;
+  border: none;
+  text-align: left;
+}
+
+.flowFreeGiftNode__metricsHanger[hidden] {
+  display: none !important;
+}
+
+.flowFreeGiftNode__metricsHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.flowFreeGiftNode__metricsTitle {
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0.47px;
+  text-transform: uppercase;
+  color: #6e7381;
+}
+
+.flowFreeGiftNode__metricsList {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flowFreeGiftNode__metricRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.flowFreeGiftNode__metricIcon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: block;
+  object-fit: contain;
+}
+
+.flowFreeGiftNode__metricBody {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  min-width: 0;
+}
+
+.flowFreeGiftNode__metricLabel {
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  letter-spacing: 0.47px;
+  color: #6e7381;
+}
+
+.flowFreeGiftNode__metricValue {
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: 0.47px;
+  color: #191d48;
+  text-align: right;
+  flex-shrink: 0;
+}
+
 .flowFreeGiftNodeShell {
   display: block;
   width: min(100%, var(--spark-trigger-card-width));
@@ -477,34 +596,76 @@
   color: #191d48;
 }
 
-/* Same card rings + shadows as `.triggerNode` (Issue credit); `:has(#flowFreeGiftNode…)` because panel state lives on the inner open control. */
-.flowFreeGiftNodeShell:hover .triggerNode__card {
+/* Same card rings + shadows as `.triggerNode` (Issue credit); `:has(#flowFreeGiftNode…)` because panel state lives on the inner open control.
+   With metrics open, ring + shadow target `.flowFreeGiftNode__cardMetricsStack` so the strip is one continuous node. */
+.flowFreeGiftNodeShell:not(.flowFreeGiftNodeShell--metricsOpen):hover .triggerNode__card {
   box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm);
 }
 
-.flowFreeGiftNodeShell:has(#flowFreeGiftNode[aria-expanded="true"]) .triggerNode__card {
+.flowFreeGiftNodeShell--metricsOpen:hover .flowFreeGiftNode__cardMetricsStack {
+  box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm);
+}
+
+.flowFreeGiftNodeShell:not(.flowFreeGiftNodeShell--metricsOpen):has(#flowFreeGiftNode[aria-expanded="true"])
+  .triggerNode__card {
   box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm);
 }
 
-.flowFreeGiftNodeShell:hover:has(#flowFreeGiftNode[aria-expanded="true"]) .triggerNode__card {
+.flowFreeGiftNodeShell--metricsOpen:has(#flowFreeGiftNode[aria-expanded="true"]) .flowFreeGiftNode__cardMetricsStack {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm);
+}
+
+.flowFreeGiftNodeShell:not(.flowFreeGiftNodeShell--metricsOpen):hover:has(#flowFreeGiftNode[aria-expanded="true"])
+  .triggerNode__card {
   box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover);
 }
 
-.flowFreeGiftNodeShell:has(#flowFreeGiftNode:focus-visible) .triggerNode__card {
+.flowFreeGiftNodeShell--metricsOpen:hover:has(#flowFreeGiftNode[aria-expanded="true"])
+  .flowFreeGiftNode__cardMetricsStack {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover);
+}
+
+.flowFreeGiftNodeShell:not(.flowFreeGiftNodeShell--metricsOpen):has(#flowFreeGiftNode:focus-visible) .triggerNode__card {
   box-shadow: var(--spark-shadow-sm), var(--spark-shadow-focus-ring);
 }
 
-.flowFreeGiftNodeShell:hover:has(#flowFreeGiftNode:focus-visible) .triggerNode__card {
+.flowFreeGiftNodeShell--metricsOpen:has(#flowFreeGiftNode:focus-visible) .flowFreeGiftNode__cardMetricsStack {
+  box-shadow: var(--spark-shadow-sm), var(--spark-shadow-focus-ring);
+}
+
+.flowFreeGiftNodeShell:not(.flowFreeGiftNodeShell--metricsOpen):hover:has(#flowFreeGiftNode:focus-visible)
+  .triggerNode__card {
   box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm),
     var(--spark-shadow-focus-ring);
 }
 
-.flowFreeGiftNodeShell:has(#flowFreeGiftNode[aria-expanded="true"]:focus-visible) .triggerNode__card {
+.flowFreeGiftNodeShell--metricsOpen:hover:has(#flowFreeGiftNode:focus-visible) .flowFreeGiftNode__cardMetricsStack {
+  box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
+}
+
+.flowFreeGiftNodeShell:not(.flowFreeGiftNodeShell--metricsOpen):has(#flowFreeGiftNode[aria-expanded="true"]:focus-visible)
+  .triggerNode__card {
   box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm),
     var(--spark-shadow-focus-ring);
 }
 
-.flowFreeGiftNodeShell:hover:has(#flowFreeGiftNode[aria-expanded="true"]:focus-visible) .triggerNode__card {
+.flowFreeGiftNodeShell--metricsOpen:has(#flowFreeGiftNode[aria-expanded="true"]:focus-visible)
+  .flowFreeGiftNode__cardMetricsStack {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm),
+    var(--spark-shadow-focus-ring);
+}
+
+.flowFreeGiftNodeShell:not(.flowFreeGiftNodeShell--metricsOpen):hover:has(
+    #flowFreeGiftNode[aria-expanded="true"]:focus-visible
+  )
+  .triggerNode__card {
+  box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover),
+    var(--spark-shadow-focus-ring);
+}
+
+.flowFreeGiftNodeShell--metricsOpen:hover:has(#flowFreeGiftNode[aria-expanded="true"]:focus-visible)
+  .flowFreeGiftNode__cardMetricsStack {
   box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover),
     var(--spark-shadow-focus-ring);
 }
@@ -514,33 +675,43 @@
   flex-direction: column;
   align-items: stretch;
   gap: 16px;
-  padding: 24px;
+  padding: 28px;
   box-sizing: border-box;
 }
 
-/* Summary strip spans full card width (edge-to-edge inside blue ring); header row keeps inset. */
 .flowFreeGiftNode__cardPad:has(#flowFreeGiftNodeDetails:not([hidden])) {
   gap: 0;
-  padding: 24px 0 0;
 }
 
 .flowFreeGiftNode__cardPad:has(#flowFreeGiftNodeDetails:not([hidden])) .flowFreeGiftNode__grid {
-  padding-inline: 24px;
+  position: relative;
   padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+/* Hairline at bottom of white stack — 1px filled then scaleY(0.5) for ~0.5px; reads more reliably than border alone. */
+.flowFreeGiftNode__cardPad:has(#flowFreeGiftNodeDetails:not([hidden])) .flowFreeGiftNode__grid::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: #E9EAEB;
+  transform: scaleY(0.5);
+  transform-origin: center bottom;
 }
 
 .flowFreeGiftNode__details {
   align-self: stretch;
-  width: 100%;
-  max-width: none;
-  border-radius: 0 0 var(--spark-radius-lg) var(--spark-radius-lg);
-  background: #f6f8f9;
-  padding: 12px 24px 16px;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 12px 16px;
+  background: #f6f8f9;
+  border-radius: 12px;
+  box-sizing: border-box;
   align-items: flex-start;
-  gap: 4px;
   cursor: pointer;
 }
 

@@ -299,9 +299,10 @@
                       hidden
                       aria-hidden="true"
                     >
-                      <div class="flowFreeGiftNodeShell flowFreeGiftNode">
+                      <div id="flowFreeGiftNodeShell" class="flowFreeGiftNodeShell flowFreeGiftNode">
                         <div class="triggerNode__outer" data-node="Free gift">
                           <div class="triggerNode__stretchCol">
+                            <div class="flowFreeGiftNode__cardMetricsStack">
                             <div class="triggerNode__card">
                               <div class="triggerNode__cardPad flowFreeGiftNode__cardPad">
                                 <div class="flowFreeGiftNode__grid">
@@ -365,7 +366,12 @@
                                       aria-hidden="true"
                                       aria-labelledby="flowFreeGiftNodeKebabBtn"
                                     >
-                                      <button type="button" role="menuitem" class="flowFreeGiftNode__menuRow">
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        class="flowFreeGiftNode__menuRow"
+                                        id="flowFreeGiftNodeMenuPerformance"
+                                      >
                                         <img
                                           class="flowFreeGiftNode__menuIcon"
                                           src="./assets/icons/context-menu-line-chart.svg"
@@ -450,6 +456,75 @@
                                   </div>
                                 </div>
                               </div>
+                            </div>
+                            <div
+                              id="flowFreeGiftNodeMetrics"
+                              class="flowFreeGiftNode__metricsHanger"
+                              hidden
+                              aria-hidden="true"
+                            >
+                              <div class="flowFreeGiftNode__metricsHead">
+                                <span class="flowFreeGiftNode__metricsTitle">Metrics</span>
+                              </div>
+                              <div class="flowFreeGiftNode__metricsList" role="list">
+                                <div class="flowFreeGiftNode__metricRow" role="listitem">
+                                  <img
+                                    class="flowFreeGiftNode__metricIcon"
+                                    src="./assets/icons/metric-issued.svg"
+                                    width="24"
+                                    height="24"
+                                    alt=""
+                                    decoding="async"
+                                  />
+                                  <div class="flowFreeGiftNode__metricBody">
+                                    <span class="flowFreeGiftNode__metricLabel">Issued</span>
+                                    <span class="flowFreeGiftNode__metricValue">291</span>
+                                  </div>
+                                </div>
+                                <div class="flowFreeGiftNode__metricRow" role="listitem">
+                                  <img
+                                    class="flowFreeGiftNode__metricIcon"
+                                    src="./assets/icons/metric-engagements.svg"
+                                    width="24"
+                                    height="24"
+                                    alt=""
+                                    decoding="async"
+                                  />
+                                  <div class="flowFreeGiftNode__metricBody">
+                                    <span class="flowFreeGiftNode__metricLabel">Engagements</span>
+                                    <span class="flowFreeGiftNode__metricValue">112</span>
+                                  </div>
+                                </div>
+                                <div class="flowFreeGiftNode__metricRow" role="listitem">
+                                  <img
+                                    class="flowFreeGiftNode__metricIcon"
+                                    src="./assets/icons/metric-claimed.svg"
+                                    width="24"
+                                    height="24"
+                                    alt=""
+                                    decoding="async"
+                                  />
+                                  <div class="flowFreeGiftNode__metricBody">
+                                    <span class="flowFreeGiftNode__metricLabel">Claimed</span>
+                                    <span class="flowFreeGiftNode__metricValue">98</span>
+                                  </div>
+                                </div>
+                                <div class="flowFreeGiftNode__metricRow" role="listitem">
+                                  <img
+                                    class="flowFreeGiftNode__metricIcon"
+                                    src="./assets/icons/metric-declined.svg"
+                                    width="24"
+                                    height="24"
+                                    alt=""
+                                    decoding="async"
+                                  />
+                                  <div class="flowFreeGiftNode__metricBody">
+                                    <span class="flowFreeGiftNode__metricLabel">Declined</span>
+                                    <span class="flowFreeGiftNode__metricValue">14</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                             </div>
                           </div>
                         </div>

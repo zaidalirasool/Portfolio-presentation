@@ -2657,6 +2657,9 @@ initSlideshow();
   const freeGiftMerchantVariantSection = document.getElementById("flowFreeGiftMerchantVariantSection");
   const freeGiftKebabBtn = document.getElementById("flowFreeGiftNodeKebabBtn");
   const freeGiftNodeMenu = document.getElementById("flowFreeGiftNodeMenu");
+  const freeGiftNodeShell = document.getElementById("flowFreeGiftNodeShell");
+  const freeGiftMetricsHanger = document.getElementById("flowFreeGiftNodeMetrics");
+  const freeGiftMenuPerformanceBtn = document.getElementById("flowFreeGiftNodeMenuPerformance");
   const creditApplyWrap = document.getElementById("flowCreditApplyWrap");
   const creditApplyBtn = document.getElementById("flowCreditApplyBtn");
   const creditAmountInput = document.getElementById("flowCreditAmountInput");
@@ -2684,6 +2687,7 @@ initSlideshow();
     }
     if (freeGiftNodeWrap) {
       closeFreeGiftNodeMenu();
+      closeFreeGiftMetricsHanger();
       freeGiftNodeWrap.hidden = true;
       freeGiftNodeWrap.setAttribute("aria-hidden", "true");
       freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
@@ -3694,6 +3698,35 @@ initSlideshow();
     }
   }
 
+  function syncFreeGiftPerformanceMenuLabel() {
+    if (!freeGiftMenuPerformanceBtn || !freeGiftMetricsHanger) return;
+    const label = freeGiftMenuPerformanceBtn.querySelector(".flowFreeGiftNode__menuLabel");
+    if (!label) return;
+    label.textContent = freeGiftMetricsHanger.hidden
+      ? "View node's performance"
+      : "Hide node's performance";
+  }
+
+  function closeFreeGiftMetricsHanger() {
+    if (!freeGiftMetricsHanger || !freeGiftNodeShell) return;
+    freeGiftMetricsHanger.hidden = true;
+    freeGiftMetricsHanger.setAttribute("aria-hidden", "true");
+    freeGiftNodeShell.classList.remove("flowFreeGiftNodeShell--metricsOpen");
+    syncFreeGiftPerformanceMenuLabel();
+  }
+
+  function toggleFreeGiftMetricsHanger() {
+    if (!freeGiftMetricsHanger || !freeGiftNodeShell) return;
+    if (!freeGiftMetricsHanger.hidden) {
+      closeFreeGiftMetricsHanger();
+      return;
+    }
+    freeGiftMetricsHanger.hidden = false;
+    freeGiftMetricsHanger.setAttribute("aria-hidden", "false");
+    freeGiftNodeShell.classList.add("flowFreeGiftNodeShell--metricsOpen");
+    syncFreeGiftPerformanceMenuLabel();
+  }
+
   function toggleFreeGiftNodeMenu() {
     if (!freeGiftNodeMenu || !freeGiftKebabBtn) return;
     if (!freeGiftNodeMenu.hidden) {
@@ -4043,6 +4076,7 @@ initSlideshow();
     closeCredit({ refocusCredit: false });
     closeAllSelects();
     closeFreeGiftNodeMenu();
+    closeFreeGiftMetricsHanger();
     freeGiftRoot.classList.add(FREE_GIFT_OPEN);
     freeGiftRoot.setAttribute("aria-hidden", "false");
     if (freeGiftBtn) freeGiftBtn.setAttribute("aria-expanded", "true");
@@ -4162,7 +4196,7 @@ initSlideshow();
     if (!(t instanceof Element)) return;
     if (
       t.closest(
-        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowFreeGiftNodeDetails, #flowFreeGiftNodeKebabBtn, #flowFreeGiftNodeMenu, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot, #flowFreeGiftPanelRoot",
+        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowFreeGiftNodeDetails, #flowFreeGiftNodeKebabBtn, #flowFreeGiftNodeMenu, #flowFreeGiftNodeMetrics, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot, #flowFreeGiftPanelRoot",
       )
     ) {
       return;
@@ -4215,6 +4249,9 @@ initSlideshow();
   freeGiftNodeMenu?.querySelectorAll('.flowFreeGiftNode__menuRow[role="menuitem"]').forEach((item) => {
     item.addEventListener("click", (e) => {
       e.stopPropagation();
+      if (item === freeGiftMenuPerformanceBtn) {
+        toggleFreeGiftMetricsHanger();
+      }
       closeFreeGiftNodeMenu();
     });
   });
