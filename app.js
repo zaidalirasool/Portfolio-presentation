@@ -2670,6 +2670,7 @@ initSlideshow();
   let slide5FreeGiftSpawnEligible = false;
   let freeGiftNodeMenuOutsideCloser = null;
   let freeGiftNodeMenuEscapeCloser = null;
+  let freeGiftMetricsTransitionCleanup = null;
 
   function resetSlide5BranchSpawnState() {
     slide5BranchSpawnEligible = false;
@@ -2687,7 +2688,7 @@ initSlideshow();
     }
     if (freeGiftNodeWrap) {
       closeFreeGiftNodeMenu();
-      closeFreeGiftMetricsHanger();
+      closeFreeGiftMetricsHanger({ instant: true });
       freeGiftNodeWrap.hidden = true;
       freeGiftNodeWrap.setAttribute("aria-hidden", "true");
       freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
@@ -3699,32 +3700,94 @@ initSlideshow();
   }
 
   function syncFreeGiftPerformanceMenuLabel() {
-    if (!freeGiftMenuPerformanceBtn || !freeGiftMetricsHanger) return;
+    if (!freeGiftMenuPerformanceBtn || !freeGiftMetricsHanger || !freeGiftNodeShell) return;
     const label = freeGiftMenuPerformanceBtn.querySelector(".flowFreeGiftNode__menuLabel");
     if (!label) return;
-    label.textContent = freeGiftMetricsHanger.hidden
-      ? "View node's performance"
-      : "Hide node's performance";
+    const expanded = freeGiftNodeShell.classList.contains("flowFreeGiftNodeShell--metricsOpen");
+    label.textContent = expanded ? "Hide node's performance" : "View node's performance";
   }
 
-  function closeFreeGiftMetricsHanger() {
+  function clearFreeGiftMetricsTransitionCleanup() {
+    if (typeof freeGiftMetricsTransitionCleanup === "function") {
+      freeGiftMetricsTransitionCleanup();
+      freeGiftMetricsTransitionCleanup = null;
+    }
+  }
+
+  function closeFreeGiftMetricsHanger(options = {}) {
     if (!freeGiftMetricsHanger || !freeGiftNodeShell) return;
-    freeGiftMetricsHanger.hidden = true;
-    freeGiftMetricsHanger.setAttribute("aria-hidden", "true");
+    const instant = options.instant === true;
+    const isOpen = freeGiftNodeShell.classList.contains("flowFreeGiftNodeShell--metricsOpen");
+
+    if (instant) {
+      clearFreeGiftMetricsTransitionCleanup();
+      freeGiftNodeShell.classList.remove("flowFreeGiftNodeShell--metricsOpen");
+      freeGiftMetricsHanger.hidden = true;
+      freeGiftMetricsHanger.setAttribute("aria-hidden", "true");
+      syncFreeGiftPerformanceMenuLabel();
+      return;
+    }
+
+    if (!isOpen) {
+      freeGiftMetricsHanger.hidden = true;
+      freeGiftMetricsHanger.setAttribute("aria-hidden", "true");
+      syncFreeGiftPerformanceMenuLabel();
+      return;
+    }
+
+    clearFreeGiftMetricsTransitionCleanup();
     freeGiftNodeShell.classList.remove("flowFreeGiftNodeShell--metricsOpen");
+
+    let closeCompleted = false;
+    const completeAnimatedClose = () => {
+      if (closeCompleted) return;
+      closeCompleted = true;
+      window.clearTimeout(fallbackTimer);
+      freeGiftMetricsHanger.removeEventListener("transitionend", onTransitionEnd);
+      freeGiftMetricsHanger.hidden = true;
+      freeGiftMetricsHanger.setAttribute("aria-hidden", "true");
+      syncFreeGiftPerformanceMenuLabel();
+      freeGiftMetricsTransitionCleanup = null;
+    };
+
+    const onTransitionEnd = (e) => {
+      if (e.target !== freeGiftMetricsHanger || e.propertyName !== "max-height") return;
+      completeAnimatedClose();
+    };
+
+    const fallbackTimer = window.setTimeout(() => {
+      completeAnimatedClose();
+    }, 400);
+
+    freeGiftMetricsHanger.addEventListener("transitionend", onTransitionEnd);
+
+    freeGiftMetricsTransitionCleanup = () => {
+      window.clearTimeout(fallbackTimer);
+      freeGiftMetricsHanger.removeEventListener("transitionend", onTransitionEnd);
+      closeCompleted = true;
+      freeGiftMetricsTransitionCleanup = null;
+    };
+
     syncFreeGiftPerformanceMenuLabel();
   }
 
   function toggleFreeGiftMetricsHanger() {
     if (!freeGiftMetricsHanger || !freeGiftNodeShell) return;
-    if (!freeGiftMetricsHanger.hidden) {
+    if (freeGiftNodeShell.classList.contains("flowFreeGiftNodeShell--metricsOpen")) {
       closeFreeGiftMetricsHanger();
       return;
     }
+
+    clearFreeGiftMetricsTransitionCleanup();
     freeGiftMetricsHanger.hidden = false;
     freeGiftMetricsHanger.setAttribute("aria-hidden", "false");
-    freeGiftNodeShell.classList.add("flowFreeGiftNodeShell--metricsOpen");
-    syncFreeGiftPerformanceMenuLabel();
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        freeGiftNodeShell.classList.add("flowFreeGiftNodeShell--metricsOpen");
+        syncFreeGiftPerformanceMenuLabel();
+      });
+    });
   }
 
   function toggleFreeGiftNodeMenu() {
@@ -4076,7 +4139,7 @@ initSlideshow();
     closeCredit({ refocusCredit: false });
     closeAllSelects();
     closeFreeGiftNodeMenu();
-    closeFreeGiftMetricsHanger();
+    closeFreeGiftMetricsHanger({ instant: true });
     freeGiftRoot.classList.add(FREE_GIFT_OPEN);
     freeGiftRoot.setAttribute("aria-hidden", "false");
     if (freeGiftBtn) freeGiftBtn.setAttribute("aria-expanded", "true");
