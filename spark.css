@@ -295,6 +295,14 @@
   border-radius: var(--spark-radius-lg) var(--spark-radius-lg) 0 0;
 }
 
+/* Soft lift between the white summary block and the grey metrics strip (outer stack shadow stays on `.flowFreeGiftNode__cardMetricsStack`). */
+.flowFreeGiftNodeShell--metricsOpen .flowFreeGiftNode__cardPad {
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 3px 6px rgba(25, 29, 72, 0.06);
+  transition: box-shadow 180ms ease;
+}
+
 .flowFreeGiftNodeShell--metricsOpen .flowFreeGiftNode__metricsHanger {
   border-radius: 0 0 var(--spark-radius-lg) var(--spark-radius-lg);
 }
@@ -306,7 +314,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 16px;
+  gap: 12px;
   background: #f6f8f9;
   border: none;
   text-align: left;
@@ -406,6 +414,7 @@
   column-gap: 8px;
   width: 100%;
   box-sizing: border-box;
+  height: fit-content;
 }
 
 .flowFreeGiftNode__openBtn {
@@ -684,22 +693,8 @@
 }
 
 .flowFreeGiftNode__cardPad:has(#flowFreeGiftNodeDetails:not([hidden])) .flowFreeGiftNode__grid {
-  position: relative;
-  padding-bottom: 16px;
+  padding-bottom: 0;
   margin-bottom: 16px;
-}
-
-/* Hairline at bottom of white stack — 1px filled then scaleY(0.5) for ~0.5px; reads more reliably than border alone. */
-.flowFreeGiftNode__cardPad:has(#flowFreeGiftNodeDetails:not([hidden])) .flowFreeGiftNode__grid::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: #E9EAEB;
-  transform: scaleY(0.5);
-  transform-origin: center bottom;
 }
 
 .flowFreeGiftNode__details {
