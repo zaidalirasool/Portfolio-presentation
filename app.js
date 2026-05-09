@@ -2565,7 +2565,7 @@ migrateSubscriptionsCardToBundledAsset();
 
 initSlideshow();
 
-/** Case-follow slide uses large PNGs; `loading="lazy"` deferred fetch until `display:none` cleared. Warm URLs once user nears the last slides. */
+/** Case-follow slide uses large PNGs; `loading="lazy"` + `display:none` slides can defer or skip fetches. */
 (function setupCaseFollowImagePrefetch() {
   const urls = [
     "./assets/case-follow-products-promo.png?v=2",
@@ -2582,9 +2582,68 @@ initSlideshow();
       img.src = src;
     }
   }
+
+  /**
+   * After a hidden slide becomes visible, kick `<img>` loads and CSS-linked PNGs so lazy/visibility
+   * heuristics do not leave assets blank on first paint.
+   */
+  function kickImgLoading(root) {
+    if (!(root instanceof HTMLElement)) return;
+    for (const el of root.querySelectorAll("img")) {
+      if (!(el instanceof HTMLImageElement)) continue;
+      el.loading = "eager";
+      const attrSrc = el.getAttribute("src");
+      if (attrSrc && (!el.complete || el.naturalWidth === 0)) {
+        el.removeAttribute("src");
+        el.setAttribute("src", attrSrc);
+      }
+      void el.decode?.().catch(() => {});
+    }
+  }
+
   document.addEventListener("slideshow:change", (e) => {
     if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
-    if (e.detail.index >= 5) warm();
+    const idx = e.detail.index;
+    if (idx >= 5) warm();
+
+    if (idx === 6) {
+      warm();
+      requestAnimationFrame(() => {
+        const caseRoot = document.getElementById("caseFollowCanvas");
+        kickImgLoading(caseRoot);
+        for (const src of urls) {
+          const im = new Image();
+          im.src = src;
+        }
+        requestAnimationFrame(() => {
+          kickImgLoading(document.getElementById("caseFollowCanvas"));
+        });
+      });
+      return;
+    }
+
+    if (idx === 1 || idx === 3) {
+      requestAnimationFrame(() => {
+        const nodes = document.getElementById("nodes");
+        kickImgLoading(nodes ?? undefined);
+      });
+      return;
+    }
+
+    if (idx === 2) {
+      requestAnimationFrame(() => {
+        const hero = document.querySelector(".imageSlideCanvas__img");
+        if (hero instanceof HTMLImageElement) {
+          hero.loading = "eager";
+          const s = hero.getAttribute("src");
+          if (s && (!hero.complete || hero.naturalWidth === 0)) {
+            hero.removeAttribute("src");
+            hero.setAttribute("src", s);
+          }
+          void hero.decode?.().catch(() => {});
+        }
+      });
+    }
   });
 })();
 

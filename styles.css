@@ -1596,7 +1596,7 @@ a:focus-visible {
 }
 
 .caseFollowCompose {
-  /* Primary + twin (+ spawned): fixed bezel height (toolbar, schedule, optional promo on twin, scroll) */
+  /* Primary + twin (+ spawned): fixed bezel height; body scrolls inside `.caseFollowPhone__scroll` */
   --case-follow-phone-bezel-height: 980px;
   flex: 0 0 auto;
   display: flex;
@@ -1742,8 +1742,7 @@ a:focus-visible {
   flex: 0 0 auto;
 }
 
-.caseFollowCompose .caseFollowPhone > .caseFollowPhone__bezel > .caseFollowSheet--schedule,
-.caseFollowCompose .caseFollowPhone > .caseFollowPhone__bezel > .caseFollowPromo {
+.caseFollowCompose .caseFollowPhone > .caseFollowPhone__bezel .caseFollowSheet--schedule {
   flex: 0 0 auto;
 }
 
@@ -1762,6 +1761,7 @@ a:focus-visible {
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
+  touch-action: pan-y;
 }
 
 .caseFollowAppHead {
@@ -1860,8 +1860,8 @@ a:focus-visible {
 
 .caseFollowSheet--schedule {
   flex-shrink: 0;
-  margin-top: 16px;
-  margin-bottom: 16px;
+  margin-top: 0;
+  margin-bottom: 0;
   padding-top: 20px;
   padding-bottom: 20px;
   padding-left: 20px;
@@ -1870,8 +1870,6 @@ a:focus-visible {
   flex-direction: column;
   gap: 4px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  position: relative;
-  z-index: 1;
   box-shadow: none;
 }
 
@@ -1885,7 +1883,7 @@ a:focus-visible {
 
 .caseFollowSheet__title {
   margin: 0;
-  font-size: 22px;
+  font-size: 21.5px;
   font-weight: 600;
   line-height: 1.08;
 }
@@ -1970,7 +1968,7 @@ a:focus-visible {
   margin: 0;
   color: var(--Color-14, #0b1317);
   font-family: Inter, var(--spark-font-body, system-ui), sans-serif;
-  font-size: 21.97px;
+  font-size: 21.5px;
   font-weight: 600;
   line-height: 31.29px;
   word-wrap: break-word;
@@ -2134,6 +2132,7 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0;
+  flex-shrink: 0;
   padding-bottom: 0;
 }
 
@@ -2156,6 +2155,7 @@ a:focus-visible {
   font-size: 21.5px;
   font-weight: 600;
   line-height: 1.42;
+  color: rgba(11, 19, 23, 1);
 }
 
 .caseFollowCart {
@@ -2421,6 +2421,7 @@ a:focus-visible {
   border-radius: 4px;
   overflow: hidden;
   background: var(--case-follow-product-shot-bg);
+  isolation: isolate;
 }
 
 .caseFollowPromo__photoWrap .caseFollowPromo__photo {
@@ -2431,7 +2432,7 @@ a:focus-visible {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(380px, 44vh);
+  max-height: min(380px, 44vh, max(96px, calc(var(--case-follow-phone-bezel-height, 980px) - 400px)));
   aspect-ratio: 1;
   object-fit: cover;
   margin: 0;
@@ -2439,10 +2440,10 @@ a:focus-visible {
 
 .caseFollowPromo__headline {
   margin: 0;
-  font-size: 25px;
-  font-weight: 700;
-  line-height: 1.24;
-  color: #1e3030;
+  font-size: 21.5px;
+  font-weight: 600;
+  line-height: 31.29px;
+  color: rgba(11, 19, 23, 1);
 }
 
 .caseFollowPromo__body {
