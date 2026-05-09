@@ -2446,8 +2446,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 6) {
-    console.error(`[slideshow] expected 6 slide sections, found ${slides.length}`);
+  if (slides.length < 7) {
+    console.error(`[slideshow] expected 7 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -2470,8 +2470,8 @@ function initSlideshow() {
     const mount3 = document.getElementById("mapSlideMount3");
     const viewport = document.getElementById("viewport");
 
-    // Park the shared map under slide 2’s mount whenever we’re not on the recap (slide 4) or case-study video (slide 6).
-    if (index === 0 || index === 1 || index === 2 || index === 4 || index === 5) {
+    // Slide 4 recap (index 3) renders the map in mount3; all other slides park the shared stage in mount1 (slide 2 shell).
+    if (index === 0 || index === 1 || index === 2 || index === 4 || index === 5 || index === 6) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
     } else if (index === 3) {
@@ -2611,6 +2611,31 @@ function wireRewardsStrategyVideo() {
 }
 
 wireRewardsStrategyVideo();
+
+/** Slide 7 preview: animate phone mock into view — same choreography as deferred slide‑5 nodes */
+function wireCaseFollowPhoneEnter() {
+  const phone = document.getElementById("caseFollowPhone");
+  if (!(phone instanceof HTMLElement)) return;
+
+  document.addEventListener("slideshow:change", (e) => {
+    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
+    if (e.detail.index === 6) {
+      phone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
+      void phone.offsetWidth;
+      phone.classList.add("caseFollowPhone--enter");
+      window.requestAnimationFrame(() => {
+        phone.classList.add("caseFollowPhone--enter-active");
+      });
+      window.setTimeout(() => {
+        phone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
+      }, 900);
+    } else {
+      phone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
+    }
+  });
+}
+
+wireCaseFollowPhoneEnter();
 
 // ── Loyalty hanger modal ─────────────────────────────────────────────────────
 (function initLoyaltyModal() {

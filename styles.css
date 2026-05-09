@@ -2,7 +2,7 @@
 /* Spark design system (Greycliff / Quincy / Avenir, slide 5 flow UI): ./spark.css */
 
 :root {
-  --bg: #ffffff;
+  --bg: #f9f8f4;
   --bgSubtle: #f7f7f8;
   --panel: rgba(255, 255, 255, 0.78);
   --panel2: rgba(255, 255, 255, 0.92);
@@ -33,6 +33,13 @@
 
   --node-bg: rgba(255, 255, 255, 0.86);
   --node-bg-hover: rgba(255, 255, 255, 0.96);
+
+  /* Case follow — loyalty (Figma / Code Connect tokens) */
+  --Color-1: #ffffff;
+  --Color-14: #0b1317;
+  --Color-Neutral-500: #000000;
+  --Color-Brand-200: #dceaf3;
+  --Color-Brand-inverse-500: #ffffff;
 }
 
 * { box-sizing: border-box; }
@@ -1546,4 +1553,743 @@ a:focus-visible {
   border-style: solid;
   border-width: 14px 0 14px 22px;
   border-color: transparent transparent transparent rgba(25, 29, 72, 0.92);
+}
+
+/* Slide 7 — Case follow: framed dotted canvas (same Spark grid as slide 5); add content inside #caseFollowCanvas */
+
+.slide--caseFollow {
+  background: var(--bg);
+}
+
+.main--caseFollow {
+  background: var(--bg);
+}
+
+.mapSlideMount--caseFollow {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stageWrap.stageWrap--caseFollow {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  /* Dotted fill from base `.stageWrap` (same as slide 5 flow shell) */
+  display: flex;
+  flex-direction: column;
+}
+
+.caseFollowCanvas {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: clamp(28px, 5vw, 124px);
+  box-sizing: border-box;
+  /* Dots come from `.stageWrap`; stay transparent so the grid is not double-painted */
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.caseFollowCompose {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+/* Phone mock — same entrance motion as deferred slide‑5 nodes (spark.css rhythm) */
+
+.caseFollowPhone {
+  flex: 0 0 auto;
+  width: min(418px, calc(100vw - 112px));
+  max-width: 418px;
+  font-family:
+    Inter,
+    var(--spark-font-body, system-ui),
+    sans-serif;
+  color: #0b1317;
+}
+
+.caseFollowPhone__bezel {
+  background: var(--bg);
+  border-radius: 29px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow:
+    var(--shadow2),
+    0 42px 100px rgba(15, 19, 24, 0.12);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.caseFollowPhone__scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  max-height: min(72vh, 780px);
+  padding-top: 16px;
+  padding-bottom: 16px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.caseFollowAppHead {
+  position: relative;
+  height: 91px;
+  flex-shrink: 0;
+}
+
+.caseFollowAppHead__bg {
+  position: absolute;
+  inset: 0;
+  margin-left: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+  color: rgba(70, 124, 153, 1);
+  background: #1e3030;
+  border-radius: 34px 34px 0 0;
+}
+
+.caseFollowAppHead__menu {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 26px;
+}
+
+.caseFollowAppHead__menuLn {
+  display: block;
+  height: 0;
+  border-top: 1px solid #fff;
+  width: 100%;
+}
+
+.caseFollowAppHead__brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.caseFollowAppHead__logoImg {
+  display: block;
+  width: 124px;
+  height: 44px;
+  filter: brightness(0) invert(1);
+}
+
+.caseFollowAffinityIcon {
+  flex-shrink: 0;
+  display: block;
+}
+
+.caseFollowGhostBtn .caseFollowAffinityIcon--reschedule {
+  width: 17px;
+  height: 17px;
+  filter: brightness(0) saturate(100%) invert(48%) sepia(18%) saturate(900%) hue-rotate(157deg) brightness(0.96);
+}
+
+.caseFollowGhostBtn .caseFollowAffinityIcon--skip {
+  width: 17px;
+  height: 17px;
+}
+
+.caseFollowTextBtn .caseFollowAffinityIcon--edit {
+  width: 18px;
+  height: 18px;
+}
+
+.caseFollowAppHead__actions {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.caseFollowAppHead__dot {
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.caseFollowAppHead__dot:nth-child(2) {
+  width: 9px;
+  height: 10px;
+}
+
+.caseFollowSheet {
+  background: #fff;
+}
+
+.caseFollowSheet--schedule {
+  padding: 13px;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.caseFollowSheet__hint {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: #0b1317;
+}
+
+.caseFollowSheet__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.08;
+}
+
+.caseFollowScheduleBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.caseFollowScheduleBtns__row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.caseFollowPrimaryBtn {
+  width: 100%;
+  padding: 10px;
+  margin: 0;
+  border: none;
+  background: #467c99;
+  color: #fff;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: default;
+}
+
+.caseFollowGhostBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  flex: 1;
+  border: none;
+  background: #f7f9fa;
+  color: #467c99;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 400;
+  cursor: default;
+}
+
+.caseFollowGhostBtn--half {
+  min-height: 36px;
+}
+
+.caseFollowSheet--loyalty {
+  padding: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff;
+}
+
+.caseFollowLoyaltyCard {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 13.41px;
+  padding: 22.35px;
+  background: var(--Color-1, #ffffff);
+}
+
+.caseFollowLoyaltyCard__heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4.47px;
+}
+
+.caseFollowLoyaltyCard__title {
+  margin: 0;
+  color: var(--Color-14, #0b1317);
+  font-family: Inter, var(--spark-font-body, system-ui), sans-serif;
+  font-size: 21.97px;
+  font-weight: 600;
+  line-height: 31.29px;
+  word-wrap: break-word;
+}
+
+.caseFollowLoyaltyCard__trackWrap {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4.47px;
+}
+
+.caseFollowRewardTrack {
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px 16px;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.caseFollowReward {
+  flex: 0 0 auto;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 76px;
+  height: 80px;
+  text-align: center;
+}
+
+.caseFollowReward__label {
+  margin: 0;
+  width: 76px;
+  color: var(--Color-Neutral-500, #000000);
+  font-family: Inter, var(--spark-font-body, system-ui), sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  word-wrap: break-word;
+}
+
+.caseFollowReward__disk {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #467c99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.caseFollowReward__disk img {
+  display: block;
+  width: 21px;
+  height: 20px;
+}
+
+.caseFollowReward__dot {
+  flex-shrink: 0;
+}
+
+.caseFollowReward__dot--coupon {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: #467c99;
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.caseFollowAffinityIcon--discount {
+  display: block;
+}
+
+.caseFollowReward__hole {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--Color-Brand-200, #dceaf3);
+  box-sizing: border-box;
+}
+
+.caseFollowReward__gift {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--Color-Brand-200, #dceaf3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.caseFollowGiftImg {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+
+.caseFollowReward__gift--muted .caseFollowGiftImg {
+  opacity: 0.92;
+}
+
+.caseFollowCheckoutStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 28px;
+}
+
+.caseFollowSheet--checkout {
+  --case-follow-product-shot-bg: linear-gradient(145deg, #f6f1e5 0%, #dff0ea 38%, #ebe9e4 100%);
+  padding: 22px;
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.caseFollowCheckoutHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.caseFollowCheckoutHead__address {
+  margin: 0;
+  font-size: 21.5px;
+  font-weight: 600;
+  line-height: 1.42;
+}
+
+.caseFollowCart {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.caseFollowLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.caseFollowLine__thumbWrap {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  border: 0.5px solid #9da1a2;
+  overflow: hidden;
+  background: var(--case-follow-product-shot-bg);
+}
+
+.caseFollowLine__thumbWrap--rnd4 {
+  border-radius: 4px;
+}
+
+.caseFollowLine__thumbWrap--rnd8 {
+  border-radius: 8px;
+}
+
+.caseFollowLine__thumbWrap--productCutout .caseFollowLine__thumb {
+  object-fit: contain;
+}
+
+.caseFollowLine__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.caseFollowLine__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.caseFollowLine__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.caseFollowLine__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.caseFollowLine__name {
+  margin: 0;
+  font-size: 17.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.caseFollowLine__meta {
+  margin: 0;
+  font-size: 14.5px;
+  color: #545a5d;
+  line-height: 1.55;
+}
+
+.caseFollowLine__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-top: 4px;
+}
+
+.caseFollowLine__qtyPrice {
+  font-size: 14.5px;
+  color: #545a5d;
+}
+
+.caseFollowLine:nth-child(2) .caseFollowLine__qtyPrice {
+  font-size: 15.5px;
+}
+
+.caseFollowBadge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 11px;
+  background: #e7e7e8;
+  font-size: 13px;
+  color: #0b1317;
+  line-height: 1.35;
+}
+
+.caseFollowChevron {
+  flex-shrink: 0;
+  width: 27px;
+  height: 27px;
+  position: relative;
+}
+
+.caseFollowChevron::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.7px solid #467c99;
+  border-bottom: 1.7px solid #467c99;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.caseFollowManage {
+  margin: 0;
+  font-size: 14.5px;
+  color: #467c99;
+  line-height: 1.55;
+}
+
+.caseFollowLine:nth-child(2) .caseFollowManage {
+  font-size: 15.5px;
+}
+
+.caseFollowTextBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #467c99;
+  font: inherit;
+  font-size: 17.5px;
+  line-height: 1.5;
+  cursor: default;
+}
+
+.caseFollowTextBtn--wide {
+  align-self: flex-start;
+}
+
+.caseFollowTextBtn--inline {
+  font-size: 17.5px;
+  flex-shrink: 0;
+}
+
+.caseFollowPen,
+.caseFollowPlus {
+  flex-shrink: 0;
+}
+
+.caseFollowTotals {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 17.5px;
+  line-height: 1.5;
+}
+
+.caseFollowTotals__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.caseFollowTotals__labelWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.caseFollowInfoIc {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1.3px solid #467c99;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.caseFollowInfoIc::before,
+.caseFollowInfoIc::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  background: #467c99;
+  border-radius: 999px;
+  transform: translateX(-50%);
+}
+
+.caseFollowInfoIc::before {
+  width: 2px;
+  height: 2px;
+  top: 6px;
+}
+
+.caseFollowInfoIc::after {
+  width: 1.5px;
+  height: 5px;
+  bottom: 5px;
+  border-radius: 1px;
+}
+
+.caseFollowTotals__row--strong {
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.caseFollowTotals__row--strong .caseFollowTotals__grand {
+  font-weight: 400;
+}
+
+.caseFollowTotals__row--muted {
+  font-size: 17.5px;
+  flex-wrap: wrap;
+}
+
+.caseFollowPromo {
+  margin: 22px 0 0;
+  padding: 25px 22px 30px;
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.caseFollowPromo__photoWrap {
+  max-width: 368px;
+  margin: 0 auto 12px;
+  border-radius: 19px;
+  overflow: hidden;
+  background: var(--case-follow-product-shot-bg);
+}
+
+.caseFollowPromo__photoWrap .caseFollowPromo__photo {
+  mix-blend-mode: multiply;
+}
+
+.caseFollowPromo__photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  margin: 0;
+}
+
+.caseFollowPromo__headline {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.24;
+  color: #1e3030;
+}
+
+.caseFollowPromo__body {
+  margin: 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: #191d48;
+}
+
+/* Entrance — matches slide‑5 deferred node cards (see spark.css flow*NodeWrap--enter) */
+#caseFollowPhone.caseFollowPhone--enter {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+  filter: blur(3px);
+}
+
+#caseFollowPhone.caseFollowPhone--enter.caseFollowPhone--enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #caseFollowPhone.caseFollowPhone--enter,
+  #caseFollowPhone.caseFollowPhone--enter.caseFollowPhone--enter-active {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }
