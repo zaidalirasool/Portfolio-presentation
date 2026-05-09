@@ -1599,9 +1599,16 @@ a:focus-visible {
 .caseFollowCompose {
   flex: 0 0 auto;
   display: flex;
+  flex-flow: row wrap;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  gap: clamp(18px, 3.5vw, 48px);
   margin: auto;
+}
+
+.caseFollowCompose:not(.caseFollowCompose--pairVisible)
+  #caseFollowPhone.caseFollowPhone--companion {
+  display: none;
 }
 
 /* Phone mock — same entrance motion as deferred slide‑5 nodes (spark.css rhythm) */
@@ -1739,6 +1746,7 @@ a:focus-visible {
 }
 
 .caseFollowSheet--schedule {
+  flex-shrink: 0;
   padding-top: 20px;
   padding-bottom: 20px;
   padding-left: 20px;
@@ -2282,10 +2290,12 @@ a:focus-visible {
 }
 
 .caseFollowPromo {
-  margin: 16px 0 0;
+  --case-follow-product-shot-bg: linear-gradient(145deg, #f6f1e5 0%, #dff0ea 38%, #ebe9e4 100%);
+  margin: 0;
+  flex-shrink: 0;
   padding: 20px;
   background: #fff;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .caseFollowPromo__photoWrap {
@@ -2326,13 +2336,15 @@ a:focus-visible {
 }
 
 /* Entrance — matches slide‑5 deferred node cards (see spark.css flow*NodeWrap--enter) */
-#caseFollowPhone.caseFollowPhone--enter {
+#caseFollowPhone.caseFollowPhone--enter,
+#caseFollowPhoneGhost.caseFollowPhone--enter {
   opacity: 0;
   transform: translateY(14px) scale(0.98);
   filter: blur(3px);
 }
 
-#caseFollowPhone.caseFollowPhone--enter.caseFollowPhone--enter-active {
+#caseFollowPhone.caseFollowPhone--enter.caseFollowPhone--enter-active,
+#caseFollowPhoneGhost.caseFollowPhone--enter.caseFollowPhone--enter-active {
   opacity: 1;
   transform: translateY(0) scale(1);
   filter: blur(0);
@@ -2344,7 +2356,9 @@ a:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   #caseFollowPhone.caseFollowPhone--enter,
-  #caseFollowPhone.caseFollowPhone--enter.caseFollowPhone--enter-active {
+  #caseFollowPhone.caseFollowPhone--enter.caseFollowPhone--enter-active,
+  #caseFollowPhoneGhost.caseFollowPhone--enter,
+  #caseFollowPhoneGhost.caseFollowPhone--enter.caseFollowPhone--enter-active {
     opacity: 1;
     transform: none;
     filter: none;

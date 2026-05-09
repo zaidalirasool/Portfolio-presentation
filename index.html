@@ -2864,40 +2864,182 @@
                           </div>
                         </header>
 
-                        <div class="caseFollowPhone__scroll">
-                          <section class="caseFollowSheet caseFollowSheet--schedule" aria-label="Scheduled order">
-                            <p class="caseFollowSheet__hint">Your next order:</p>
-                            <p class="caseFollowSheet__title">Mon, May 23, 2025</p>
-                            <div class="caseFollowScheduleBtns">
-                              <button type="button" class="caseFollowPrimaryBtn" tabindex="-1">
-                                Send now
+                        <section class="caseFollowSheet caseFollowSheet--schedule" aria-label="Scheduled order">
+                          <p class="caseFollowSheet__hint">Your next order:</p>
+                          <p class="caseFollowSheet__title">Mon, May 23, 2025</p>
+                          <div class="caseFollowScheduleBtns">
+                            <button type="button" class="caseFollowPrimaryBtn" tabindex="-1">
+                              Send now
+                            </button>
+                            <div class="caseFollowScheduleBtns__row">
+                              <button type="button" class="caseFollowGhostBtn caseFollowGhostBtn--half" tabindex="-1">
+                                <img
+                                  class="caseFollowAffinityIcon caseFollowAffinityIcon--reschedule"
+                                  src="./assets/affinity/Reschedule.svg?v=1"
+                                  alt=""
+                                  width="17"
+                                  height="17"
+                                  decoding="async"
+                                />
+                                Reschedule
                               </button>
-                              <div class="caseFollowScheduleBtns__row">
-                                <button type="button" class="caseFollowGhostBtn caseFollowGhostBtn--half" tabindex="-1">
+                              <button type="button" class="caseFollowGhostBtn caseFollowGhostBtn--half" tabindex="-1">
+                                <img
+                                  class="caseFollowAffinityIcon caseFollowAffinityIcon--skip"
+                                  src="./assets/affinity/Skip_new.svg?v=1"
+                                  alt=""
+                                  width="17"
+                                  height="17"
+                                  decoding="async"
+                                />
+                                Skip
+                              </button>
+                            </div>
+                          </div>
+                        </section>
+
+                        <div class="caseFollowPromo" role="region" aria-label="Loyalty nudge">
+                          <div class="caseFollowPromo__photoWrap">
+                            <img
+                              class="caseFollowPromo__photo"
+                              src="./assets/case-follow-products-promo.png?v=2"
+                              alt=""
+                              loading="lazy"
+                              width="407"
+                              height="407"
+                            />
+                          </div>
+                          <div class="caseFollowPromo__copy">
+                            <p class="caseFollowPromo__headline">
+                              You’re 2 orders away from a free gift!
+                            </p>
+                            <p class="caseFollowPromo__body">
+                              You’ve completed 4 orders, just two more to go
+                            </p>
+                          </div>
+                        </div>
+
+                        <div class="caseFollowPhone__scroll">
+                          <div class="caseFollowCheckoutStack">
+                            <section class="caseFollowSheet caseFollowSheet--checkout" aria-label="Delivery and totals">
+                              <div class="caseFollowCheckoutHead">
+                                <h2 class="caseFollowCheckoutHead__address">Deliver to 1630 Revello Drive</h2>
+                                <button type="button" class="caseFollowTextBtn" tabindex="-1">
                                   <img
-                                    class="caseFollowAffinityIcon caseFollowAffinityIcon--reschedule"
-                                    src="./assets/affinity/Reschedule.svg?v=1"
+                                    class="caseFollowAffinityIcon caseFollowAffinityIcon--edit"
+                                    src="./assets/affinity/Edit.svg?v=1"
                                     alt=""
-                                    width="17"
-                                    height="17"
+                                    width="18"
+                                    height="18"
                                     decoding="async"
                                   />
-                                  Reschedule
-                                </button>
-                                <button type="button" class="caseFollowGhostBtn caseFollowGhostBtn--half" tabindex="-1">
-                                  <img
-                                    class="caseFollowAffinityIcon caseFollowAffinityIcon--skip"
-                                    src="./assets/affinity/Skip_new.svg?v=1"
-                                    alt=""
-                                    width="17"
-                                    height="17"
-                                    decoding="async"
-                                  />
-                                  Skip
+                                  Edit
                                 </button>
                               </div>
-                            </div>
-                          </section>
+
+                              <div class="caseFollowCart">
+                                <div class="caseFollowLine">
+                                  <div class="caseFollowLine__thumbWrap caseFollowLine__thumbWrap--rnd4">
+                                    <img
+                                      class="caseFollowLine__thumb"
+                                      src="./assets/case-follow-product-bundle.png?v=2"
+                                      alt=""
+                                      loading="lazy"
+                                      width="100"
+                                      height="100"
+                                    />
+                                  </div>
+                                  <div class="caseFollowLine__body">
+                                    <div class="caseFollowLine__top">
+                                      <div class="caseFollowLine__text">
+                                        <p class="caseFollowLine__name">Refresh Bundle</p>
+                                        <p class="caseFollowLine__meta">Variant name</p>
+                                        <div class="caseFollowLine__row">
+                                          <span class="caseFollowLine__qtyPrice">1 × $32.00</span>
+                                          <span class="caseFollowBadge">Every month</span>
+                                        </div>
+                                      </div>
+                                      <span class="caseFollowChevron" aria-hidden="true"></span>
+                                    </div>
+                                    <p class="caseFollowManage">Manage this subscription</p>
+                                  </div>
+                                </div>
+
+                                <div class="caseFollowLine">
+                                  <div
+                                    class="caseFollowLine__thumbWrap caseFollowLine__thumbWrap--rnd8 caseFollowLine__thumbWrap--productCutout caseFollowLine__thumbWrap--alphaCutout"
+                                  >
+                                    <img
+                                      class="caseFollowLine__thumb"
+                                      src="./assets/case-follow-product-algae-mask.png?v=3"
+                                      alt=""
+                                      loading="lazy"
+                                      width="100"
+                                      height="100"
+                                    />
+                                  </div>
+                                  <div class="caseFollowLine__body">
+                                    <div class="caseFollowLine__top">
+                                      <div class="caseFollowLine__text">
+                                        <p class="caseFollowLine__name">Algae Mask</p>
+                                        <p class="caseFollowLine__meta">75&nbsp;ml</p>
+                                        <div class="caseFollowLine__row">
+                                          <span class="caseFollowLine__qtyPrice">1 × $8.00</span>
+                                          <span class="caseFollowBadge">Every month</span>
+                                        </div>
+                                      </div>
+                                      <span class="caseFollowChevron" aria-hidden="true"></span>
+                                    </div>
+                                    <p class="caseFollowManage">Manage this subscription</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <button type="button" class="caseFollowTextBtn caseFollowTextBtn--wide" tabindex="-1">
+                                <svg class="caseFollowPlus" viewBox="0 0 18 18" width="17" height="17" aria-hidden="true">
+                                  <path fill="none" stroke="#467C99" stroke-width="1.3" d="M9 4v10 M4 9h10" />
+                                </svg>
+                                Add a discount code
+                              </button>
+
+                              <div class="caseFollowTotals">
+                                <div class="caseFollowTotals__row">
+                                  <div class="caseFollowTotals__labelWrap">
+                                    <span>Estimated taxes</span>
+                                    <span class="caseFollowInfoIc" aria-hidden="true"></span>
+                                  </div>
+                                  <span>$1.50</span>
+                                </div>
+                                <div class="caseFollowTotals__row">
+                                  <span>Shipping</span>
+                                  <span>$3.00</span>
+                                </div>
+                                <div class="caseFollowTotals__row caseFollowTotals__row--strong">
+                                  <div class="caseFollowTotals__labelWrap">
+                                    <strong>Order total</strong>
+                                    <span class="caseFollowInfoIc" aria-hidden="true"></span>
+                                  </div>
+                                  <span class="caseFollowTotals__grand">$34.50</span>
+                                </div>
+                                <div class="caseFollowTotals__row caseFollowTotals__row--muted">
+                                  <span>Charged to Visa ending 6178</span>
+                                  <button type="button" class="caseFollowTextBtn caseFollowTextBtn--inline" tabindex="-1">
+                                    <img
+                                      class="caseFollowAffinityIcon caseFollowAffinityIcon--edit"
+                                      src="./assets/affinity/Edit.svg?v=1"
+                                      alt=""
+                                      width="18"
+                                      height="18"
+                                      decoding="async"
+                                    />
+                                    Edit
+                                  </button>
+                                </div>
+                              </div>
+
+                            </section>
+
+                          </div>
 
                           <section class="caseFollowSheet caseFollowSheet--loyalty" aria-label="Reward progress">
                             <div class="caseFollowLoyaltyCard">
@@ -3065,146 +3207,6 @@
                             </div>
                           </section>
 
-                          <div class="caseFollowCheckoutStack">
-                            <section class="caseFollowSheet caseFollowSheet--checkout" aria-label="Delivery and totals">
-                            <div class="caseFollowCheckoutHead">
-                              <h2 class="caseFollowCheckoutHead__address">Deliver to 1630 Revello Drive</h2>
-                              <button type="button" class="caseFollowTextBtn" tabindex="-1">
-                                <img
-                                  class="caseFollowAffinityIcon caseFollowAffinityIcon--edit"
-                                  src="./assets/affinity/Edit.svg?v=1"
-                                  alt=""
-                                  width="18"
-                                  height="18"
-                                  decoding="async"
-                                />
-                                Edit
-                              </button>
-                            </div>
-
-                            <div class="caseFollowCart">
-                              <div class="caseFollowLine">
-                                <div class="caseFollowLine__thumbWrap caseFollowLine__thumbWrap--rnd4">
-                                  <img
-                                    class="caseFollowLine__thumb"
-                                    src="./assets/case-follow-product-bundle.png?v=2"
-                                    alt=""
-                                    loading="lazy"
-                                    width="100"
-                                    height="100"
-                                  />
-                                </div>
-                                <div class="caseFollowLine__body">
-                                  <div class="caseFollowLine__top">
-                                    <div class="caseFollowLine__text">
-                                      <p class="caseFollowLine__name">Refresh Bundle</p>
-                                      <p class="caseFollowLine__meta">Variant name</p>
-                                      <div class="caseFollowLine__row">
-                                        <span class="caseFollowLine__qtyPrice">1 × $32.00</span>
-                                        <span class="caseFollowBadge">Every month</span>
-                                      </div>
-                                    </div>
-                                    <span class="caseFollowChevron" aria-hidden="true"></span>
-                                  </div>
-                                  <p class="caseFollowManage">Manage this subscription</p>
-                                </div>
-                              </div>
-
-                              <div class="caseFollowLine">
-                                <div
-                                  class="caseFollowLine__thumbWrap caseFollowLine__thumbWrap--rnd8 caseFollowLine__thumbWrap--productCutout caseFollowLine__thumbWrap--alphaCutout"
-                                >
-                                  <img
-                                    class="caseFollowLine__thumb"
-                                    src="./assets/case-follow-product-algae-mask.png?v=3"
-                                    alt=""
-                                    loading="lazy"
-                                    width="100"
-                                    height="100"
-                                  />
-                                </div>
-                                <div class="caseFollowLine__body">
-                                  <div class="caseFollowLine__top">
-                                    <div class="caseFollowLine__text">
-                                      <p class="caseFollowLine__name">Algae Mask</p>
-                                      <p class="caseFollowLine__meta">75&nbsp;ml</p>
-                                      <div class="caseFollowLine__row">
-                                        <span class="caseFollowLine__qtyPrice">1 × $8.00</span>
-                                        <span class="caseFollowBadge">Every month</span>
-                                      </div>
-                                    </div>
-                                    <span class="caseFollowChevron" aria-hidden="true"></span>
-                                  </div>
-                                  <p class="caseFollowManage">Manage this subscription</p>
-                                </div>
-                              </div>
-                            </div>
-
-                            <button type="button" class="caseFollowTextBtn caseFollowTextBtn--wide" tabindex="-1">
-                              <svg class="caseFollowPlus" viewBox="0 0 18 18" width="17" height="17" aria-hidden="true">
-                                <path fill="none" stroke="#467C99" stroke-width="1.3" d="M9 4v10 M4 9h10" />
-                              </svg>
-                              Add a discount code
-                            </button>
-
-                            <div class="caseFollowTotals">
-                              <div class="caseFollowTotals__row">
-                                <div class="caseFollowTotals__labelWrap">
-                                  <span>Estimated taxes</span>
-                                  <span class="caseFollowInfoIc" aria-hidden="true"></span>
-                                </div>
-                                <span>$1.50</span>
-                              </div>
-                              <div class="caseFollowTotals__row">
-                                <span>Shipping</span>
-                                <span>$3.00</span>
-                              </div>
-                              <div class="caseFollowTotals__row caseFollowTotals__row--strong">
-                                <div class="caseFollowTotals__labelWrap">
-                                  <strong>Order total</strong>
-                                  <span class="caseFollowInfoIc" aria-hidden="true"></span>
-                                </div>
-                                <span class="caseFollowTotals__grand">$34.50</span>
-                              </div>
-                              <div class="caseFollowTotals__row caseFollowTotals__row--muted">
-                                <span>Charged to Visa ending 6178</span>
-                                <button type="button" class="caseFollowTextBtn caseFollowTextBtn--inline" tabindex="-1">
-                                  <img
-                                    class="caseFollowAffinityIcon caseFollowAffinityIcon--edit"
-                                    src="./assets/affinity/Edit.svg?v=1"
-                                    alt=""
-                                    width="18"
-                                    height="18"
-                                    decoding="async"
-                                  />
-                                  Edit
-                                </button>
-                              </div>
-                            </div>
-
-                          </section>
-
-                          <div class="caseFollowPromo" role="region" aria-label="Loyalty nudge">
-                            <div class="caseFollowPromo__photoWrap">
-                              <img
-                                class="caseFollowPromo__photo"
-                                src="./assets/case-follow-products-promo.png?v=2"
-                                alt=""
-                                loading="lazy"
-                                width="407"
-                                height="407"
-                              />
-                            </div>
-                            <div class="caseFollowPromo__copy">
-                              <p class="caseFollowPromo__headline">
-                                You’re 2 orders away from a free gift!
-                              </p>
-                              <p class="caseFollowPromo__body">
-                                You’ve completed 4 orders, just two more to go
-                              </p>
-                            </div>
-                          </div>
-                          </div>
                         </div>
                       </div>
                     </div>
