@@ -4592,12 +4592,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   position: relative;
   z-index: 1;
   width: min(1440px, 100%);
-  /* Definite height so column flex children (.main flex:1) receive space — height:auto collapses them */
-  height: min(
-    calc(100vh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
-    calc(100dvh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
-    1104px
-  );
+  height: fit-content;
   max-height: min(
     calc(100vh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
     calc(100dvh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
@@ -4663,7 +4658,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   font-size: 16px;
   font-weight: 700;
   line-height: 24px;
-  color: #2e3685;
+  color: rgba(25, 29, 72, 1);
   cursor: pointer;
 }
 
@@ -4704,7 +4699,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 8px;
 }
 
 .flowFreeGiftCustomizeSheet__cancelBtn {
@@ -4715,7 +4710,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   height: 40px;
   min-height: 40px;
   max-height: 40px;
-  padding: 0 16px;
+  padding: 8px 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4747,19 +4742,22 @@ html.flowFreeGiftCustomizeSheetOpen {
   height: 40px;
   min-height: 40px;
   max-height: 40px;
-  padding: 0 16px;
+  padding: 8px 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
   border: 0;
-  background: #3901f1;
+  background: var(--spark-color-apply);
   font-family: var(--spark-font-display);
   font-size: 16px;
   font-weight: 700;
   line-height: 24px;
   color: #fff;
   cursor: pointer;
+  transition:
+    background 220ms cubic-bezier(0.4, 0, 1, 1),
+    transform 90ms ease;
 }
 
 .flowFreeGiftCustomizeSheet__doneBtn::-moz-focus-inner {
@@ -4768,11 +4766,26 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 .flowFreeGiftCustomizeSheet__doneBtn:hover {
-  filter: brightness(1.06);
+  filter: none;
+  background: var(--spark-palette-cobalt-120);
+}
+
+.flowFreeGiftCustomizeSheet__doneBtn:focus-visible {
+  filter: none;
+  background: var(--spark-palette-cobalt-120);
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
+}
+
+.flowFreeGiftCustomizeSheet__doneBtn:active {
+  filter: none;
+  background: color-mix(in srgb, var(--spark-palette-cobalt-120) 82%, #000000);
+  transform: scale(0.99);
 }
 
 .flowFreeGiftCustomizeSheet__main {
-  flex: 1 1 0;
+  flex: 0 0 auto;
+  height: 993px;
   min-height: 0;
   display: flex;
   align-items: stretch;
@@ -4793,8 +4806,9 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 .flowFreeGiftCustomizeSheet__asideScroll {
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-height: 0;
+  height: 100%;
   overflow: auto;
   padding: 20px;
 }
@@ -4829,7 +4843,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   max-height: 40px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   padding-block: 0;
   padding-inline: 8px;
   border: 0;
@@ -4861,10 +4875,12 @@ html.flowFreeGiftCustomizeSheetOpen {
 
 .flowFreeGiftCustomizeSheet__sectionRowGrip img {
   display: block;
+  box-sizing: border-box;
   width: 24px;
   height: 24px;
   max-width: 24px;
   max-height: 24px;
+  padding: 2px;
   flex-shrink: 0;
   object-fit: contain;
 }
@@ -4888,11 +4904,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-  background: linear-gradient(#191d48, #191d48) center / 7px 11px no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9 6l6 6-6 6'/%3E%3C/svg%3E")
-    center / 10px 14px no-repeat;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9 6l6 6-6 6'/%3E%3C/svg%3E")
-    center / 10px 14px no-repeat;
+  display: block;
 }
 
 .flowFreeGiftCustomizeSheet__addSectionBtn {
@@ -4967,10 +4979,11 @@ html.flowFreeGiftCustomizeSheetOpen {
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  padding: 12px clamp(16px, 4vw, 48px) 16px;
+  padding: 48px clamp(16px, 4vw, 48px) 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 .flowFreeGiftCustomizeSheet__previewShell {
@@ -5146,6 +5159,15 @@ html.flowFreeGiftCustomizeSheetOpen {
   color: #545a5d;
 }
 
+#flowFreeGiftCustomizeSheet .flowTriggerPanel__selectField > .flowTriggerPanel__selectDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  width: auto;
+  z-index: 5;
+}
+
 .flowFreeGiftCustomizeSheet__giftSelect {
   margin-top: 8px;
   align-self: stretch;
@@ -5165,6 +5187,27 @@ html.flowFreeGiftCustomizeSheetOpen {
   line-height: 24px;
   color: #0b1317;
   box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  margin: 8px 0 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.flowFreeGiftCustomizeSheet__giftSelect:focus-visible {
+  outline: 2px solid #467c99;
+  outline-offset: 1px;
+}
+
+.flowFreeGiftCustomizeSheet__giftSelectText {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+
+.flowFreeGiftCustomizeSheet__giftSelectPlaceholder:not(.flowTriggerPanel__selectText--hasValue) {
+  color: #616374;
 }
 
 .flowFreeGiftCustomizeSheet__giftSelectCaret {
@@ -5279,27 +5322,87 @@ html.flowFreeGiftCustomizeSheetOpen {
 .flowFreeGiftCustomizeSheet__siteFooterBars {
   margin-top: 16px;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
-  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .flowFreeGiftCustomizeSheet__siteFooterBars span {
+  flex: 1 1 0;
+  min-width: 0;
   height: 12px;
   border-radius: 6px;
   background: #d5dadd;
 }
 
-.flowFreeGiftCustomizeSheet__siteFooterBars span:nth-child(1) {
-  width: 212px;
+/* Mobile preview (~375px) — viewport toggle */
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__previewShell {
+  max-width: min(375px, 100%);
+  border-radius: 16px;
+  box-shadow:
+    0 0 16px rgba(25, 29, 72, 0.1),
+    0 1px 4px rgba(25, 29, 72, 0.12);
 }
 
-.flowFreeGiftCustomizeSheet__siteFooterBars span:nth-child(2) {
-  width: 184px;
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__siteHeader {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 
-.flowFreeGiftCustomizeSheet__siteFooterBars span:nth-child(3) {
-  width: 194px;
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__previewViewport {
+  gap: 12px;
+}
+
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__previewStack {
+  width: 100%;
+  max-width: none;
+  gap: 24px;
+}
+
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__giftCard {
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__giftProductRow {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 32px;
+}
+
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__giftProductImgWrap {
+  width: 100%;
+  max-width: 335px;
+  align-self: center;
+}
+
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__giftProductCopy {
+  flex: 0 0 auto;
+  width: 100%;
+  align-self: stretch;
+}
+
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__claimBtn {
+  align-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 8px;
+}
+
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__declineRow {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 20px;
+  border-radius: 0;
+}
+
+.flowFreeGiftCustomizeSheet--previewMobile .flowFreeGiftCustomizeSheet__siteFooter {
+  padding: 20px;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
 @media (max-width: 720px) {
@@ -5331,6 +5434,8 @@ html.flowFreeGiftCustomizeSheetOpen {
 
   .flowFreeGiftCustomizeSheet__main {
     flex-direction: column;
+    flex: 1 1 0;
+    height: auto;
   }
 
   .flowFreeGiftCustomizeSheet__chromeTitle {

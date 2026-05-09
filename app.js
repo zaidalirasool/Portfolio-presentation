@@ -3581,7 +3581,8 @@ initSlideshow();
     const panelSelectDropdownDocked = Boolean(
       elTrigger.closest("#flowBranchPanel") ||
         elTrigger.closest("#flowCreditPanel") ||
-        elTrigger.closest("#flowFreeGiftPanel"),
+        elTrigger.closest("#flowFreeGiftPanel") ||
+        elTrigger.closest("#flowFreeGiftCustomizeSheet"),
     );
 
     function isExpanded() {
@@ -3775,6 +3776,35 @@ initSlideshow();
     });
   }
 
+  function closeFreeGiftCustomizePreviewVariantSelect() {
+    const btn = document.getElementById("flowFreeGiftCustomizePreviewVariantSelectBtn");
+    if (!btn) return;
+    for (const s of flowSelects) {
+      if (s.trigger === btn && s.isExpanded()) s.setExpanded(false);
+    }
+  }
+
+  function syncFreeGiftCustomizeSheetVariantModeUi() {
+    const variantEl = document.getElementById("flowFreeGiftCustomizePreviewVariant");
+    const selectField = document.getElementById("flowFreeGiftCustomizePreviewVariantField");
+    const checked = document.querySelector('input[name="flowFreeGiftVariantMode"]:checked');
+    const isMerchant = checked?.value === "merchant";
+    if (variantEl) variantEl.hidden = !isMerchant;
+    if (selectField) selectField.hidden = isMerchant;
+    if (isMerchant) {
+      closeFreeGiftCustomizePreviewVariantSelect();
+    } else {
+      const label = document
+        .getElementById("flowFreeGiftCustomizePreviewVariantSelectBtn")
+        ?.querySelector(".flowTriggerPanel__selectText");
+      if (label) {
+        label.textContent = "Select a variant";
+        label.classList.remove("flowTriggerPanel__selectText--hasValue");
+        label.classList.add("flowFreeGiftCustomizeSheet__giftSelectPlaceholder");
+      }
+    }
+  }
+
   function syncFreeGiftCustomizeSheetPreview() {
     const nameEl = document.getElementById("flowFreeGiftCustomizePreviewName");
     const variantEl = document.getElementById("flowFreeGiftCustomizePreviewVariant");
@@ -3782,11 +3812,12 @@ initSlideshow();
     const nameText = freeGiftConfiguredName?.textContent?.trim() ?? "";
     const variantText = freeGiftConfiguredVariantValue?.textContent?.trim() ?? "";
     if (nameEl) nameEl.textContent = nameText || "Product name";
-    if (variantEl) variantEl.textContent = variantText || "Variant name";
+    if (variantEl) variantEl.textContent = variantText || "No variant selected";
     if (imgEl instanceof HTMLImageElement && freeGiftConfiguredThumb instanceof HTMLImageElement) {
       imgEl.src = freeGiftConfiguredThumb.currentSrc || freeGiftConfiguredThumb.src;
       imgEl.alt = freeGiftConfiguredThumb.alt || "";
     }
+    syncFreeGiftCustomizeSheetVariantModeUi();
   }
 
   let freeGiftCustomizeSheetKeyListener = null;
@@ -3794,6 +3825,8 @@ initSlideshow();
   function closeFlowFreeGiftCustomizeSheet() {
     const sheet = document.getElementById("flowFreeGiftCustomizeSheet");
     if (!sheet) return;
+
+    closeFreeGiftCustomizePreviewVariantSelect();
 
     sheet.dataset.active = "0";
     sheet.classList.remove("flowFreeGiftCustomizeSheet--open");
@@ -4123,6 +4156,10 @@ initSlideshow();
   });
 
   function setFlowFreeGiftCustomizeSheetViewportDesktopActive(isDesktop) {
+    flowFreeGiftCustomizeSheetEl?.classList.toggle(
+      "flowFreeGiftCustomizeSheet--previewMobile",
+      !isDesktop,
+    );
     flowFreeGiftCustomizeSheetViewportDesktop?.classList.toggle(
       "flowFreeGiftCustomizeSheet__viewportSeg--active",
       isDesktop,
@@ -4155,7 +4192,10 @@ initSlideshow();
 
   freeGiftPanel?.addEventListener("change", (e) => {
     const t = e.target;
-    if (t instanceof HTMLInputElement && t.name === "flowFreeGiftVariantMode") syncFreeGiftMerchantVariantSection();
+    if (t instanceof HTMLInputElement && t.name === "flowFreeGiftVariantMode") {
+      syncFreeGiftMerchantVariantSection();
+      syncFreeGiftCustomizeSheetVariantModeUi();
+    }
     if (t instanceof HTMLInputElement && t.name === "flowFreeGiftApplyMode") syncFreeGiftApplyState();
   });
 
@@ -4558,6 +4598,32 @@ initSlideshow();
         span.classList.remove("flowFreeGiftPanel__variantSelectPlaceholder");
       }
       if (freeGiftConfiguredVariantValue) freeGiftConfiguredVariantValue.textContent = label;
+      const sheet = document.getElementById("flowFreeGiftCustomizeSheet");
+      if (sheet && sheet.dataset.active === "1") syncFreeGiftCustomizeSheetPreview();
+    },
+  });
+
+  (function initFreeGiftCustomizePreviewVariantList() {
+    const src = document.getElementById("flowFreeGiftVariantSelectList");
+    const dst = document.getElementById("flowFreeGiftCustomizePreviewVariantList");
+    if (!src || !dst) return;
+    const opts = src.querySelectorAll('button.flowTriggerPanel__selectOption[role="option"]');
+    dst.replaceChildren(...Array.from(opts, (node) => /** @type {Node} */ (node.cloneNode(true))));
+  })();
+
+  const flowFreeGiftCustomizePreviewVariantSelectBtn = document.getElementById(
+    "flowFreeGiftCustomizePreviewVariantSelectBtn",
+  );
+  const flowFreeGiftCustomizePreviewVariantList = document.getElementById("flowFreeGiftCustomizePreviewVariantList");
+  attachFlowSelect(flowFreeGiftCustomizePreviewVariantSelectBtn, flowFreeGiftCustomizePreviewVariantList, {
+    onPick: (v) => {
+      const label = v.trim();
+      const span = flowFreeGiftCustomizePreviewVariantSelectBtn?.querySelector(".flowTriggerPanel__selectText");
+      if (span) {
+        span.textContent = label;
+        span.classList.add("flowTriggerPanel__selectText--hasValue");
+        span.classList.remove("flowFreeGiftCustomizeSheet__giftSelectPlaceholder");
+      }
     },
   });
 
@@ -4585,6 +4651,17 @@ initSlideshow();
 
   const freeGiftScroll = freeGiftPanel?.querySelector(".flowTriggerPanel__scroll");
   freeGiftScroll?.addEventListener(
+    "scroll",
+    () => {
+      for (const s of flowSelects) {
+        if (s.isExpanded()) s.position();
+      }
+    },
+    { passive: true },
+  );
+
+  const freeGiftCustomizeSheetCanvas = document.querySelector(".flowFreeGiftCustomizeSheet__canvas");
+  freeGiftCustomizeSheetCanvas?.addEventListener(
     "scroll",
     () => {
       for (const s of flowSelects) {

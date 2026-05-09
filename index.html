@@ -2484,14 +2484,30 @@
                     <img src="./assets/icons/drag.svg" width="24" height="24" alt="" decoding="async" />
                   </span>
                   <span class="flowFreeGiftCustomizeSheet__sectionRowLabel">Free gift offer</span>
-                  <span class="flowFreeGiftCustomizeSheet__chevron" aria-hidden="true"></span>
+                  <img
+                    class="flowFreeGiftCustomizeSheet__chevron"
+                    src="./assets/icons/chevron-right.svg"
+                    width="24"
+                    height="24"
+                    alt=""
+                    aria-hidden="true"
+                    decoding="async"
+                  />
                 </button>
                 <button type="button" class="flowFreeGiftCustomizeSheet__sectionRow">
                   <span class="flowFreeGiftCustomizeSheet__sectionRowGrip" aria-hidden="true">
                     <img src="./assets/icons/drag.svg" width="24" height="24" alt="" decoding="async" />
                   </span>
                   <span class="flowFreeGiftCustomizeSheet__sectionRowLabel">Account link</span>
-                  <span class="flowFreeGiftCustomizeSheet__chevron" aria-hidden="true"></span>
+                  <img
+                    class="flowFreeGiftCustomizeSheet__chevron"
+                    src="./assets/icons/chevron-right.svg"
+                    width="24"
+                    height="24"
+                    alt=""
+                    aria-hidden="true"
+                    decoding="async"
+                  />
                 </button>
                 <button type="button" class="flowFreeGiftCustomizeSheet__addSectionBtn">
                   <img src="./assets/icons/add.svg" width="24" height="24" alt="" decoding="async" />
@@ -2543,9 +2559,33 @@
                         <p id="flowFreeGiftCustomizePreviewVariant" class="flowFreeGiftCustomizeSheet__giftVariantName">
                           Variant name
                         </p>
-                        <div class="flowFreeGiftCustomizeSheet__giftSelect">
-                          <span>Select</span>
-                          <span class="flowFreeGiftCustomizeSheet__giftSelectCaret" aria-hidden="true"></span>
+                        <div
+                          id="flowFreeGiftCustomizePreviewVariantField"
+                          class="flowTriggerPanel__selectField flowFreeGiftCustomizeSheet__giftVariantSelectField"
+                          hidden
+                        >
+                          <label class="sr-only" for="flowFreeGiftCustomizePreviewVariantSelectBtn">Variant</label>
+                          <button
+                            type="button"
+                            id="flowFreeGiftCustomizePreviewVariantSelectBtn"
+                            class="flowFreeGiftCustomizeSheet__giftSelect"
+                            aria-haspopup="listbox"
+                            aria-expanded="false"
+                            aria-controls="flowFreeGiftCustomizePreviewVariantList"
+                          >
+                            <span
+                              class="flowTriggerPanel__selectText flowFreeGiftCustomizeSheet__giftSelectText flowFreeGiftCustomizeSheet__giftSelectPlaceholder"
+                              >Select a variant</span
+                            >
+                            <span class="flowFreeGiftCustomizeSheet__giftSelectCaret" aria-hidden="true"></span>
+                          </button>
+                          <div
+                            id="flowFreeGiftCustomizePreviewVariantList"
+                            class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                            role="listbox"
+                            aria-labelledby="flowFreeGiftCustomizePreviewVariantSelectBtn"
+                            aria-hidden="true"
+                          ></div>
                         </div>
                         <div class="flowFreeGiftCustomizeSheet__giftPrices">
                           <span class="flowFreeGiftCustomizeSheet__giftPriceStrike">$9.99</span>
