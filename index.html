@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
-    <link rel="stylesheet" href="./spark.css?v=205" />
+    <link rel="stylesheet" href="./spark.css?v=206" />
     <link rel="stylesheet" href="./styles.css?v=120" />
   </head>
   <body>
@@ -303,6 +303,8 @@
                         type="button"
                         id="flowFreeGiftNode"
                         class="triggerNode flowFreeGiftNode"
+                        aria-expanded="false"
+                        aria-controls="flowFreeGiftPanel"
                         aria-label="Free gift. Configure."
                       >
                         <div class="triggerNode__outer" data-node="Free gift">
@@ -1936,6 +1938,425 @@
                         </footer>
                       </div>
                     </div>
+                    <div
+                      id="flowFreeGiftPanelRoot"
+                      class="flowFreeGiftPanelRoot"
+                      aria-hidden="true"
+                    >
+                      <div
+                        id="flowFreeGiftPanel"
+                        class="flowTriggerPanel flowFreeGiftPanel"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="flowFreeGiftPanelTitle"
+                        tabindex="-1"
+                      >
+                        <div class="flowFreeGiftPanel__viewStack">
+                          <div id="flowFreeGiftViewConfigure" class="flowFreeGiftPanel__view">
+                            <header class="flowTriggerPanel__masthead flowFreeGiftPanel__masthead">
+                              <div class="flowTriggerPanel__mastheadRow">
+                                <div class="flowTriggerPanel__titleGroup">
+                                  <h2 id="flowFreeGiftPanelTitle" class="flowTriggerPanel__title">
+                                    Configure free gift
+                                  </h2>
+                                </div>
+                                <button
+                                  type="button"
+                                  class="flowTriggerPanel__closeBtn flowFreeGiftPanel__closeBtn"
+                                  data-flow-free-gift-dismiss
+                                  aria-label="Close"
+                                >
+                                  <span class="flowTriggerPanel__closeArt flowFreeGiftPanel__closeArt" aria-hidden="true">
+                                    <img
+                                      class="flowTriggerPanel__closeImg"
+                                      src="./assets/icons/close.svg"
+                                      width="16"
+                                      height="16"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </span>
+                                </button>
+                              </div>
+                              <p class="flowTriggerPanel__lede flowFreeGiftPanel__lede">
+                                Add a free gift on a customer’s future order(s).
+                              </p>
+                            </header>
+                            <div class="flowTriggerPanel__scroll flowFreeGiftPanel__scroll">
+                              <div class="flowFreeGiftPanel__configureStack">
+                                <div class="flowFreeGiftPanel__configureBlock">
+                                  <h3 class="flowFreeGiftPanel__sectionKicker">Select a product to gift</h3>
+                                  <div id="flowFreeGiftProductEmptySlot" class="flowFreeGiftPanel__productSlot">
+                                    <button type="button" id="flowFreeGiftAddProductBtn" class="flowFreeGiftPanel__addProduct">
+                                      <span class="flowFreeGiftPanel__addProductGlyph" aria-hidden="true"></span>
+                                      <span class="flowFreeGiftPanel__addProductLabel">Add a product</span>
+                                    </button>
+                                  </div>
+                                  <div
+                                    id="flowFreeGiftProductFilledSlot"
+                                    class="flowFreeGiftPanel__productSlot flowFreeGiftPanel__productSlot--filled"
+                                    hidden
+                                  >
+                                    <div class="flowFreeGiftPanel__productBanner">
+                                      <div class="flowFreeGiftPanel__productBannerMain">
+                                        <div class="flowFreeGiftPanel__productBannerThumbWrap">
+                                          <img
+                                            id="flowFreeGiftConfiguredThumb"
+                                            class="flowFreeGiftPanel__resultThumb flowFreeGiftPanel__productBannerThumb"
+                                            src="./assets/free-gift-product-thumb.png"
+                                            width="44"
+                                            height="44"
+                                            alt=""
+                                          />
+                                        </div>
+                                        <div class="flowFreeGiftPanel__productBannerBody">
+                                          <div id="flowFreeGiftConfiguredName" class="flowFreeGiftPanel__productBannerName"></div>
+                                          <div class="flowFreeGiftPanel__productBannerVariantRow">
+                                            <span class="flowFreeGiftPanel__productBannerVariantLabel">Variant:</span>
+                                            <span
+                                              id="flowFreeGiftConfiguredVariantValue"
+                                              class="flowFreeGiftPanel__productBannerVariantValue"
+                                              >No variant selected</span
+                                            >
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        id="flowFreeGiftRemoveProductBtn"
+                                        class="flowFreeGiftPanel__productRemove"
+                                        aria-label="Remove product"
+                                      >
+                                        <img src="./assets/icons/delete-red.svg" width="24" height="24" alt="" decoding="async" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div
+                                  id="flowFreeGiftPostProductSections"
+                                  class="flowFreeGiftPanel__postProduct"
+                                  hidden
+                                >
+                                <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--24" aria-hidden="true"></div>
+
+                                <div class="flowFreeGiftPanel__configureBlock">
+                                  <h3 class="flowFreeGiftPanel__sectionKicker">How should this free gift be applied?</h3>
+                                  <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--8" aria-hidden="true"></div>
+                                  <fieldset class="flowCreditPanel__radioFieldset">
+                                    <legend class="sr-only">Free gift application</legend>
+                                    <label class="flowCreditPanel__radioRow">
+                                      <input
+                                        type="radio"
+                                        name="flowFreeGiftApplyMode"
+                                        value="automatic"
+                                        class="flowCreditPanel__radioInput"
+                                        checked
+                                      />
+                                      <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                      <span class="flowCreditPanel__radioBody">
+                                        <span class="flowCreditPanel__radioTitle"
+                                          >Automatically added to customer’s upcoming order</span
+                                        >
+                                      </span>
+                                    </label>
+                                    <label class="flowCreditPanel__radioRow">
+                                      <input type="radio" name="flowFreeGiftApplyMode" value="claim" class="flowCreditPanel__radioInput" />
+                                      <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                      <span class="flowCreditPanel__radioBody">
+                                        <span class="flowCreditPanel__radioTitle">Customer claims on an upcoming order</span>
+                                      </span>
+                                    </label>
+                                  </fieldset>
+                                </div>
+
+                                <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--24" aria-hidden="true"></div>
+
+                                <div class="flowFreeGiftPanel__configureBlock">
+                                  <h3 class="flowFreeGiftPanel__sectionKicker">How are variants selected?</h3>
+                                  <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--8" aria-hidden="true"></div>
+                                  <fieldset class="flowCreditPanel__radioFieldset">
+                                    <legend class="sr-only">Variant selection</legend>
+                                    <label class="flowCreditPanel__radioRow">
+                                      <input
+                                        type="radio"
+                                        name="flowFreeGiftVariantMode"
+                                        value="merchant"
+                                        class="flowCreditPanel__radioInput"
+                                        checked
+                                      />
+                                      <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                      <span class="flowCreditPanel__radioBody">
+                                        <span class="flowCreditPanel__radioTitle">Merchant selects a variant for customer</span>
+                                      </span>
+                                    </label>
+                                    <label class="flowCreditPanel__radioRow">
+                                      <input type="radio" name="flowFreeGiftVariantMode" value="customer" class="flowCreditPanel__radioInput" />
+                                      <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                      <span class="flowCreditPanel__radioBody">
+                                        <span class="flowCreditPanel__radioTitle">Customer selects any variant</span>
+                                        <span class="flowCreditPanel__radioHint flowCreditPanel__radioHintMuted">
+                                          This option is only available when the customer claims a free gift on an upcoming order.
+                                        </span>
+                                      </span>
+                                    </label>
+                                  </fieldset>
+                                </div>
+
+                                <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--24" aria-hidden="true"></div>
+
+                                <div id="flowFreeGiftMerchantVariantSection">
+                                  <div class="flowFreeGiftPanel__configureBlock">
+                                    <h3 class="flowFreeGiftPanel__sectionKicker">Select a variant for the customer</h3>
+                                    <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--4" aria-hidden="true"></div>
+                                    <div class="flowTriggerPanel__selectField flowFreeGiftPanel__variantSelectField">
+                                      <label class="sr-only" for="flowFreeGiftVariantSelectBtn">Variant</label>
+                                      <button
+                                        type="button"
+                                        id="flowFreeGiftVariantSelectBtn"
+                                        class="flowTriggerPanel__selectRow flowFreeGiftPanel__variantSelectTrigger"
+                                        aria-haspopup="listbox"
+                                        aria-expanded="false"
+                                        aria-controls="flowFreeGiftVariantSelectList"
+                                      >
+                                        <span class="flowTriggerPanel__selectText flowFreeGiftPanel__variantSelectPlaceholder"
+                                          >Select a variant</span
+                                        >
+                                        <span class="flowTriggerPanel__chevDownArt" aria-hidden="true">
+                                          <img
+                                            class="flowTriggerPanel__chevImg flowTriggerPanel__chevImg--select"
+                                            src="./assets/icons/chevron-down.svg"
+                                            width="24"
+                                            height="24"
+                                            alt=""
+                                            decoding="async"
+                                          />
+                                        </span>
+                                      </button>
+                                      <div
+                                        id="flowFreeGiftVariantSelectList"
+                                        class="flowTriggerPanel__selectDropdown flowTriggerPanel__selectDropdown--lifted"
+                                        role="listbox"
+                                        aria-labelledby="flowFreeGiftVariantSelectBtn"
+                                        aria-hidden="true"
+                                      >
+                                        <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                          Rotini — small
+                                        </button>
+                                        <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                          Rotini — large
+                                        </button>
+                                        <button type="button" class="flowTriggerPanel__selectOption" role="option">
+                                          Bucatini — standard
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--24" aria-hidden="true"></div>
+                                </div>
+
+                                <div class="flowFreeGiftPanel__configureDivider" aria-hidden="true"></div>
+                                <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--24" aria-hidden="true"></div>
+
+                                <div class="flowFreeGiftPanel__configureBlock">
+                                  <h3 class="flowFreeGiftPanel__sectionKicker">
+                                    What happens to the free gift if a customer skips or unskips an upcoming order?
+                                  </h3>
+                                  <div class="flowFreeGiftPanel__spacer flowFreeGiftPanel__spacer--8" aria-hidden="true"></div>
+                                  <fieldset class="flowCreditPanel__radioFieldset">
+                                    <legend class="sr-only">Skip behavior</legend>
+                                    <label class="flowCreditPanel__radioRow">
+                                      <input
+                                        type="radio"
+                                        name="flowFreeGiftSkipBehavior"
+                                        value="keep"
+                                        class="flowCreditPanel__radioInput"
+                                        checked
+                                      />
+                                      <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                      <span class="flowCreditPanel__radioBody">
+                                        <span class="flowCreditPanel__radioTitle">Keep free gift</span>
+                                        <span class="flowCreditPanel__radioHint flowCreditPanel__radioHintMuted">
+                                          Free gift will automatically apply to an upcoming order.
+                                        </span>
+                                      </span>
+                                    </label>
+                                    <label class="flowCreditPanel__radioRow">
+                                      <input type="radio" name="flowFreeGiftSkipBehavior" value="lose" class="flowCreditPanel__radioInput" />
+                                      <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                      <span class="flowCreditPanel__radioBody">
+                                        <span class="flowCreditPanel__radioTitle">Lose free gift</span>
+                                        <span class="flowCreditPanel__radioHint flowCreditPanel__radioHintMuted">
+                                          Free gift will be lost if customer skips or unskips an upcoming order.
+                                        </span>
+                                      </span>
+                                    </label>
+                                  </fieldset>
+                                </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div id="flowFreeGiftViewPick" class="flowFreeGiftPanel__view" hidden>
+                            <header class="flowTriggerPanel__masthead flowFreeGiftPanel__masthead flowFreeGiftPanel__masthead--pick">
+                              <div class="flowTriggerPanel__mastheadRow flowFreeGiftPanel__pickHeaderRow">
+                                <button
+                                  type="button"
+                                  id="flowFreeGiftPickBack"
+                                  class="flowFreeGiftPanel__pickBackBtn"
+                                  aria-label="Back to configure free gift"
+                                >
+                                  <span class="flowFreeGiftPanel__pickBackUi" aria-hidden="true">
+                                    <span class="flowFreeGiftPanel__pickBackIcon">
+                                      <img
+                                        src="./assets/icons/arrow-left.svg"
+                                        width="24"
+                                        height="24"
+                                        alt=""
+                                        decoding="async"
+                                      />
+                                    </span>
+                                  </span>
+                                </button>
+                                <div class="flowFreeGiftPanel__pickTitleGroup">
+                                  <span class="flowFreeGiftPanel__pickTitleDecoy" aria-hidden="true"></span>
+                                  <h2 id="flowFreeGiftPickTitle" class="flowFreeGiftPanel__pickTitle">Add product</h2>
+                                </div>
+                                <button
+                                  type="button"
+                                  class="flowTriggerPanel__closeBtn flowFreeGiftPanel__closeBtn"
+                                  data-flow-free-gift-dismiss
+                                  aria-label="Close"
+                                >
+                                  <span class="flowTriggerPanel__closeArt flowFreeGiftPanel__closeArt" aria-hidden="true">
+                                    <img
+                                      class="flowTriggerPanel__closeImg"
+                                      src="./assets/icons/close.svg"
+                                      width="16"
+                                      height="16"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </span>
+                                </button>
+                              </div>
+                            </header>
+                            <div class="flowTriggerPanel__scroll flowFreeGiftPanel__scroll">
+                              <div class="flowFreeGiftPanel__pickSearch">
+                                <p class="flowFreeGiftPanel__pickSearchHeading">Search for products</p>
+                                <div class="flowFreeGiftPanel__searchShell">
+                                  <span class="flowFreeGiftPanel__searchIcon" aria-hidden="true">
+                                    <img
+                                      src="./assets/icons/search.svg"
+                                      width="24"
+                                      height="24"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </span>
+                                  <input
+                                    type="search"
+                                    class="flowFreeGiftPanel__searchInput"
+                                    placeholder="Search by product, variant, or ID"
+                                    autocomplete="off"
+                                    aria-label="Search products"
+                                  />
+                                </div>
+                                <div class="flowFreeGiftPanel__resultsHeader">Search results</div>
+                                <div class="flowFreeGiftPanel__resultList" role="radiogroup" aria-label="Matching products">
+                                  <label class="flowFreeGiftPanel__resultRow">
+                                    <input type="radio" name="flowFreeGiftProductPick" value="linguini" class="flowCreditPanel__radioInput" />
+                                    <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                    <img
+                                      class="flowFreeGiftPanel__resultThumb"
+                                      src="./assets/free-gift-product-thumb.png"
+                                      width="44"
+                                      height="44"
+                                      alt=""
+                                    />
+                                    <span class="flowFreeGiftPanel__resultBody">
+                                      <span class="flowFreeGiftPanel__resultName">Linguini</span>
+                                      <span class="flowFreeGiftPanel__resultLine">Variants: 3 variants available</span>
+                                    </span>
+                                  </label>
+                                  <label class="flowFreeGiftPanel__resultRow">
+                                    <input type="radio" name="flowFreeGiftProductPick" value="spaghetti" class="flowCreditPanel__radioInput" />
+                                    <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                    <img
+                                      class="flowFreeGiftPanel__resultThumb"
+                                      src="./assets/free-gift-product-thumb.png"
+                                      width="44"
+                                      height="44"
+                                      alt=""
+                                    />
+                                    <span class="flowFreeGiftPanel__resultBody">
+                                      <span class="flowFreeGiftPanel__resultName">Spaghetti</span>
+                                      <span class="flowFreeGiftPanel__resultLine">Variants: 2 variants available</span>
+                                    </span>
+                                  </label>
+                                  <label class="flowFreeGiftPanel__resultRow">
+                                    <input type="radio" name="flowFreeGiftProductPick" value="fettuccine" class="flowCreditPanel__radioInput" />
+                                    <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                    <img
+                                      class="flowFreeGiftPanel__resultThumb"
+                                      src="./assets/free-gift-product-thumb.png"
+                                      width="44"
+                                      height="44"
+                                      alt=""
+                                    />
+                                    <span class="flowFreeGiftPanel__resultBody">
+                                      <span class="flowFreeGiftPanel__resultName">Fettuccine</span>
+                                      <span class="flowFreeGiftPanel__resultLine">Variants: 1 variant available</span>
+                                    </span>
+                                  </label>
+                                  <label class="flowFreeGiftPanel__resultRow">
+                                    <input type="radio" name="flowFreeGiftProductPick" value="fusilli" class="flowCreditPanel__radioInput" />
+                                    <span class="flowCreditPanel__radioMark" aria-hidden="true"></span>
+                                    <img
+                                      class="flowFreeGiftPanel__resultThumb"
+                                      src="./assets/free-gift-product-thumb.png"
+                                      width="44"
+                                      height="44"
+                                      alt=""
+                                    />
+                                    <span class="flowFreeGiftPanel__resultBody">
+                                      <span class="flowFreeGiftPanel__resultName">Fusilli</span>
+                                      <span class="flowFreeGiftPanel__resultLine">Variants: No variants available</span>
+                                    </span>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <footer
+                          class="flowTriggerPanel__footer flowFreeGiftPanel__footer"
+                          id="flowFreeGiftPanelFooter"
+                        >
+                          <div class="flowTriggerPanel__footerInner flowFreeGiftPanel__footerInner">
+                            <button
+                              type="button"
+                              class="flowFreeGiftPanel__customizeClaimBtn"
+                              id="flowFreeGiftCustomizeClaimBtn"
+                              hidden
+                            >
+                              <span class="flowFreeGiftPanel__customizeClaimIcon" aria-hidden="true">
+                                <img src="./assets/icons/edit.svg" width="24" height="24" alt="" decoding="async" />
+                              </span>
+                              <span class="flowFreeGiftPanel__customizeClaimLabel"
+                                >Customize customer claim experience</span
+                              >
+                            </button>
+                            <div class="flowCreditPanel__applyWrap flowFreeGiftPanel__applyWrap" id="flowFreeGiftApplyWrap">
+                              <button type="button" class="flowTriggerPanel__apply flowFreeGiftPanel__apply" id="flowFreeGiftApplyBtn" disabled>
+                                <span class="flowTriggerPanel__applyLabel">Apply</span>
+                              </button>
+                            </div>
+                          </div>
+                        </footer>
+                      </div>
+                    </div>
               </div>
               </div>
               </section>
@@ -1991,6 +2412,164 @@
             height="2012"
             draggable="false"
           />
+        </div>
+      </div>
+    </div>
+
+    <!-- Free gift: customize claim experience (slides up from bottom) -->
+    <div
+      id="flowFreeGiftCustomizeSheet"
+      class="flowFreeGiftCustomizeSheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="flowFreeGiftCustomizeSheetTitle"
+      hidden
+    >
+      <button type="button" class="flowFreeGiftCustomizeSheet__backdrop" tabindex="-1" aria-label="Dismiss"></button>
+      <div class="flowFreeGiftCustomizeSheet__surface">
+        <header class="flowFreeGiftCustomizeSheet__chrome">
+          <div class="flowFreeGiftCustomizeSheet__chromeLead">
+            <h2 id="flowFreeGiftCustomizeSheetTitle" class="flowFreeGiftCustomizeSheet__chromeTitle">
+              Customizing free gift
+            </h2>
+            <button type="button" class="flowFreeGiftCustomizeSheet__landingPill">
+              <span>Landing page</span>
+              <img src="./assets/icons/chevron-down.svg" width="20" height="20" alt="" decoding="async" />
+            </button>
+          </div>
+          <div class="flowFreeGiftCustomizeSheet__viewport" role="group" aria-label="Preview size">
+            <button
+              type="button"
+              class="flowFreeGiftCustomizeSheet__viewportSeg flowFreeGiftCustomizeSheet__viewportSeg--active"
+              id="flowFreeGiftCustomizeSheetViewportDesktop"
+              aria-pressed="true"
+              aria-label="Desktop preview"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+                <path d="M8 19h8M12 16v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="flowFreeGiftCustomizeSheet__viewportSeg"
+              id="flowFreeGiftCustomizeSheetViewportMobile"
+              aria-pressed="false"
+              aria-label="Mobile preview"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="8" y="3" width="8" height="18" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+                <path d="M11 18h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="flowFreeGiftCustomizeSheet__chromeTrail">
+            <button type="button" class="flowFreeGiftCustomizeSheet__cancelBtn" id="flowFreeGiftCustomizeSheetCancel">
+              Cancel
+            </button>
+            <button type="button" class="flowFreeGiftCustomizeSheet__doneBtn" id="flowFreeGiftCustomizeSheetDone">
+              Done
+            </button>
+          </div>
+        </header>
+
+        <div class="flowFreeGiftCustomizeSheet__main">
+          <aside class="flowFreeGiftCustomizeSheet__aside" aria-label="Sections">
+            <div class="flowFreeGiftCustomizeSheet__asideScroll">
+              <h3 class="flowFreeGiftCustomizeSheet__sectionsHeading">Sections</h3>
+              <div class="flowFreeGiftCustomizeSheet__sectionsGap" aria-hidden="true"></div>
+              <div class="flowFreeGiftCustomizeSheet__sectionList">
+                <button type="button" class="flowFreeGiftCustomizeSheet__sectionRow">
+                  <span class="flowFreeGiftCustomizeSheet__sectionRowLabel">Free gift offer</span>
+                  <span class="flowFreeGiftCustomizeSheet__chevron" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="flowFreeGiftCustomizeSheet__sectionRow">
+                  <span class="flowFreeGiftCustomizeSheet__sectionRowGrip" aria-hidden="true">
+                    <img src="./assets/icons/drag.svg" width="24" height="24" alt="" decoding="async" />
+                  </span>
+                  <span class="flowFreeGiftCustomizeSheet__sectionRowLabel">Account link</span>
+                  <span class="flowFreeGiftCustomizeSheet__chevron" aria-hidden="true"></span>
+                </button>
+                <button type="button" class="flowFreeGiftCustomizeSheet__addSectionBtn">
+                  <img src="./assets/icons/add.svg" width="24" height="24" alt="" decoding="async" />
+                  <span>Add a section</span>
+                </button>
+              </div>
+            </div>
+            <div class="flowFreeGiftCustomizeSheet__asideFooter">
+              <button type="button" class="flowFreeGiftCustomizeSheet__globalStylesBtn">
+                <span>Edit global styles, colors and layout</span>
+                <img src="./assets/icons/external-link.svg" width="25" height="25" alt="" decoding="async" />
+              </button>
+            </div>
+          </aside>
+
+          <div class="flowFreeGiftCustomizeSheet__canvas">
+            <div class="flowFreeGiftCustomizeSheet__previewShell">
+              <div class="flowFreeGiftCustomizeSheet__previewViewport">
+                <div class="flowFreeGiftCustomizeSheet__siteHeader">
+                  <div class="flowFreeGiftCustomizeSheet__siteHeaderLead">
+                    <span class="flowFreeGiftCustomizeSheet__siteHeaderMark" aria-hidden="true"></span>
+                    <span>Site header</span>
+                  </div>
+                </div>
+
+                <div class="flowFreeGiftCustomizeSheet__previewStack">
+                  <div class="flowFreeGiftCustomizeSheet__giftCard">
+                    <p class="flowFreeGiftCustomizeSheet__giftHeadline">Here’s a free gift for you!</p>
+                    <p class="flowFreeGiftCustomizeSheet__giftSub">
+                      Your free gift awaits — click Claim gift to add it to your next order.
+                    </p>
+                    <div class="flowFreeGiftCustomizeSheet__giftProductRow">
+                      <div class="flowFreeGiftCustomizeSheet__giftProductImgWrap">
+                        <img
+                          src="./assets/free-gift-product-thumb.png"
+                          width="335"
+                          height="335"
+                          alt=""
+                          class="flowFreeGiftCustomizeSheet__giftProductImg"
+                          decoding="async"
+                        />
+                      </div>
+                      <div class="flowFreeGiftCustomizeSheet__giftProductCopy">
+                        <span class="flowFreeGiftCustomizeSheet__giftBadge">Free gift</span>
+                        <p class="flowFreeGiftCustomizeSheet__giftProductName">Product name</p>
+                        <p class="flowFreeGiftCustomizeSheet__giftVariantName">Variant name</p>
+                        <div class="flowFreeGiftCustomizeSheet__giftSelect">
+                          <span>Select</span>
+                          <span class="flowFreeGiftCustomizeSheet__giftSelectCaret" aria-hidden="true"></span>
+                        </div>
+                        <div class="flowFreeGiftCustomizeSheet__giftPrices">
+                          <span class="flowFreeGiftCustomizeSheet__giftPriceStrike">$9.99</span>
+                          <span class="flowFreeGiftCustomizeSheet__giftPriceFree">$0.00</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button type="button" class="flowFreeGiftCustomizeSheet__claimBtn">Claim gift</button>
+                  </div>
+
+                  <div class="flowFreeGiftCustomizeSheet__declineRow">
+                    <span>Not interested in this offer?</span>
+                    <button type="button" class="flowFreeGiftCustomizeSheet__declineLink">
+                      Decline and continue to your account
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flowFreeGiftCustomizeSheet__siteFooter">
+                  <div class="flowFreeGiftCustomizeSheet__siteFooterTop">
+                    <span>Site footer</span>
+                    <span class="flowFreeGiftCustomizeSheet__footerOrb" aria-hidden="true"></span>
+                    <span class="flowFreeGiftCustomizeSheet__footerOrb" aria-hidden="true"></span>
+                    <span class="flowFreeGiftCustomizeSheet__footerOrb" aria-hidden="true"></span>
+                  </div>
+                  <div class="flowFreeGiftCustomizeSheet__siteFooterBars" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
