@@ -2639,6 +2639,8 @@ initSlideshow();
   const notificationNodeWrap = document.getElementById("flowNotificationNodeWrap");
   const abTestNodeWrap = document.getElementById("flowAbTestNodeWrap");
   const slide5Canvas = document.getElementById("slide5Canvas");
+  const discountNodeWrap = document.getElementById("flowDiscountNodeWrap");
+  const delayNodeWrap = document.getElementById("flowDelayNodeWrap");
   const creditRoot = document.getElementById("flowCreditPanelRoot");
   const creditPanel = document.getElementById("flowCreditPanel");
   const freeGiftRoot = document.getElementById("flowFreeGiftPanelRoot");
@@ -2672,6 +2674,8 @@ initSlideshow();
   let slide5FreeGiftSpawnEligible = false;
   let slide5NotificationSpawnEligible = false;
   let slide5AbTestSpawnEligible = false;
+  let slide5DiscountSpawnEligible = false;
+  let slide5DelaySpawnEligible = false;
   let freeGiftNodeMenuOutsideCloser = null;
   let freeGiftNodeMenuEscapeCloser = null;
   let freeGiftMetricsTransitionCleanup = null;
@@ -2682,6 +2686,8 @@ initSlideshow();
     slide5FreeGiftSpawnEligible = false;
     slide5NotificationSpawnEligible = false;
     slide5AbTestSpawnEligible = false;
+    slide5DiscountSpawnEligible = false;
+    slide5DelaySpawnEligible = false;
     if (branchNodeWrap) {
       branchNodeWrap.hidden = true;
       branchNodeWrap.setAttribute("aria-hidden", "true");
@@ -2711,6 +2717,16 @@ initSlideshow();
       abTestNodeWrap.hidden = true;
       abTestNodeWrap.setAttribute("aria-hidden", "true");
       abTestNodeWrap.classList.remove("flowAbTestNodeWrap--enter", "flowAbTestNodeWrap--enter-active");
+    }
+    if (discountNodeWrap) {
+      discountNodeWrap.hidden = true;
+      discountNodeWrap.setAttribute("aria-hidden", "true");
+      discountNodeWrap.classList.remove("flowDiscountNodeWrap--enter", "flowDiscountNodeWrap--enter-active");
+    }
+    if (delayNodeWrap) {
+      delayNodeWrap.hidden = true;
+      delayNodeWrap.setAttribute("aria-hidden", "true");
+      delayNodeWrap.classList.remove("flowDelayNodeWrap--enter", "flowDelayNodeWrap--enter-active");
     }
     if (creditRoot) {
       creditRoot.classList.remove(CREDIT_OPEN);
@@ -2836,6 +2852,38 @@ initSlideshow();
     });
     window.setTimeout(() => {
       abTestNodeWrap.classList.remove("flowAbTestNodeWrap--enter", "flowAbTestNodeWrap--enter-active");
+    }, 900);
+    slide5DiscountSpawnEligible = true;
+  }
+
+  function revealDiscountNode() {
+    if (!discountNodeWrap || !discountNodeWrap.hasAttribute("hidden")) return;
+    discountNodeWrap.classList.remove("flowDiscountNodeWrap--enter", "flowDiscountNodeWrap--enter-active");
+    void discountNodeWrap.offsetWidth;
+    discountNodeWrap.classList.add("flowDiscountNodeWrap--enter");
+    discountNodeWrap.removeAttribute("hidden");
+    discountNodeWrap.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => {
+      discountNodeWrap.classList.add("flowDiscountNodeWrap--enter-active");
+    });
+    window.setTimeout(() => {
+      discountNodeWrap.classList.remove("flowDiscountNodeWrap--enter", "flowDiscountNodeWrap--enter-active");
+    }, 900);
+    slide5DelaySpawnEligible = true;
+  }
+
+  function revealDelayNode() {
+    if (!delayNodeWrap || !delayNodeWrap.hasAttribute("hidden")) return;
+    delayNodeWrap.classList.remove("flowDelayNodeWrap--enter", "flowDelayNodeWrap--enter-active");
+    void delayNodeWrap.offsetWidth;
+    delayNodeWrap.classList.add("flowDelayNodeWrap--enter");
+    delayNodeWrap.removeAttribute("hidden");
+    delayNodeWrap.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => {
+      delayNodeWrap.classList.add("flowDelayNodeWrap--enter-active");
+    });
+    window.setTimeout(() => {
+      delayNodeWrap.classList.remove("flowDelayNodeWrap--enter", "flowDelayNodeWrap--enter-active");
     }, 900);
   }
 
@@ -3957,21 +4005,17 @@ initSlideshow();
     if (nameEl) nameEl.textContent = productName;
     if (variantEl) variantEl.textContent = variantSummary;
 
-    if (incomplete) {
-      subEl.textContent = "Add gift product";
-      freeGiftBtn.classList.remove("flowFreeGiftNode--configured");
-      freeGiftBtn.setAttribute(
-        "aria-label",
-        `Free gift. Add gift product. Product ${productName}. Variants ${variantSummary}. Apply ${applySummary}.`,
-      );
-    } else {
-      subEl.textContent = "Gift product";
-      freeGiftBtn.classList.add("flowFreeGiftNode--configured");
-      freeGiftBtn.setAttribute(
-        "aria-label",
-        `Free gift. Gift product. Product ${productName}. Variants ${variantSummary}. Apply ${applySummary}.`,
-      );
-    }
+    const customerVariantMode =
+      document.querySelector('input[name="flowFreeGiftVariantMode"]:checked')?.value === "customer";
+    /* Node subtitle stays "Add gift product" for customer-selects-variant — do not flip to "Gift product". */
+    const subtitlePhrase = incomplete || customerVariantMode ? "Add gift product" : "Gift product";
+
+    subEl.textContent = subtitlePhrase;
+    freeGiftBtn.classList.toggle("flowFreeGiftNode--configured", !incomplete);
+    freeGiftBtn.setAttribute(
+      "aria-label",
+      `Free gift. ${subtitlePhrase}. Product ${productName}. Variants ${variantSummary}. Apply ${applySummary}.`,
+    );
   }
 
   function syncFreeGiftApplyFooterMode() {
@@ -4316,7 +4360,7 @@ initSlideshow();
     if (!(t instanceof Element)) return;
     if (
       t.closest(
-        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowFreeGiftNodeDetails, #flowFreeGiftNodeKebabBtn, #flowFreeGiftNodeMenu, #flowFreeGiftNodeMetrics, #flowNotificationNodeWrap, #flowAbTestNodeWrap, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot, #flowFreeGiftPanelRoot",
+        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowFreeGiftNodeDetails, #flowFreeGiftNodeKebabBtn, #flowFreeGiftNodeMenu, #flowFreeGiftNodeMetrics, #flowNotificationNodeWrap, #flowAbTestNodeWrap, #flowDiscountNodeWrap, #flowDelayNodeWrap, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot, #flowFreeGiftPanelRoot",
       )
     ) {
       return;
@@ -4359,6 +4403,24 @@ initSlideshow();
       !notificationNodeWrap.hidden
     ) {
       revealAbTestNode();
+      return;
+    }
+    if (
+      slide5DiscountSpawnEligible &&
+      discountNodeWrap?.hidden &&
+      abTestNodeWrap &&
+      !abTestNodeWrap.hidden
+    ) {
+      revealDiscountNode();
+      return;
+    }
+    if (
+      slide5DelaySpawnEligible &&
+      delayNodeWrap?.hidden &&
+      discountNodeWrap &&
+      !discountNodeWrap.hidden
+    ) {
+      revealDelayNode();
       return;
     }
   });
