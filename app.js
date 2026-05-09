@@ -2446,8 +2446,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 5) {
-    console.error(`[slideshow] expected 5 slide sections, found ${slides.length}`);
+  if (slides.length < 6) {
+    console.error(`[slideshow] expected 6 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -2470,8 +2470,8 @@ function initSlideshow() {
     const mount3 = document.getElementById("mapSlideMount3");
     const viewport = document.getElementById("viewport");
 
-    // Park the shared map under slide 2’s mount whenever we’re not on the recap (slide 4).
-    if (index === 0 || index === 1 || index === 2 || index === 4) {
+    // Park the shared map under slide 2’s mount whenever we’re not on the recap (slide 4) or case-study video (slide 6).
+    if (index === 0 || index === 1 || index === 2 || index === 4 || index === 5) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
     } else if (index === 3) {
@@ -2564,6 +2564,53 @@ function initSlideshow() {
 migrateSubscriptionsCardToBundledAsset();
 
 initSlideshow();
+
+/** Rewards strategy video (slide 6): play only after explicit click; pause and reset when leaving the slide. */
+function wireRewardsStrategyVideo() {
+  const video = document.getElementById("rewardsStrategyVideo");
+  const cover = document.getElementById("rewardsVideoPlayCover");
+  const frame = document.querySelector(".rewardsVideoCanvas__frame");
+  if (!(video instanceof HTMLVideoElement) || !cover || !(frame instanceof HTMLElement)) return;
+
+  function showCover() {
+    cover.hidden = false;
+    frame.classList.remove("rewardsVideoCanvas__frame--playing");
+    video.removeAttribute("controls");
+  }
+
+  function hideCoverAndPlayUi() {
+    cover.hidden = true;
+    frame.classList.add("rewardsVideoCanvas__frame--playing");
+    video.setAttribute("controls", "");
+  }
+
+  function resetForLeaveSlide() {
+    video.pause();
+    video.currentTime = 0;
+    showCover();
+  }
+
+  cover.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    void video.play();
+    hideCoverAndPlayUi();
+  });
+
+  video.addEventListener("ended", () => {
+    showCover();
+    video.currentTime = 0;
+  });
+
+  document.addEventListener("slideshow:change", (e) => {
+    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
+    if (e.detail.index !== 5) {
+      resetForLeaveSlide();
+    }
+  });
+}
+
+wireRewardsStrategyVideo();
 
 // ── Loyalty hanger modal ─────────────────────────────────────────────────────
 (function initLoyaltyModal() {

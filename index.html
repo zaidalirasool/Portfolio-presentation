@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
     <link rel="stylesheet" href="./spark.css?v=225" />
-    <link rel="stylesheet" href="./styles.css?v=126" />
+    <link rel="stylesheet" href="./styles.css?v=127" />
   </head>
   <body>
     <div class="app">
@@ -2791,6 +2791,40 @@
           </main>
         </section>
 
+        <section
+          class="slide slide--map slide--rewardsVideo"
+          data-slide-index="5"
+          aria-label="Rewards strategy setup"
+          aria-hidden="true"
+        >
+          <main class="main main--rewardsVideo">
+            <div class="mapSlideMount mapSlideMount--rewardsVideo">
+              <section class="stageWrap stageWrap--rewardsVideo" aria-label="Rewards setup recording">
+                <div class="rewardsVideoCanvas" id="rewardsVideoCanvas">
+                  <div class="rewardsVideoCanvas__frame">
+                    <video
+                      id="rewardsStrategyVideo"
+                      class="rewardsVideoCanvas__video"
+                      preload="metadata"
+                      playsinline
+                    >
+                      <source src="./assets/videos/rewards-strategy-setup.mp4" type="video/mp4" />
+                    </video>
+                    <button
+                      type="button"
+                      class="rewardsVideoCanvas__playCover"
+                      id="rewardsVideoPlayCover"
+                      aria-label="Play video"
+                    >
+                      <span class="rewardsVideoCanvas__playGlyph" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </main>
+        </section>
+
     <!-- Modal 1: Loyalty connected to Pre-purchase -->
     <div id="loyaltyModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="loyaltyModalTitle" hidden>
       <div class="modal__backdrop"></div>
@@ -3049,10 +3083,10 @@
       </div>
     </div>
 
-    <nav class="slideshowPagination" aria-label="Slide pagination" data-slide-count="5">
+    <nav class="slideshowPagination" aria-label="Slide pagination" data-slide-count="6">
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-151"></script>
+    <script type="module" src="./app.js?v=slideshow-152"></script>
   </body>
 </html>
