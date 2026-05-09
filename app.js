@@ -2637,18 +2637,48 @@ function wireCaseFollowPhoneEnter() {
 
 wireCaseFollowPhoneEnter();
 
-/** Slide 7: tap canvas to complete Order 5 with the same stamp treatment as Order 2 */
+/** Slide 7: one canvas tap runs Orders 5–12 stamps in a staggered ease sequence. */
 function wireCaseFollowCanvasLoyaltyDemo() {
   const canvas = document.getElementById("caseFollowCanvas");
-  const reward = document.getElementById("caseFollowRewardOrder5");
-  if (!(canvas instanceof HTMLElement) || !(reward instanceof HTMLElement)) return;
+  const starStamp = {
+    src: "./assets/affinity/Star-1.svg?v=1",
+    width: 21,
+    height: 20,
+  };
+  /** White strokes for contrast on teal reward disk (`Gift.svg` keeps teal for non-disk use). */
+  const giftStamp = {
+    src: "./assets/affinity/Gift-white-stroke.svg?v=1",
+    width: 32,
+    height: 32,
+    className: "caseFollowGiftImg",
+  };
 
-  function resetOrder5() {
-    if (reward.dataset.filled !== "true") return;
-    reward.classList.remove("caseFollowReward--complete");
-    reward.dataset.filled = "false";
-    reward.dataset.type = "empty";
-    const disk = reward.querySelector(".caseFollowReward__disk");
+  const rewardSlotIds = [
+    ["caseFollowRewardOrder5", "empty", starStamp],
+    ["caseFollowRewardOrder6", "free-gift", giftStamp],
+    ["caseFollowRewardOrder7", "empty", starStamp],
+    ["caseFollowRewardOrder8", "empty", starStamp],
+    ["caseFollowRewardOrder9", "empty", starStamp],
+    ["caseFollowRewardOrder10", "empty", starStamp],
+    ["caseFollowRewardOrder11", "empty", starStamp],
+    ["caseFollowRewardOrder12", "free-gift", giftStamp],
+  ];
+
+  const rewardSlots = rewardSlotIds
+    .map(([id, pendingType, stamp]) => {
+      const el = document.getElementById(id);
+      return el instanceof HTMLElement ? { el, pendingType, stamp } : null;
+    })
+    .filter((x) => x !== null);
+
+  if (!(canvas instanceof HTMLElement) || rewardSlots.length !== rewardSlotIds.length) return;
+
+  function resetRewardStamp(el, pendingType) {
+    if (el.dataset.filled !== "true") return;
+    el.classList.remove("caseFollowReward--complete");
+    el.dataset.filled = "false";
+    el.dataset.type = pendingType;
+    const disk = el.querySelector(".caseFollowReward__disk");
     if (disk) {
       const hole = document.createElement("div");
       hole.className = "caseFollowReward__hole";
@@ -2657,38 +2687,81 @@ function wireCaseFollowCanvasLoyaltyDemo() {
     }
   }
 
-  function fillOrder5() {
-    if (reward.dataset.filled === "true") return;
-    const hole = reward.querySelector(".caseFollowReward__hole");
+  function fillRewardStamp(el, imgSpec) {
+    if (el.dataset.filled === "true") return;
+    const hole = el.querySelector(".caseFollowReward__hole");
     if (!hole) return;
 
-    reward.classList.add("caseFollowReward--complete");
-    reward.dataset.filled = "true";
-    reward.dataset.type = "complete";
+    el.classList.add("caseFollowReward--complete");
+    el.dataset.filled = "true";
+    el.dataset.type = "complete";
 
     const disk = document.createElement("div");
     disk.className = "caseFollowReward__disk caseFollowReward__disk--popIn";
     disk.setAttribute("aria-hidden", "true");
     const img = document.createElement("img");
-    img.src = "./assets/affinity/Star-1.svg?v=1";
+    img.src = imgSpec.src;
     img.alt = "";
-    img.width = 21;
-    img.height = 20;
+    img.width = imgSpec.width;
+    img.height = imgSpec.height;
     img.decoding = "async";
+    if (imgSpec.className) img.className = imgSpec.className;
     disk.appendChild(img);
     hole.replaceWith(disk);
+  }
+
+  const STAGGER_MS = 300;
+  /** Time after last stamp starts before disk + icon motion reads as finished */
+  const STAMP_ANIM_MS = 880;
+
+  /** @type {number[]} */
+  let stampTimeouts = [];
+
+  function clearStampTimeouts() {
+    stampTimeouts.forEach((id) => window.clearTimeout(id));
+    stampTimeouts = [];
+  }
+
+  let sequencePlaying = false;
+
+  function resetRewards() {
+    clearStampTimeouts();
+    sequencePlaying = false;
+    for (const { el, pendingType } of rewardSlots) {
+      resetRewardStamp(el, pendingType);
+    }
   }
 
   canvas.addEventListener("click", (e) => {
     const slide = canvas.closest(".slide.slide--caseFollow");
     if (!slide?.classList.contains("is-active")) return;
     if (e.target.closest("button, a, input, select, textarea, label")) return;
-    fillOrder5();
+    if (sequencePlaying) return;
+
+    const anyEmpty = rewardSlots.some(({ el }) => el.dataset.filled !== "true");
+    if (!anyEmpty) return;
+
+    sequencePlaying = true;
+    clearStampTimeouts();
+
+    rewardSlots.forEach(({ el, stamp }, i) => {
+      const tid = window.setTimeout(() => {
+        fillRewardStamp(el, stamp);
+      }, i * STAGGER_MS);
+      stampTimeouts.push(tid);
+    });
+
+    const lastStartMs = (rewardSlots.length - 1) * STAGGER_MS;
+    stampTimeouts.push(
+      window.setTimeout(() => {
+        sequencePlaying = false;
+      }, lastStartMs + STAMP_ANIM_MS),
+    );
   });
 
   document.addEventListener("slideshow:change", (e) => {
     if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
-    if (e.detail.index !== 6) resetOrder5();
+    if (e.detail.index !== 6) resetRewards();
   });
 }
 
