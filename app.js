@@ -2637,7 +2637,62 @@ function wireCaseFollowPhoneEnter() {
 
 wireCaseFollowPhoneEnter();
 
-// ── Loyalty hanger modal ─────────────────────────────────────────────────────
+/** Slide 7: tap canvas to complete Order 5 with the same stamp treatment as Order 2 */
+function wireCaseFollowCanvasLoyaltyDemo() {
+  const canvas = document.getElementById("caseFollowCanvas");
+  const reward = document.getElementById("caseFollowRewardOrder5");
+  if (!(canvas instanceof HTMLElement) || !(reward instanceof HTMLElement)) return;
+
+  function resetOrder5() {
+    if (reward.dataset.filled !== "true") return;
+    reward.classList.remove("caseFollowReward--complete");
+    reward.dataset.filled = "false";
+    reward.dataset.type = "empty";
+    const disk = reward.querySelector(".caseFollowReward__disk");
+    if (disk) {
+      const hole = document.createElement("div");
+      hole.className = "caseFollowReward__hole";
+      hole.setAttribute("aria-hidden", "true");
+      disk.replaceWith(hole);
+    }
+  }
+
+  function fillOrder5() {
+    if (reward.dataset.filled === "true") return;
+    const hole = reward.querySelector(".caseFollowReward__hole");
+    if (!hole) return;
+
+    reward.classList.add("caseFollowReward--complete");
+    reward.dataset.filled = "true";
+    reward.dataset.type = "complete";
+
+    const disk = document.createElement("div");
+    disk.className = "caseFollowReward__disk caseFollowReward__disk--popIn";
+    disk.setAttribute("aria-hidden", "true");
+    const img = document.createElement("img");
+    img.src = "./assets/affinity/Star-1.svg?v=1";
+    img.alt = "";
+    img.width = 21;
+    img.height = 20;
+    img.decoding = "async";
+    disk.appendChild(img);
+    hole.replaceWith(disk);
+  }
+
+  canvas.addEventListener("click", (e) => {
+    const slide = canvas.closest(".slide.slide--caseFollow");
+    if (!slide?.classList.contains("is-active")) return;
+    if (e.target.closest("button, a, input, select, textarea, label")) return;
+    fillOrder5();
+  });
+
+  document.addEventListener("slideshow:change", (e) => {
+    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
+    if (e.detail.index !== 6) resetOrder5();
+  });
+}
+
+wireCaseFollowCanvasLoyaltyDemo();
 (function initLoyaltyModal() {
   const modal1 = document.getElementById("loyaltyModal");
   const modal2 = document.getElementById("loyaltyModalRerouted");
