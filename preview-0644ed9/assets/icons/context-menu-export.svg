@@ -1,0 +1,15 @@
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip_fgGiftMenuExport)">
+<mask id="mask_fgGiftMenuExport" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="2" y="2" width="20" height="20">
+<rect x="2" y="2" width="20" height="20" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask_fgGiftMenuExport)">
+<path d="M9.54856 12.3531V6.24196L7.81913 7.97138L7.17411 7.33973L9.99993 4.5139L12.8257 7.33973L12.1807 7.97138L10.4513 6.24196V12.3531H9.54856ZM6.4587 14.6528C6.14592 14.6528 5.88247 14.5448 5.66835 14.329C5.45423 14.1131 5.34717 13.8489 5.34717 13.5363V12.4866H6.24993V13.5363C6.24993 13.5897 6.27219 13.6387 6.3167 13.6832C6.36122 13.7277 6.4102 13.75 6.46363 13.75H13.5362C13.5897 13.75 13.6386 13.7277 13.6832 13.6832C13.7277 13.6387 13.7499 13.5897 13.7499 13.5363V12.4866H14.6527V13.5363C14.6527 13.8489 14.5447 14.1131 14.3287 14.329C14.1127 14.5448 13.8483 14.6528 13.5355 14.6528H6.4587Z" fill="#191D48"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip_fgGiftMenuExport">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>

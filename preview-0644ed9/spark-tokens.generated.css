@@ -1,0 +1,139 @@
+/*
+ * AUTO-GENERATED — do not edit by hand.
+ * Source package: ../RC Frontend/packages/merchant-portal (MERCHANT_PORTAL_ROOT)
+ *   design-system/theme/foundations/colors.ts
+ *   design-system/theme/foundations/shadows.ts
+ *   design-system/theme/foundations/radii.ts
+ *   design-system/theme/foundations/typography.ts
+ *   design-system/theme/foundations/index.ts (transition.duration)
+ * Regenerate: npm run sync-spark
+ */
+
+:root {
+  /* foundations/colors — primitives */
+  --spark-palette-midnight-10: #E2E3ED;
+  --spark-palette-midnight-20: #CACCE7;
+  --spark-palette-midnight-30: #B4B7DD;
+  --spark-palette-midnight-40: #848BD4;
+  --spark-palette-midnight-60: #4751BF;
+  --spark-palette-midnight-80: #2E3685;
+  --spark-palette-midnight-100: #191D48;
+  --spark-palette-midnight-120: #060820;
+  --spark-palette-jade-20: #D3E8E5;
+  --spark-palette-jade-40: #A7D0CB;
+  --spark-palette-jade-60: #7BB9B1;
+  --spark-palette-jade-80: #539D93;
+  --spark-palette-jade-100: #3C716A;
+  --spark-palette-cobalt-10: #ECE9FF;
+  --spark-palette-cobalt-20: #CECAFF;
+  --spark-palette-cobalt-40: #A394FE;
+  --spark-palette-cobalt-60: #845FFE;
+  --spark-palette-cobalt-80: #5B29FE;
+  --spark-palette-cobalt-100: #3901F1;
+  --spark-palette-cobalt-120: #2C02B7;
+  --spark-palette-structure-10: #F6F8F9;
+  --spark-palette-structure-15: #F0F1F3;
+  --spark-palette-structure-20: #E9EAEB;
+  --spark-palette-structure-40: #D5DADD;
+  --spark-palette-structure-50: #B1BCC2;
+  --spark-palette-structure-60: #8A95A0;
+  --spark-palette-structure-80: #6E7381;
+  --spark-palette-structure-100: #616374;
+  --spark-palette-paper: #FFFBF6;
+  --spark-palette-white: #fff;
+
+  /* foundations/shadows */
+  --spark-palette-shadow-1: 0px 0px 2px rgba(25, 29, 72, 0.2);
+  --spark-palette-shadow-2: 0px 1px 4px rgba(25, 29, 72, 0.2);
+  --spark-palette-shadow-3: 0px 4px 8px rgba(25, 29, 72, 0.1), 0px 1px 4px rgba(31, 41, 55, 0.15);
+  --spark-palette-shadow-4: 0px 2px 4px rgba(25, 29, 72, 0.15), 0px 8px 16px rgba(25, 29, 72, 0.1);
+  --spark-palette-shadow-5: 0px 4px 8px rgba(25, 29, 72, 0.5), 0px 4px 24px rgba(25, 29, 72, 0.5);
+  --spark-palette-shadow-focus: 0 0 0 1.5px white, 0 0 0 3px var(--chakra-colors-aqua-100);
+
+  /* foundations/radii */
+  --spark-palette-radii-none: 0;
+  --spark-palette-radii-sm: 2px;
+  --spark-palette-radii-base: 4px;
+  --spark-palette-radii-md: 6px;
+  --spark-palette-radii-lg: 8px;
+  --spark-palette-radii-xl: 12px;
+  --spark-palette-radii-2xl: 16px;
+  --spark-palette-radii-3xl: 24px;
+  --spark-palette-radii-full: 9999px;
+
+  /* foundations/typography (font stacks from DS; Connary “Greycliff CF” added in spark.css) */
+  --spark-palette-font-heading: "Greycliff", sans-serif;
+  --spark-palette-font-body: "Avenir", sans-serif;
+  --spark-palette-type-heading1-font-size: 1.75rem;
+  --spark-palette-type-heading2-font-size: 1.5rem;
+  --spark-palette-type-heading3-font-size: 1.25rem;
+  --spark-palette-type-heading4-font-size: 1rem;
+  --spark-palette-type-body1-font-size: 0.875rem;
+  --spark-palette-type-body2-font-size: 0.75rem;
+  --spark-palette-type-metrics1-font-size: 2.25rem;
+  --spark-palette-type-metrics2-font-size: 2rem;
+  --spark-palette-type-superHeading-font-size: 3.75rem;
+  --spark-palette-type-heading1-line-height: 2rem;
+  --spark-palette-type-heading2-line-height: 1.75rem;
+  --spark-palette-type-heading3-line-height: 1.5rem;
+  --spark-palette-type-heading4-line-height: 1.5rem;
+  --spark-palette-type-body1-line-height: 1.25rem;
+  --spark-palette-type-body2-line-height: 1rem;
+  --spark-palette-type-metrics1-line-height: 2.25rem;
+  --spark-palette-type-metrics2-line-height: 2rem;
+  --spark-palette-type-superHeading-line-height: 4rem;
+  --spark-palette-type-tight-line-height: 1rem;
+  --spark-palette-type-wide-line-height: 1.5rem;
+
+  /* foundations/index transition.duration */
+  --spark-transition-ultra-fast: 50ms;
+  --spark-transition-faster: 75ms;
+  --spark-transition-fast: 85ms;
+  --spark-transition-normal: 100ms;
+  --spark-transition-slow: 200ms;
+  --spark-transition-slower: 300ms;
+  --spark-transition-ultra-slow: 400ms;
+
+  /* Semantic — portfolio slide / flow UI */
+  --spark-color-ink: var(--spark-palette-midnight-100);
+  --spark-color-ink-muted: color-mix(in srgb, var(--spark-palette-midnight-100) 68%, transparent);
+  --spark-color-ink-subtle: color-mix(in srgb, var(--spark-palette-midnight-100) 58%, transparent);
+  --spark-color-ink-faint: color-mix(in srgb, var(--spark-palette-midnight-100) 45%, transparent);
+  --spark-color-white: var(--spark-palette-white);
+  --spark-color-teal: var(--spark-palette-jade-100);
+  --spark-color-active-ring: var(--spark-palette-cobalt-100);
+  --spark-color-cream: var(--spark-palette-paper);
+  --spark-color-kebab: var(--spark-palette-midnight-10);
+  --spark-color-purple: var(--spark-palette-cobalt-100);
+  --spark-color-link: var(--spark-palette-cobalt-80);
+  --spark-color-link-hover: var(--spark-palette-cobalt-120);
+  --spark-color-canvas-dot: color-mix(in srgb, var(--spark-palette-midnight-100) 7%, transparent);
+  --spark-color-stroke: color-mix(in srgb, var(--spark-palette-midnight-100) 12%, transparent);
+  --spark-color-stroke-strong: color-mix(in srgb, var(--spark-palette-midnight-100) 14%, transparent);
+  --spark-color-stroke-bold: color-mix(in srgb, var(--spark-palette-midnight-100) 28%, transparent);
+  --spark-color-field-bg: color-mix(in srgb, var(--spark-palette-midnight-100) 4%, transparent);
+  --spark-color-surface-hover: color-mix(in srgb, var(--spark-palette-midnight-100) 3%, transparent);
+  --spark-color-backdrop: color-mix(in srgb, var(--spark-palette-midnight-100) 22%, transparent);
+  --spark-color-control-bg: color-mix(in srgb, var(--spark-palette-midnight-100) 6%, transparent);
+  --spark-color-control-bg-hover: color-mix(in srgb, var(--spark-palette-midnight-100) 10%, transparent);
+  --spark-color-panel-border: var(--spark-palette-structure-20);
+  --spark-color-panel-outline: var(--spark-palette-structure-50);
+  --spark-color-panel-muted-text: var(--spark-palette-structure-80);
+  --spark-color-panel-hint: var(--spark-palette-structure-100);
+  --spark-color-panel-footer: var(--spark-palette-structure-10);
+  --spark-color-apply: var(--spark-palette-cobalt-100);
+
+  /* radii — map deck components to DS radii */
+  --spark-radius-xs: var(--spark-palette-radii-md);
+  --spark-radius-sm: var(--spark-palette-radii-lg);
+  --spark-radius-md: 10px;
+  --spark-radius-lg: var(--spark-palette-radii-xl);
+  --spark-radius-pill: var(--spark-palette-radii-full);
+  --spark-shadow-sm: var(--spark-palette-shadow-2);
+  --spark-shadow-sm-hover: var(--spark-palette-shadow-3);
+  --spark-shadow-panel: var(--spark-palette-shadow-4);
+  --spark-shadow-panel-inline: var(--spark-palette-shadow-4);
+  --spark-shadow-panel-footer: 0 -1px 8px rgba(0, 0, 0, 0.1);
+  --spark-shadow-focus-ring: 0 0 0 2px var(--spark-color-white),
+    0 0 0 4px color-mix(in srgb, var(--spark-palette-midnight-100) 35%, transparent);
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="560" viewBox="0 0 680 560" role="img" aria-label="Affiliates">
+  <rect x="20" y="20" width="640" height="520" rx="48" fill="#0B1220"/>
+  <rect x="56" y="76" width="568" height="56" rx="20" fill="#111B2E"/>
+  <text x="92" y="114" font-size="22" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" fill="#E6EDF7">Affiliates</text>
+
+  <rect x="156" y="212" width="368" height="232" rx="48" fill="#111B2E"/>
+  <path d="M240 328h200" stroke="#E6EDF7" stroke-width="12" stroke-linecap="round" opacity="0.8"/>
+  <path d="M276 300l-36 28 36 28" fill="none" stroke="#34D399" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M404 300l36 28-36 28" fill="none" stroke="#60A5FA" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="340" y="470" text-anchor="middle" font-size="18" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" fill="#E6EDF7" opacity="0.85">
+    Partners " Influencers " Attribution
+  </text>
+</svg>
+

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="560" viewBox="0 0 680 560" role="img" aria-label="Customer chat">
+  <rect x="20" y="20" width="640" height="520" rx="48" fill="#0B1220"/>
+  <rect x="56" y="76" width="568" height="56" rx="20" fill="#111B2E"/>
+  <text x="92" y="114" font-size="22" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" fill="#E6EDF7">Customer chat</text>
+
+  <path d="M160 210h260a80 80 0 0 1 80 80v52a80 80 0 0 1-80 80H264l-84 66v-66h-20a80 80 0 0 1-80-80v-52a80 80 0 0 1 80-80z" fill="#111B2E"/>
+  <circle cx="210" cy="330" r="12" fill="#E6EDF7" opacity="0.75"/>
+  <circle cx="264" cy="330" r="12" fill="#E6EDF7" opacity="0.75"/>
+  <circle cx="318" cy="330" r="12" fill="#E6EDF7" opacity="0.75"/>
+</svg>
+

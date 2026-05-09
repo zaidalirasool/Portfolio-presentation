@@ -1,0 +1,25 @@
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might contain local-only secrets/config
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local tooling (Playwright installs, etc.) — not project dependencies
+node_modules/
+package.json
+package-lock.json
+
+.fonttools_pkg/
+

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320" role="img" aria-label="Merchant logo">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#22C55E"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="300" height="300" rx="76" fill="url(#g)"/>
+  <circle cx="160" cy="150" r="58" fill="rgba(255,255,255,0.92)"/>
+  <path d="M100 250c18-34 48-52 60-52s42 18 60 52" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="18" stroke-linecap="round"/>
+  <text x="160" y="300" text-anchor="middle" font-size="18" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" fill="rgba(255,255,255,0.92)">
+    Merchant
+  </text>
+</svg>
+

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220" role="img" aria-label="Yotpo, Smile.io, and LoyaltyLion">
+  <!-- In-card brand stack (no Recharge — that reveals separately). Transparent bg; node chrome shows through. -->
+  <text x="0" y="34" font-size="26" font-weight="700" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" fill="#2563eb" letter-spacing="-0.02em">yotpo.</text>
+
+  <g transform="translate(0, 58)">
+    <path d="M6 18c4-10 14-16 24-12 4 2 7 5 9 9" fill="none" stroke="#ca8a04" stroke-width="3.2" stroke-linecap="round"/>
+    <text x="38" y="22" font-size="19" font-weight="500" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" fill="#374151" letter-spacing="-0.01em">smile.io</text>
+  </g>
+
+  <g transform="translate(0, 118)">
+    <path d="M18 8c-2-6 2-12 8-12 4 0 7 3 8 7 1-4 5-7 10-7 7 0 11 7 9 14-2 8-10 18-18 24-8-6-16-16-18-24-1-2-1-4 1-2z" fill="#1f2937"/>
+    <text x="44" y="20" font-size="13" font-weight="800" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" fill="#111827" letter-spacing="0.06em">LOYALTYLION</text>
+  </g>
+</svg>

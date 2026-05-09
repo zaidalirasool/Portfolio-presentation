@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="560" viewBox="0 0 680 560" role="img" aria-label="Customer data">
+  <rect x="20" y="20" width="640" height="520" rx="48" fill="#0B1220"/>
+  <rect x="56" y="76" width="568" height="56" rx="20" fill="#111B2E"/>
+  <text x="92" y="114" font-size="22" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" fill="#E6EDF7">Customer data</text>
+
+  <!-- Database stack -->
+  <ellipse cx="340" cy="236" rx="130" ry="42" fill="#60A5FA" opacity="0.95"/>
+  <path d="M210 236v138c0 24 58 42 130 42s130-18 130-42V236" fill="#60A5FA" opacity="0.78"/>
+  <ellipse cx="340" cy="374" rx="130" ry="42" fill="#60A5FA" opacity="0.95"/>
+
+  <!-- Event dots -->
+  <circle cx="182" cy="322" r="10" fill="#34D399" opacity="0.9"/>
+  <circle cx="498" cy="290" r="10" fill="#FBBF24" opacity="0.9"/>
+  <circle cx="520" cy="352" r="10" fill="#34D399" opacity="0.9"/>
+  <circle cx="160" cy="280" r="10" fill="#FBBF24" opacity="0.9"/>
+
+  <text x="340" y="470" text-anchor="middle" font-size="18" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" fill="#E6EDF7" opacity="0.85">
+    Collect " Route " Unify
+  </text>
+</svg>
+

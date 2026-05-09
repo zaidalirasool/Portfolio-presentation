@@ -1,0 +1,2353 @@
+/* Framer-inspired styling: clean light surfaces, subtle borders, crisp type. */
+/* Spark design system (Greycliff / Quincy / Avenir, slide 5 flow UI): ./spark.css */
+
+:root {
+  --bg: #f9f8f4;
+  --bgSubtle: #f7f7f8;
+  --panel: rgba(255, 255, 255, 0.78);
+  --panel2: rgba(255, 255, 255, 0.92);
+  --stroke: rgba(0, 0, 0, 0.10);
+  --stroke2: rgba(0, 0, 0, 0.14);
+  /* Match SVG edge stroke (see `.edge`) — use for node rings so weight is consistent. */
+  --graph-stroke: rgba(0, 0, 0, 0.14);
+  --graph-stroke-strong: rgba(0, 0, 0, 0.22);
+  /** Hairline via box-shadow avoids `border: 0.5px` snapping to a full CSS pixel (looked heavier than connectors). */
+  --node-stroke-ring: 0 0 0 0.5px var(--graph-stroke);
+  --node-stroke-ring-selected: 0 0 0 0.5px var(--graph-stroke-strong);
+  --text: rgba(0, 0, 0, 0.90);
+  --muted: rgba(0, 0, 0, 0.62);
+  --muted2: rgba(0, 0, 0, 0.48);
+  --shadow: 0 18px 60px rgba(0, 0, 0, 0.12);
+  --shadow2: 0 10px 30px rgba(0, 0, 0, 0.10);
+  --radius: 8px;
+
+  --tag-hub: #6d28d9;
+  --tag-repeat: #16a34a;
+  --tag-measure: #d97706;
+  --tag-pre: #2563eb;
+  --tag-crm: #ea580c;
+  --tag-data: #059669;
+  --tag-ad: #db2777;
+  --tag-qual: #7c3aed;
+  --tag-quant: #b45309;
+
+  --node-bg: rgba(255, 255, 255, 0.86);
+  --node-bg-hover: rgba(255, 255, 255, 0.96);
+
+  /* Case follow — loyalty (Figma / Code Connect tokens) */
+  --Color-1: #ffffff;
+  --Color-14: #0b1317;
+  --Color-Neutral-500: #000000;
+  --Color-Brand-200: #dceaf3;
+  --Color-Brand-inverse-500: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  /* White outside the framed stage; dotted Spark surface lives on `.stageWrap` (maps + flow). */
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--spark-font-body), "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Inline links: hover/focus matches flow panel Delete (label → cobalt active ring). */
+a:link,
+a:visited {
+  color: var(--spark-palette-midnight-100);
+  transition: color 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+a:hover,
+a:active {
+  color: var(--spark-color-active-ring);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.slidesDeck {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Slides participate in normal flex flow when active; hidden via display:none when not.
+   This is the working pattern from the original committed version — DO NOT change to
+   position:absolute + opacity. That breaks the flex height chain inside the map slide. */
+.slide {
+  flex: 1;
+  min-height: 0;
+  display: none;
+  flex-direction: column;
+}
+
+.slide.is-active {
+  display: flex;
+}
+
+.stageWrap--intro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.introSlide {
+  max-width: min(1100px, 92vw);
+  text-align: center;
+  padding: 48px 32px;
+}
+
+.introSlide__title {
+  margin: 0;
+  font-family: var(--spark-font-display);
+  font-size: clamp(28px, 5vw, 56px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+
+.btn {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.90);
+  color: rgba(255, 255, 255, 0.96);
+  cursor: pointer;
+}
+.btn:hover { background: rgba(0, 0, 0, 0.82); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn--ghost { background: rgba(255, 255, 255, 0.75); color: rgba(0, 0, 0, 0.86); }
+.btn--ghost:hover { background: rgba(255, 255, 255, 0.92); }
+.btn--small { height: 32px; border-radius: 10px; }
+
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  /* Extra bottom space so content stays above fixed slide dots */
+  padding: 18px 18px 52px 18px;
+  min-height: 0;
+}
+
+/* Map slides: `.main` as grid gives implicit `auto` rows; `#stage` is `position:absolute`
+   so `.stageWrap` can collapse to ~0 height and the deck looks empty. Flex fills the slide. */
+.slide--map .main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Slideshow pagination — minimal dots (fixed so it stays visible when the deck is tall or embedded) */
+.slideshowPagination {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2147483646;
+  display: flex;
+  justify-content: center;
+  padding: 12px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+  pointer-events: auto;
+  isolation: isolate;
+  contain: layout;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.88) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.slideshowPagination__dots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.slideshowPagination__dot {
+  box-sizing: content-box;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  /* No horizontal padding so the visible gap between dots equals the flex `gap` (8px). */
+  padding: 12px 0;
+  margin: -12px 0;
+  border: none;
+  border-radius: 999px;
+  /* Use background-color (not shorthand) so background-clip is never reset */
+  background-color: rgba(0, 0, 0, 0.18);
+  background-clip: content-box;
+  -webkit-background-clip: content-box;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* Color-only transition so the active state appears instantly (no width animation lag) */
+  transition: background-color 120ms ease;
+}
+
+.slideshowPagination__dot:hover {
+  background-color: rgba(0, 0, 0, 0.32);
+}
+
+.slideshowPagination__dot:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 2px;
+}
+
+.slideshowPagination__dot.is-active {
+  width: 22px;
+  min-width: 22px;
+  background-color: rgba(0, 0, 0, 0.55);
+}
+
+@media (max-width: 980px) {
+  .main { grid-template-columns: 1fr; }
+  .side { order: -1; }
+}
+
+.stageWrap {
+  position: relative;
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  background-color: var(--spark-deck-surface-color);
+  background-image: var(--spark-deck-surface-image);
+  background-size: var(--spark-deck-surface-size);
+  background-position: var(--spark-deck-surface-position);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mapSlideMount {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.mapSlideMount > .stageWrap {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Solid white inside frame — dot grid from `.stageWrap` is for map / flow canvases only */
+.stageWrap.stageWrap--intro {
+  background: var(--bg);
+  background-image: none;
+}
+
+/* Slide 3: same outer frame as the map (mapSlideMount → stageWrap), image padded inside */
+.stageWrap.stageWrap--imageSlide {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.imageSlideCanvas {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 56px;
+  /* Fill the stage frame; let the <img> own the whole inner box so object-fit uses full area */
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: stretch;
+  align-content: stretch;
+}
+
+.imageSlideCanvas__img {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.viewport .edges {
+  transition: opacity 380ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.viewport .nodes .node {
+  transition:
+    opacity 420ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 420ms cubic-bezier(0.4, 0, 0.2, 1),
+    filter 420ms ease;
+}
+
+.viewport.viewport--merchantSolo .edges {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.viewport.viewport--merchantSolo .nodes .node:not([data-id="merchant"]):not([data-merchant-clone="true"]) {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.88);
+  pointer-events: none;
+}
+
+.viewport.viewport--merchantSolo .nodes .node[data-id="merchant"] {
+  opacity: 1;
+  filter: none;
+}
+
+/* Merchant logo cards slide up from the Merchant node */
+@keyframes merchantLogoSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--from-x, 0px)), calc(-50% + var(--from-y, 0px))) scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.node.node--merchantLogoCard {
+  pointer-events: none;
+  width: 130px;
+  height: 130px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: merchantLogoSlideUp 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.node--merchantLogoCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Arrae is a wide text-only logo — wider card, tight padding so it hugs edges */
+.node.node--merchantLogoCard[data-logo="arrae"] {
+  width: 170px;
+  height: 80px;
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport .edges,
+  .viewport .nodes .node {
+    transition-duration: 0.01ms;
+  }
+}
+
+.emojiRain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.emojiRain > span {
+  position: absolute;
+  top: -40px;
+  font-size: 22px;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: emoji-fall var(--dur, 2200ms) linear forwards;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.14));
+}
+
+@keyframes emoji-fall {
+  0%   { transform: translate3d(0, -10px, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  100% { transform: translate3d(var(--dx, 0px), 900px, 0) rotate(var(--rot, 160deg)); opacity: 0; }
+}
+
+/* One-shot confetti when Recharge logo reveals on Loyalty */
+@keyframes confetti-burst-piece {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--cdx), var(--cdy), 0) rotate(var(--crot));
+    opacity: 0;
+  }
+}
+
+.confettiBit {
+  position: fixed;
+  z-index: 100000;
+  pointer-events: none;
+  border-radius: 1px;
+  will-change: transform, opacity;
+  animation-name: confetti-burst-piece;
+  animation-timing-function: cubic-bezier(0.22, 0.82, 0.38, 0.98);
+  animation-fill-mode: forwards;
+}
+
+@keyframes recharge-logo-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.45);
+    filter: blur(4px);
+  }
+  52% {
+    opacity: 1;
+    transform: scale(1.14);
+    filter: blur(0);
+  }
+  72% {
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes loyalty-main-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+  28% {
+    opacity: 1;
+    transform: scale(1.08) translateY(-6px);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.55) translateY(36px);
+    filter: blur(8px);
+  }
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  outline: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.nodes {
+  position: absolute;
+  inset: 0;
+}
+
+.node {
+  position: absolute;
+  width: 170px;
+  padding: 10px 10px 10px 10px;
+  border-radius: 8px;
+  border: none;
+  background: var(--node-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--node-stroke-ring), var(--shadow2);
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  text-align: left;
+  font-family: var(--spark-font-body);
+  transition:
+    opacity 220ms ease,
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 220ms ease;
+}
+.node:hover { background: var(--node-bg-hover); }
+.node[data-muted="true"] { opacity: 0.26; filter: saturate(0.7); }
+
+/* Slide 4: pre and loyalty stay visible by default. Subscriptions joins
+   this set after clicking Repeat purchase (it's revealed via reveal()).
+   Repeat purchase and Measure performance show as muted/diffused — same as Merchant. */
+.viewport.viewport--slide4 .nodes .node[data-id="pre"]:not([data-hidden="true"]),
+.viewport.viewport--slide4 .nodes .node[data-id="loyalty"]:not([data-hidden="true"]),
+.viewport.viewport--slide4 .nodes .node[data-id="subscriptions"]:not([data-hidden="true"]) {
+  opacity: 1;
+  filter: none;
+}
+
+/* Slide 4: only Loyalty is shown as a Pre-purchase child. The other pre-children
+   and all Measure/Repeat siblings are permanently invisible — !important ensures
+   applyFiltering()'s data-muted/data-hidden state changes cannot override this. */
+.viewport.viewport--slide4 .nodes .node[data-id="ab"],
+.viewport.viewport--slide4 .nodes .node[data-id="personalization"],
+.viewport.viewport--slide4 .nodes .node[data-id="chat"],
+.viewport.viewport--slide4 .nodes .node[data-id="referral"],
+.viewport.viewport--slide4 .nodes .node[data-id="affiliates"],
+.viewport.viewport--slide4 .nodes .node[data-id="mail"],
+.viewport.viewport--slide4 .nodes .node[data-id="ads"],
+.viewport.viewport--slide4 .nodes .node[data-id="quant"],
+.viewport.viewport--slide4 .nodes .node[data-id="qual"],
+.viewport.viewport--slide4 .nodes .node[data-id="data"],
+.viewport.viewport--slide4 .nodes .node[data-id="crm"],
+.viewport.viewport--slide4 .nodes .node[data-id="reorder"],
+.viewport.viewport--slide4 .nodes .node[data-id="upsell"] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  transform: translate(-50%, -50%) scale(0.94) !important;
+}
+
+/* Keep the merchant→pre and pre→loyalty connectors active on slide 4 (before reroute) */
+.viewport.viewport--slide4 .edges .edge[data-a="merchant"][data-b="pre"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="merchant"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="loyalty"],
+.viewport.viewport--slide4 .edges .edge[data-a="loyalty"][data-b="pre"] {
+  opacity: 1 !important;
+  stroke: var(--graph-stroke-strong) !important;
+}
+
+/* Hide their connecting edges to the hubs too */
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="ab"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="personalization"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="chat"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="referral"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="affiliates"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="mail"],
+.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="ads"],
+.viewport.viewport--slide4 .edges .edge[data-a="measure"][data-b="quant"],
+.viewport.viewport--slide4 .edges .edge[data-a="measure"][data-b="qual"],
+.viewport.viewport--slide4 .edges .edge[data-a="measure"][data-b="data"],
+.viewport.viewport--slide4 .edges .edge[data-a="measure"][data-b="crm"],
+.viewport.viewport--slide4 .edges .edge[data-a="repeat"][data-b="reorder"],
+.viewport.viewport--slide4 .edges .edge[data-a="repeat"][data-b="upsell"] {
+  opacity: 0 !important;
+}
+
+/* ── Slide 4 Loyalty reroute ──────────────────────────────────────────────── */
+
+/* Loyalty slides to its new position — extend the base node transition to include left/top */
+.node--slide4-moving {
+  transition:
+    left 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    top 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity var(--node-tr),
+    filter var(--node-tr),
+    transform var(--node-tr) var(--node-curve),
+    box-shadow var(--node-tr) !important;
+}
+
+/* Fade out the pre→loyalty edge once Loyalty has been detached */
+.viewport.viewport--slide4.viewport--slide4-rerouted .edges .edge[data-a="pre"][data-b="loyalty"],
+.viewport.viewport--slide4.viewport--slide4-rerouted .edges .edge[data-a="loyalty"][data-b="pre"] {
+  opacity: 0 !important;
+  transition: opacity 400ms ease !important;
+}
+
+/* Retention hub: pop in with a slight spring after Loyalty starts moving */
+@keyframes retentionHubIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.node--retentionHub {
+  animation: retentionHubIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms both;
+}
+
+/* New subscriptions→retention and retention→loyalty edges draw in */
+@keyframes edgeRerouteIn {
+  from { stroke-dashoffset: var(--edge-len, 1000); }
+  to   { stroke-dashoffset: 0; }
+}
+.edge--reroute {
+  stroke-dasharray: var(--edge-len, 1000);
+  stroke-dashoffset: 0;
+  animation: edgeRerouteIn 600ms ease 650ms both;
+  opacity: 1 !important;
+}
+
+/* Slide 4: dashed-bordered "challenge" nodes that fan out of Loyalty when clicked.
+   Look like third-base nodes but with a dashed outline (replacing the hairline ring),
+   and animate from Loyalty's center to their target position via inline transform. */
+.node.node--challenge {
+  width: 170px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff;
+  /* Outline is rendered by an inline SVG <rect> child (.node__dotOutline) so the
+     dot pattern matches the connector edges exactly (CSS dotted borders can't
+     control gap independently of dot size). */
+  box-shadow: none;
+  border: none;
+  text-align: center;
+  /* Match card hanger label weight; Avenir (spark body). */
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  /* Override the global .node transition so left/top/transform/opacity all animate. */
+  transition:
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity   600ms ease;
+}
+.node.node--challenge:hover {
+  background: #fff;
+}
+
+/* Inline SVG outline — same dot rhythm as the connector edges (0.1 5 stroke-dasharray
+   with round caps, stroke-width 1.5 → ~1.6px dot, ~3.5px gap). */
+.node__dotOutline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.node__dotOutline rect {
+  x: 0.75px;
+  y: 0.75px;
+  width: calc(100% - 1.5px);
+  height: calc(100% - 1.5px);
+  rx: 7.25;
+  ry: 7.25;
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.34);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 5;
+}
+.node--challenge > .node__challengeLabel {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dotted connector edges from Loyalty to each challenge node — stay visible regardless
+   of selection-driven .edge--muted/.edge--hidden classes that setEdgeClasses() applies.
+   These properties override the base `.edge { stroke-width: 0.5 }` rule via cascade
+   (CSS beats SVG presentation attributes set inline). */
+.viewport.viewport--slide4 .edges .edge.edge--challenge {
+  opacity: 1 !important;
+  stroke: rgba(0, 0, 0, 0.34);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  /* 0.1px dash + ~5px gap with round caps renders as evenly-spaced circular dots. */
+  stroke-dasharray: 0.1 5;
+}
+
+/* Card hanger: blue footer tab on the Loyalty card, visible on slide 4 only. */
+.cardHanger { display: none; }
+
+.viewport.viewport--slide4 .node[data-id="loyalty"] .cardHanger {
+  display: flex;
+  height: 44px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;                        /* gap: -8px clamped to 0 — negative gap is not valid CSS */
+  flex-shrink: 0;
+  align-self: stretch;
+  box-sizing: border-box;
+  /* Blue/lavender fill, flush to the card bottom — override node border-radius on this element */
+  padding: 0 12px;
+  margin: 8px -10px -10px -10px; /* pull out to the card edges (card padding is 10px) */
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: rgba(199, 210, 254, 0.55);  /* indigo-200 @ 55% — matches the template's lavender */
+  /* Inset shadow on the top edge — simulates the white card sitting above the hanger */
+  box-shadow: inset 0 4px 6px -2px rgba(0, 0, 0, 0.22);
+}
+
+.cardHanger__label {
+  font-family: var(--spark-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--spark-palette-midnight-100);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+  transition: color 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.cardHanger:hover .cardHanger__label {
+  color: var(--spark-color-active-ring);
+}
+
+/* hide the icon placeholder entirely */
+.cardHanger__icon { display: none; }
+.node[data-selected="true"] {
+  outline: none;
+  box-shadow: var(--node-stroke-ring-selected), var(--shadow2);
+}
+.node[data-hidden="true"] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.94);
+}
+
+/* Section hubs: cleaner + more prominent, no internal chips */
+.node.node--hub {
+  /* Pulled from Framer card styling (GGcNwndaS) */
+  width: fit-content;
+  max-width: 320px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  color: rgb(17, 17, 17);
+  box-shadow: var(--node-stroke-ring), 0 18px 55px rgba(0, 0, 0, 0.10);
+}
+.node.node--hub:hover {
+  background: rgba(255, 255, 255, 0.98);
+}
+.node.node--hub[data-selected="true"] {
+  outline: none;
+  box-shadow: var(--node-stroke-ring-selected), 0 18px 55px rgba(0, 0, 0, 0.10);
+}
+
+/* AnimatedTraitsList-style inner row (emoji tile + label) */
+.hubRow {
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hubEmojiTile {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  background: #ffffff;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12),
+    0 10px 22px rgba(0, 0, 0, 0.18),
+    0 24px 48px rgba(0, 0, 0, 0.14),
+    0 40px 72px rgba(0, 0, 0, 0.10);
+}
+
+.hubEmoji {
+  font-size: 24px;
+  line-height: 1;
+  display: block;
+  user-select: none;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+.hubEmojiOnly {
+  font-size: 24px;
+  line-height: 1;
+  display: block;
+  user-select: none;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+.hubText {
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1.2em;
+  text-align: left;
+  letter-spacing: -0.3px;
+  flex: 0 0 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.node__title {
+  font-family: var(--spark-font-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.3px;
+  line-height: 1.2em;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.node__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Framer-style Avatar: circle, subtle border, initials fallback */
+.node__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: rgba(0, 0, 0, 0.76);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+/* Merchant node: circle; same frosted surface as other nodes (no gradient) */
+.node.node--merchant {
+  --sphere-size: 96px;
+  width: var(--sphere-size);
+  height: var(--sphere-size);
+  min-width: var(--sphere-size);
+  max-width: var(--sphere-size);
+  min-height: var(--sphere-size);
+  max-height: var(--sphere-size);
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: none;
+  background: var(--node-bg);
+  box-shadow: var(--node-stroke-ring), var(--shadow2);
+  backdrop-filter: blur(10px);
+}
+
+.node.node--merchant:hover {
+  background: var(--node-bg-hover);
+}
+
+.node.node--merchant[data-selected="true"] {
+  outline: none;
+  box-shadow: var(--node-stroke-ring-selected), var(--shadow2);
+}
+
+.node.node--merchant .node__meta {
+  display: none;
+}
+
+.node.node--merchant .node__title {
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2em;
+  margin: 0;
+  max-width: 86px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node__avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.logoRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Merchant logo card (uses the uploaded logo) */
+.node.node--merchantLogo {
+  width: 140px;
+  height: 140px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  box-shadow: var(--node-stroke-ring), var(--shadow2);
+}
+.node.node--merchantLogo:hover {
+  background: rgba(255, 255, 255, 0.98);
+}
+.node.node--merchantLogo .merchantLogo {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+.node__meta {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.node__logos {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.node__logos--wordmarks {
+  gap: 10px;
+  align-items: center;
+}
+
+/* Card hero images (only used on `.node--imageCard`). Fixed width avoids `%` + `fit-content` cycles that keep the bitmap at full node width. */
+.node__comboLogo {
+  margin-top: 10px;
+  width: 126px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  border-radius: 8px;
+  image-rendering: auto;
+}
+
+.node__imageStack {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.node__imageStack .node__comboLogo {
+  margin-top: 0;
+}
+
+/* Loyalty: column layout so stacked logos can span the full card width. */
+.node.node--imageCard[data-id="loyalty"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Loyalty: both stacked logos span the full card content width (title-driven, up to node max-width). */
+.node.node--imageCard[data-id="loyalty"] .node__imageStack {
+  width: 100%;
+  min-width: 0;
+}
+
+.node.node--imageCard[data-id="loyalty"] .node__imageStack .node__comboLogo {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* A/B testing, Upsell & cross-sell, Post-purchase: stacked main art → Recharge reveal */
+.node.node--imageCard[data-id="ab"],
+.node.node--imageCard[data-id="reorder"],
+.node.node--imageCard[data-id="upsell"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.node.node--imageCard[data-id="ab"] .node__imageStack,
+.node.node--imageCard[data-id="reorder"] .node__imageStack,
+.node.node--imageCard[data-id="upsell"] .node__imageStack {
+  width: 100%;
+  min-width: 0;
+}
+
+.node.node--imageCard[data-id="ab"] .node__imageStack .node__comboLogo,
+.node.node--imageCard[data-id="reorder"] .node__imageStack .node__comboLogo,
+.node.node--imageCard[data-id="upsell"] .node__imageStack .node__comboLogo {
+  width: 100%;
+  max-width: 100%;
+}
+
+.node.node--imageCard[data-id="ab"] .node__comboLogo--recharge,
+.node.node--imageCard[data-id="reorder"] .node__comboLogo--recharge,
+.node.node--imageCard[data-id="upsell"] .node__comboLogo--recharge {
+  height: auto;
+}
+
+/* White matte behind Repeat stack / Post-purchase card art */
+.node.node--imageCard[data-id="reorder"] .node__imageStack,
+.node.node--imageCard[data-id="upsell"] .node__imageStack {
+  background-color: #ffffff;
+  border-radius: 6px;
+}
+
+/* Subscriptions: same full-width hero sizing as Post-purchase (not the default 126px `.node__comboLogo`). */
+.node.node--imageCard[data-id="subscriptions"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.node.node--imageCard[data-id="subscriptions"] .node__comboLogo {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Recharge mark above Loyalty art (revealed after emoji rain ends + Loyalty selected) */
+.node__comboLogo--recharge {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  transform-origin: center center;
+}
+
+.node__comboLogo--recharge.node__comboLogo--recharge--pop {
+  animation: recharge-logo-pop 0.72s cubic-bezier(0.34, 1.45, 0.64, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node__comboLogo--recharge.node__comboLogo--recharge--pop {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* `[hidden]` loses to `.node__comboLogo { display: block }` (same specificity, later rule). */
+.node__comboLogo--recharge[hidden] {
+  display: none !important;
+}
+
+/* Loyalty composite card: main artwork exits after Recharge reveal */
+.node__comboLogo--loyaltyMainExit {
+  animation: loyalty-main-exit 0.62s cubic-bezier(0.34, 0.82, 0.45, 0.98) forwards;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node__comboLogo--loyaltyMainExit {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Image cards hug title + combined image */
+.node.node--imageCard {
+  width: fit-content;
+  min-width: 0;
+  max-width: 170px;
+}
+
+/* One-off: shrink only the Personalization card image by 8px */
+.node.node--imageCard[data-id="personalization"] .node__comboLogo {
+  width: 118px;
+}
+
+.node.node--imageCard[data-id="crm"] {
+  width: 158px;
+  min-width: 158px;
+  max-width: 158px;
+}
+
+.node.node--imageCard[data-id="crm"] .node__comboLogo {
+  width: 138px;
+}
+
+.node.node--imageCard[data-id="chat"] {
+  width: 162px;
+  min-width: 162px;
+  max-width: 162px;
+}
+
+.node.node--imageCard[data-id="chat"] .node__comboLogo {
+  width: 142px;
+}
+
+.node__logoWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.90);
+  border: 0.5px solid rgba(0, 0, 0, 0);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.node__logoWrap--wordmark {
+  width: auto;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.node__logoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+  display: block;
+}
+
+.node__logoWrap--wordmark .node__logoImg {
+  padding: 0;
+  height: 32px;
+  width: auto;
+  max-width: 240px;
+}
+
+.node__logoFallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: rgba(17, 17, 17, 0.78);
+  background: rgba(0, 0, 0, 0.04);
+}
+.tag {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: rgba(17, 17, 17, 0.78);
+  letter-spacing: -0.2px;
+}
+.tag[data-color="hub"] { background: color-mix(in srgb, var(--tag-hub) 22%, transparent); border-color: color-mix(in srgb, var(--tag-hub) 40%, transparent); }
+.tag[data-color="repeat"] { background: color-mix(in srgb, var(--tag-repeat) 22%, transparent); border-color: color-mix(in srgb, var(--tag-repeat) 40%, transparent); }
+.tag[data-color="measure"] { background: color-mix(in srgb, var(--tag-measure) 24%, transparent); border-color: color-mix(in srgb, var(--tag-measure) 42%, transparent); }
+.tag[data-color="pre"] { background: color-mix(in srgb, var(--tag-pre) 22%, transparent); border-color: color-mix(in srgb, var(--tag-pre) 40%, transparent); }
+.tag[data-color="crm"] { background: color-mix(in srgb, var(--tag-crm) 24%, transparent); border-color: color-mix(in srgb, var(--tag-crm) 44%, transparent); }
+.tag[data-color="data"] { background: color-mix(in srgb, var(--tag-data) 22%, transparent); border-color: color-mix(in srgb, var(--tag-data) 40%, transparent); }
+.tag[data-color="ad"] { background: color-mix(in srgb, var(--tag-ad) 22%, transparent); border-color: color-mix(in srgb, var(--tag-ad) 40%, transparent); }
+.tag[data-color="qual"] { background: color-mix(in srgb, var(--tag-qual) 22%, transparent); border-color: color-mix(in srgb, var(--tag-qual) 40%, transparent); }
+.tag[data-color="quant"] { background: color-mix(in srgb, var(--tag-quant) 22%, transparent); border-color: color-mix(in srgb, var(--tag-quant) 42%, transparent); }
+
+.side {
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.side__inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.side__header {
+  padding: 14px 14px 10px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.side__kicker {
+  color: var(--muted2);
+  font-size: 12px;
+  letter-spacing: -0.2px;
+  font-family: var(--spark-font-body);
+}
+
+.side__title {
+  grid-column: 1 / -1;
+  margin: 4px 0 0 0;
+  font-family: var(--spark-font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.side__body {
+  padding: 12px 14px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field__label {
+  color: var(--muted2);
+  font-size: 12px;
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+}
+.field__value {
+  color: rgba(0, 0, 0, 0.82);
+  line-height: 1.5;
+  font-size: 14px;
+  letter-spacing: -0.2px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.80);
+  color: rgba(0, 0, 0, 0.80);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.chip:hover { background: rgba(0, 0, 0, 0.04); }
+
+.side__footer {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.hint {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Edge styling via SVG attributes plus classes */
+.edge {
+  stroke: var(--graph-stroke);
+  stroke-width: 0.5;
+  fill: none;
+}
+.edge.edge--active {
+  stroke: rgba(0, 0, 0, 0.34);
+  stroke-width: 0.5;
+}
+.edge.edge--muted {
+  opacity: 0.25;
+}
+.edge.edge--hidden {
+  opacity: 0;
+}
+
+/* ── Loyalty hanger modal ───────────────────────────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal[hidden] { display: none; }
+
+@keyframes modalBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalCardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(4px);
+  animation: modalBackdropIn 200ms ease both;
+}
+
+.modal__card {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  max-width: min(92vw, 900px);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalCardIn 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal__close {
+  flex-shrink: 0;
+  /* Match the H2 line-height so the button sits on the same baseline */
+  width: 26px;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease, color 150ms ease;
+  margin-left: auto;
+}
+.modal__close:hover {
+  background: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.modal__body {
+  padding: 16px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal__tableImg {
+  display: block;
+  width: calc(100% + 8px);
+  height: auto;
+  border-radius: 4px;
+  margin: 0;
+  align-self: center;
+}
+
+.modal__eyebrow {
+  margin: 0;
+  font-family: var(--spark-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.44);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.modal__title {
+  margin: 0;
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+  line-height: 1.25;
+}
+
+.modal__desc {
+  margin: 4px 0 0;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.6;
+}
+
+.modal__hanger {
+  display: flex;
+  height: 44px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 20px;
+  background: rgba(199, 210, 254, 0.55);
+  box-shadow: inset 0 4px 6px -2px rgba(0, 0, 0, 0.22);
+}
+
+.modal__learnMore {
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(55, 48, 163, 0.9);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+.modal__learnMore:hover {
+  color: var(--spark-color-active-ring);
+}
+
+.modal__learnMore:focus-visible {
+  color: var(--spark-color-active-ring);
+  outline: 2px solid var(--spark-color-active-ring);
+  outline-offset: 2px;
+}
+
+/* Slide 5: configure panels dock to the right of the node stack (this file loads after spark.css).
+   !important avoids stale or duplicated rules from winning the cascade; bump ?v= above when editing. */
+#slide5Canvas .slide5FlowLayout {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: min-content;
+}
+
+/* Slide 6 — Rewards strategy video: white canvas, 124px inset, click-to-play cover */
+.slide--rewardsVideo {
+  background: #ffffff;
+}
+
+.main--rewardsVideo {
+  background: #ffffff;
+}
+
+.mapSlideMount--rewardsVideo {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stageWrap.stageWrap--rewardsVideo {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  background: #ffffff;
+  background-image: none;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--stroke);
+  display: flex;
+  flex-direction: column;
+}
+
+.rewardsVideoCanvas {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  padding: 124px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rewardsVideoCanvas__frame {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rewardsVideoCanvas__frame.rewardsVideoCanvas__frame--playing .rewardsVideoCanvas__playCover {
+  display: none;
+}
+
+.rewardsVideoCanvas__video {
+  width: 100%;
+  max-height: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  background: #0f1318;
+  object-fit: contain;
+}
+
+.rewardsVideoCanvas__playCover {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 19, 24, 0.45);
+  transition: background-color 160ms ease;
+  z-index: 2;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rewardsVideoCanvas__playCover:hover {
+  background: rgba(15, 19, 24, 0.52);
+}
+
+.rewardsVideoCanvas__playCover:focus-visible {
+  outline: 2px solid var(--spark-color-active-ring, #3901f1);
+  outline-offset: 3px;
+}
+
+.rewardsVideoCanvas__playGlyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.rewardsVideoCanvas__playGlyph::before {
+  content: "";
+  margin-left: 6px;
+  border-style: solid;
+  border-width: 14px 0 14px 22px;
+  border-color: transparent transparent transparent rgba(25, 29, 72, 0.92);
+}
+
+/* Slide 7 — Case follow: framed dotted canvas (same Spark grid as slide 5); add content inside #caseFollowCanvas */
+
+.slide--caseFollow {
+  background: var(--bg);
+}
+
+.main--caseFollow {
+  background: var(--bg);
+}
+
+.mapSlideMount--caseFollow {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.stageWrap.stageWrap--caseFollow {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  /* Dotted fill from base `.stageWrap` (same as slide 5 flow shell) */
+  display: flex;
+  flex-direction: column;
+}
+
+.caseFollowCanvas {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: clamp(28px, 5vw, 124px);
+  box-sizing: border-box;
+  /* Dots come from `.stageWrap`; stay transparent so the grid is not double-painted */
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.caseFollowCompose {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+/* Phone mock — same entrance motion as deferred slide‑5 nodes (spark.css rhythm) */
+
+.caseFollowPhone {
+  flex: 0 0 auto;
+  width: min(453px, calc(100vw - 112px));
+  max-width: 453px;
+  font-family:
+    Inter,
+    var(--spark-font-body, system-ui),
+    sans-serif;
+  color: #0b1317;
+}
+
+.caseFollowPhone__bezel {
+  background: var(--bg);
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow:
+    var(--shadow2),
+    0 42px 100px rgba(15, 19, 24, 0.12);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.caseFollowPhone__scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  max-height: min(72vh, 864px);
+  padding-top: 16px;
+  padding-bottom: 16px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.caseFollowAppHead {
+  position: relative;
+  height: 91px;
+  flex-shrink: 0;
+}
+
+.caseFollowAppHead__bg {
+  position: absolute;
+  inset: 0;
+  margin-left: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+  color: rgba(70, 124, 153, 1);
+  background-color: #1e3030;
+  background-image: url("./assets/case-follow-app-head-bg.png?v=1");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 32px 32px 0 0;
+}
+
+.caseFollowAppHead__bg,
+.caseFollowLoyaltyCard,
+.caseFollowSheet--checkout,
+.caseFollowPromo {
+  box-shadow:
+    0 2px 8px rgba(15, 19, 24, 0.02),
+    0 10px 42px rgba(15, 19, 24, 0.028);
+}
+
+.caseFollowAppHead__brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.caseFollowAppHead__logoImg {
+  display: block;
+  width: 124px;
+  height: 44px;
+}
+
+.caseFollowAffinityIcon {
+  flex-shrink: 0;
+  display: block;
+}
+
+.caseFollowGhostBtn .caseFollowAffinityIcon--reschedule {
+  width: 17px;
+  height: 17px;
+  filter: brightness(0) saturate(100%) invert(48%) sepia(18%) saturate(900%) hue-rotate(157deg) brightness(0.96);
+}
+
+.caseFollowGhostBtn .caseFollowAffinityIcon--skip {
+  width: 17px;
+  height: 17px;
+}
+
+.caseFollowTextBtn .caseFollowAffinityIcon--edit {
+  width: 18px;
+  height: 18px;
+}
+
+.caseFollowAppHead__actions {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.caseFollowAppHead__dot {
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.caseFollowAppHead__dot:nth-child(2) {
+  width: 9px;
+  height: 10px;
+}
+
+.caseFollowSheet {
+  background: #fff;
+}
+
+.caseFollowSheet--schedule {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 1;
+  box-shadow: none;
+}
+
+.caseFollowSheet__hint {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: #0b1317;
+}
+
+.caseFollowSheet__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.08;
+}
+
+.caseFollowScheduleBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.caseFollowScheduleBtns__row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.caseFollowPrimaryBtn {
+  width: 100%;
+  height: 44px;
+  padding: 10px;
+  margin: 0;
+  border: none;
+  background: #467c99;
+  color: #fff;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: default;
+}
+
+.caseFollowGhostBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  flex: 1;
+  border: none;
+  background: #f7f9fa;
+  color: #467c99;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 400;
+  cursor: default;
+}
+
+.caseFollowGhostBtn--half {
+  height: 44px;
+  min-height: 44px;
+}
+
+.caseFollowSheet--loyalty {
+  padding: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff;
+}
+
+.caseFollowLoyaltyCard {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 13.41px;
+  padding: 20px;
+  background: var(--Color-1, #ffffff);
+}
+
+.caseFollowLoyaltyCard__heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4.47px;
+}
+
+.caseFollowLoyaltyCard__title {
+  margin: 0;
+  color: var(--Color-14, #0b1317);
+  font-family: Inter, var(--spark-font-body, system-ui), sans-serif;
+  font-size: 21.97px;
+  font-weight: 600;
+  line-height: 31.29px;
+  word-wrap: break-word;
+}
+
+.caseFollowLoyaltyCard__trackWrap {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4.47px;
+}
+
+.caseFollowRewardTrack {
+  align-self: stretch;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px 16px;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.caseFollowReward {
+  flex: 0 0 auto;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 76px;
+  height: 80px;
+  text-align: center;
+}
+
+.caseFollowReward__label {
+  margin: 0;
+  width: 76px;
+  color: var(--Color-Neutral-500, #000000);
+  font-family: Inter, var(--spark-font-body, system-ui), sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  word-wrap: break-word;
+}
+
+.caseFollowReward__disk {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 32px;
+  background: #467c99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.caseFollowReward__disk img {
+  display: block;
+  width: 21px;
+  height: 20px;
+}
+
+.caseFollowReward__disk .caseFollowGiftImg {
+  width: 28px;
+  height: 28px;
+}
+
+.caseFollowReward__dot {
+  flex-shrink: 0;
+}
+
+.caseFollowReward__dot--coupon {
+  width: 44px;
+  height: 44px;
+  border-radius: 32px;
+  background: #467c99;
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.caseFollowAffinityIcon--discount {
+  display: block;
+}
+
+.caseFollowReward__hole {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 32px;
+  background: var(--Color-Brand-200, #dceaf3);
+  box-sizing: border-box;
+}
+
+.caseFollowReward__gift {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 32px;
+  background: var(--Color-Brand-200, #dceaf3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.caseFollowGiftImg {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+
+.caseFollowReward__gift--muted .caseFollowGiftImg {
+  opacity: 0.92;
+}
+
+.caseFollowReward__disk--popIn {
+  transform: scale(0.5);
+  opacity: 0;
+  animation: caseFollowDiskReveal 0.74s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.caseFollowReward__disk--popIn img {
+  transform: scale(0);
+  animation: caseFollowStarPop 0.66s cubic-bezier(0.22, 1, 0.36, 1) 0.11s forwards;
+}
+
+@keyframes caseFollowDiskReveal {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes caseFollowStarPop {
+  from {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.caseFollowCheckoutStack {
+  --case-follow-product-shot-bg: linear-gradient(145deg, #f6f1e5 0%, #dff0ea 38%, #ebe9e4 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 28px;
+}
+
+.caseFollowSheet--checkout {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.caseFollowCheckoutHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.caseFollowCheckoutHead__address {
+  margin: 0;
+  font-size: 21.5px;
+  font-weight: 600;
+  line-height: 1.42;
+}
+
+.caseFollowCart {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.caseFollowLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.caseFollowLine__thumbWrap {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--case-follow-product-shot-bg);
+  border: 1px solid rgba(157, 161, 162, 0.55);
+}
+
+.caseFollowLine__thumbWrap--rnd4 {
+  border-radius: 4px;
+  border-width: 0.5px;
+}
+
+.caseFollowLine__thumbWrap--rnd8 {
+  border-radius: 4px;
+}
+
+.caseFollowLine__thumbWrap--productCutout {
+  box-shadow: inset 0 0 0 1px rgba(157, 161, 162, 0.55);
+}
+
+.caseFollowLine__thumbWrap--productCutout .caseFollowLine__thumb {
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+/* Transparent product PNGs (no white mat) — normal blending */
+.caseFollowLine__thumbWrap--alphaCutout {
+  border-width: 0.5px;
+  box-shadow: none;
+  background: transparent;
+}
+
+.caseFollowLine__thumbWrap--alphaCutout .caseFollowLine__thumb {
+  mix-blend-mode: normal;
+}
+
+.caseFollowLine__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.caseFollowLine__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.caseFollowLine__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.caseFollowLine__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.caseFollowLine__name {
+  margin: 0;
+  font-size: 17.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.caseFollowLine__meta {
+  margin: 0;
+  font-size: 14.5px;
+  color: #545a5d;
+  line-height: 1.55;
+}
+
+.caseFollowLine__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.caseFollowLine__qtyPrice {
+  font-size: 14.5px;
+  color: #545a5d;
+}
+
+.caseFollowLine:nth-child(2) .caseFollowLine__qtyPrice {
+  font-size: 15.5px;
+}
+
+.caseFollowBadge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 32px;
+  background: #e7e7e8;
+  font-size: 13px;
+  color: #0b1317;
+  line-height: 1.35;
+}
+
+.caseFollowChevron {
+  flex-shrink: 0;
+  width: 27px;
+  height: 27px;
+  position: relative;
+}
+
+.caseFollowChevron::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.7px solid #467c99;
+  border-bottom: 1.7px solid #467c99;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.caseFollowManage {
+  margin: 0;
+  font-size: 14.5px;
+  color: #467c99;
+  line-height: 1.55;
+}
+
+.caseFollowLine:nth-child(2) .caseFollowManage {
+  font-size: 15.5px;
+}
+
+.caseFollowTextBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #467c99;
+  font: inherit;
+  font-size: 17.5px;
+  line-height: 1.5;
+  cursor: default;
+}
+
+.caseFollowTextBtn--wide {
+  align-self: flex-start;
+}
+
+.caseFollowTextBtn--inline {
+  font-size: 17.5px;
+  flex-shrink: 0;
+}
+
+.caseFollowPen,
+.caseFollowPlus {
+  flex-shrink: 0;
+}
+
+.caseFollowTotals {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 17.5px;
+  line-height: 1.5;
+}
+
+.caseFollowTotals__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.caseFollowTotals__labelWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.caseFollowInfoIc {
+  width: 22px;
+  height: 22px;
+  border-radius: 32px;
+  border: 1.3px solid #467c99;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.caseFollowInfoIc::before,
+.caseFollowInfoIc::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  background: #467c99;
+  border-radius: 32px;
+  transform: translateX(-50%);
+}
+
+.caseFollowInfoIc::before {
+  width: 2px;
+  height: 2px;
+  top: 6px;
+}
+
+.caseFollowInfoIc::after {
+  width: 1.5px;
+  height: 5px;
+  bottom: 5px;
+  border-radius: 32px;
+}
+
+.caseFollowTotals__row--strong {
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.caseFollowTotals__row--strong .caseFollowTotals__grand {
+  font-weight: 700;
+}
+
+.caseFollowTotals__row--muted {
+  font-size: 17.5px;
+  flex-wrap: wrap;
+}
+
+.caseFollowPromo {
+  margin: 16px 0 0;
+  padding: 20px;
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.caseFollowPromo__photoWrap {
+  width: 419px;
+  max-width: 100%;
+  margin: 0 0 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--case-follow-product-shot-bg);
+}
+
+.caseFollowPromo__photoWrap .caseFollowPromo__photo {
+  mix-blend-mode: multiply;
+}
+
+.caseFollowPromo__photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  margin: 0;
+}
+
+.caseFollowPromo__headline {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.24;
+  color: #1e3030;
+}
+
+.caseFollowPromo__body {
+  margin: 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: #191d48;
+}
+
+/* Entrance — matches slide‑5 deferred node cards (see spark.css flow*NodeWrap--enter) */
+#caseFollowPhone.caseFollowPhone--enter {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+  filter: blur(3px);
+}
+
+#caseFollowPhone.caseFollowPhone--enter.caseFollowPhone--enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition:
+    opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #caseFollowPhone.caseFollowPhone--enter,
+  #caseFollowPhone.caseFollowPhone--enter.caseFollowPhone--enter-active {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
