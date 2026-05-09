@@ -2636,6 +2636,8 @@ initSlideshow();
   const creditBtn = document.getElementById("flowCreditNode");
   const freeGiftNodeWrap = document.getElementById("flowFreeGiftNodeWrap");
   const freeGiftBtn = document.getElementById("flowFreeGiftNode");
+  const notificationNodeWrap = document.getElementById("flowNotificationNodeWrap");
+  const abTestNodeWrap = document.getElementById("flowAbTestNodeWrap");
   const slide5Canvas = document.getElementById("slide5Canvas");
   const creditRoot = document.getElementById("flowCreditPanelRoot");
   const creditPanel = document.getElementById("flowCreditPanel");
@@ -2668,6 +2670,8 @@ initSlideshow();
   let slide5BranchSpawnEligible = false;
   let slide5CreditSpawnEligible = false;
   let slide5FreeGiftSpawnEligible = false;
+  let slide5NotificationSpawnEligible = false;
+  let slide5AbTestSpawnEligible = false;
   let freeGiftNodeMenuOutsideCloser = null;
   let freeGiftNodeMenuEscapeCloser = null;
   let freeGiftMetricsTransitionCleanup = null;
@@ -2676,6 +2680,8 @@ initSlideshow();
     slide5BranchSpawnEligible = false;
     slide5CreditSpawnEligible = false;
     slide5FreeGiftSpawnEligible = false;
+    slide5NotificationSpawnEligible = false;
+    slide5AbTestSpawnEligible = false;
     if (branchNodeWrap) {
       branchNodeWrap.hidden = true;
       branchNodeWrap.setAttribute("aria-hidden", "true");
@@ -2692,6 +2698,19 @@ initSlideshow();
       freeGiftNodeWrap.hidden = true;
       freeGiftNodeWrap.setAttribute("aria-hidden", "true");
       freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
+    }
+    if (notificationNodeWrap) {
+      notificationNodeWrap.hidden = true;
+      notificationNodeWrap.setAttribute("aria-hidden", "true");
+      notificationNodeWrap.classList.remove(
+        "flowNotificationNodeWrap--enter",
+        "flowNotificationNodeWrap--enter-active",
+      );
+    }
+    if (abTestNodeWrap) {
+      abTestNodeWrap.hidden = true;
+      abTestNodeWrap.setAttribute("aria-hidden", "true");
+      abTestNodeWrap.classList.remove("flowAbTestNodeWrap--enter", "flowAbTestNodeWrap--enter-active");
     }
     if (creditRoot) {
       creditRoot.classList.remove(CREDIT_OPEN);
@@ -2781,6 +2800,43 @@ initSlideshow();
       freeGiftNodeWrap.classList.remove("flowFreeGiftNodeWrap--enter", "flowFreeGiftNodeWrap--enter-active");
     }, 900);
     syncFreeGiftNodeCard();
+  }
+
+  function revealNotificationNode() {
+    if (!notificationNodeWrap || !notificationNodeWrap.hasAttribute("hidden")) return;
+    notificationNodeWrap.classList.remove(
+      "flowNotificationNodeWrap--enter",
+      "flowNotificationNodeWrap--enter-active",
+    );
+    void notificationNodeWrap.offsetWidth;
+    notificationNodeWrap.classList.add("flowNotificationNodeWrap--enter");
+    notificationNodeWrap.removeAttribute("hidden");
+    notificationNodeWrap.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => {
+      notificationNodeWrap.classList.add("flowNotificationNodeWrap--enter-active");
+    });
+    window.setTimeout(() => {
+      notificationNodeWrap.classList.remove(
+        "flowNotificationNodeWrap--enter",
+        "flowNotificationNodeWrap--enter-active",
+      );
+    }, 900);
+    slide5AbTestSpawnEligible = true;
+  }
+
+  function revealAbTestNode() {
+    if (!abTestNodeWrap || !abTestNodeWrap.hasAttribute("hidden")) return;
+    abTestNodeWrap.classList.remove("flowAbTestNodeWrap--enter", "flowAbTestNodeWrap--enter-active");
+    void abTestNodeWrap.offsetWidth;
+    abTestNodeWrap.classList.add("flowAbTestNodeWrap--enter");
+    abTestNodeWrap.removeAttribute("hidden");
+    abTestNodeWrap.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => {
+      abTestNodeWrap.classList.add("flowAbTestNodeWrap--enter-active");
+    });
+    window.setTimeout(() => {
+      abTestNodeWrap.classList.remove("flowAbTestNodeWrap--enter", "flowAbTestNodeWrap--enter-active");
+    }, 900);
   }
 
   const branchStack = branchPanel.querySelector(".flowBranchPanel__branchStack");
@@ -3747,6 +3803,7 @@ initSlideshow();
       freeGiftMetricsHanger.hidden = true;
       freeGiftMetricsHanger.setAttribute("aria-hidden", "true");
       syncFreeGiftPerformanceMenuLabel();
+      slide5NotificationSpawnEligible = true;
       freeGiftMetricsTransitionCleanup = null;
     };
 
@@ -4259,7 +4316,7 @@ initSlideshow();
     if (!(t instanceof Element)) return;
     if (
       t.closest(
-        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowFreeGiftNodeDetails, #flowFreeGiftNodeKebabBtn, #flowFreeGiftNodeMenu, #flowFreeGiftNodeMetrics, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot, #flowFreeGiftPanelRoot",
+        "#flowTriggerNode, #flowConditionalBranchNode, #flowCreditNode, #flowFreeGiftNode, #flowFreeGiftNodeDetails, #flowFreeGiftNodeKebabBtn, #flowFreeGiftNodeMenu, #flowFreeGiftNodeMetrics, #flowNotificationNodeWrap, #flowAbTestNodeWrap, #flowTriggerPanelRoot, #flowBranchPanelRoot, #flowCreditPanelRoot, #flowFreeGiftPanelRoot",
       )
     ) {
       return;
@@ -4284,6 +4341,25 @@ initSlideshow();
       !creditNodeWrap.hidden
     ) {
       revealFreeGiftNode();
+      return;
+    }
+    if (
+      slide5NotificationSpawnEligible &&
+      notificationNodeWrap?.hidden &&
+      freeGiftNodeWrap &&
+      !freeGiftNodeWrap.hidden
+    ) {
+      revealNotificationNode();
+      return;
+    }
+    if (
+      slide5AbTestSpawnEligible &&
+      abTestNodeWrap?.hidden &&
+      notificationNodeWrap &&
+      !notificationNodeWrap.hidden
+    ) {
+      revealAbTestNode();
+      return;
     }
   });
 

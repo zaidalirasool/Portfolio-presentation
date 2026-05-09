@@ -1423,3 +1423,16 @@ a:focus-visible {
   outline: 2px solid var(--spark-color-active-ring);
   outline-offset: 2px;
 }
+
+/* Slide 5: configure panels dock to the right of the node stack (this file loads after spark.css).
+   !important avoids stale or duplicated rules from winning the cascade; bump ?v= above when editing. */
+#slide5Canvas .slide5FlowLayout {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: min-content;
+}

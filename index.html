@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crafting loyalty that delivers</title>
-    <link rel="stylesheet" href="./spark.css?v=216" />
-    <link rel="stylesheet" href="./styles.css?v=120" />
+    <link rel="stylesheet" href="./spark.css?v=221" />
+    <link rel="stylesheet" href="./styles.css?v=125" />
   </head>
   <body>
     <div class="app">
@@ -91,6 +91,8 @@
                 <div class="slide5Canvas" id="slide5Canvas">
                   <div class="slide5FlowLayout">
                     <div class="slide5FlowLayout__nodeStack">
+                    <div class="slide5FlowLayout__pipeline">
+                    <div class="slide5FlowLayout__col slide5FlowLayout__col--primary">
                     <div class="slide5FlowLayout__node">
                       <button
                         type="button"
@@ -529,6 +531,120 @@
                           </div>
                         </div>
                       </div>
+                    </div>
+                    </div>
+                    <div class="slide5FlowLayout__col slide5FlowLayout__col--secondary">
+                      <div
+                        id="flowNotificationNodeWrap"
+                        class="slide5FlowLayout__node slide5FlowLayout__node--notification"
+                        hidden
+                        aria-hidden="true"
+                      >
+                        <div class="flowNotificationNode" role="group" aria-label="Notification, email">
+                          <div class="flowNotificationNode__surface">
+                            <div class="flowNotificationNode__top">
+                              <div class="flowNotificationNode__header">
+                                <div class="flowNotificationNode__iconWrap" aria-hidden="true">
+                                  <div class="flowNotificationNode__iconDisc">
+                                    <img
+                                      class="flowNotificationNode__iconImg"
+                                      src="./assets/icons/email.svg"
+                                      width="24"
+                                      height="24"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </div>
+                                </div>
+                                <div class="flowNotificationNode__titles">
+                                  <div class="flowNotificationNode__titleLine">
+                                    <span class="flowNotificationNode__title">Notification</span>
+                                  </div>
+                                  <div class="flowNotificationNode__subtitle">Email</div>
+                                </div>
+                                <div class="flowNotificationNode__kebab" aria-hidden="true">
+                                  <div class="flowNotificationNode__kebabInner">
+                                    <img
+                                      class="flowNotificationNode__kebabImg"
+                                      src="./assets/icons/action.svg"
+                                      width="24"
+                                      height="24"
+                                      alt=""
+                                      decoding="async"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="flowNotificationNode__body">
+                                <div class="flowNotificationNode__pair">
+                                  <div class="flowNotificationNode__label">Subject line</div>
+                                  <div class="flowNotificationNode__text">
+                                    Hey there! You deserve a free gift for your continued....
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        id="flowAbTestNodeWrap"
+                        class="slide5FlowLayout__node slide5FlowLayout__node--abTest"
+                        hidden
+                        aria-hidden="true"
+                      >
+                        <button
+                          type="button"
+                          id="flowAbTestNode"
+                          class="triggerNode flowAbTestNode"
+                          aria-expanded="false"
+                          aria-label="A/B test. Configure."
+                        >
+                          <div class="triggerNode__outer" data-node="A/B test">
+                            <div class="triggerNode__stretchCol">
+                              <div class="triggerNode__card">
+                                <div class="triggerNode__cardPad">
+                                  <div class="triggerNode__row">
+                                    <div class="triggerNode__iconSlot">
+                                      <div class="triggerNode__iconDisc" aria-hidden="true">
+                                        <div class="triggerNode__iconArt">
+                                          <img
+                                            class="triggerNode__iconImg"
+                                            src="./assets/icons/ab-test.svg"
+                                            width="24"
+                                            height="24"
+                                            alt=""
+                                            decoding="async"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="triggerNode__textCol">
+                                      <div class="triggerNode__titleLine">
+                                        <span class="triggerNode__title">A/B test</span>
+                                      </div>
+                                      <div class="triggerNode__subtitle">Configure</div>
+                                    </div>
+                                    <div class="triggerNode__kebab" aria-hidden="true">
+                                      <div class="triggerNode__kebabArt">
+                                        <img
+                                          class="triggerNode__kebabImg"
+                                          src="./assets/icons/action.svg"
+                                          width="24"
+                                          height="24"
+                                          alt=""
+                                          decoding="async"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
                     </div>
                     </div>
                     <div
@@ -2791,6 +2907,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-145"></script>
+    <script type="module" src="./app.js?v=slideshow-148"></script>
   </body>
 </html>

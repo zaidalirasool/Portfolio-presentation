@@ -161,6 +161,13 @@
   transition: gap 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Pin dock: nodes column stays left, configure panels always open to the right (never stack under nodes). */
+#slide5Canvas .slide5FlowLayout {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
 .slide5FlowLayout--panelOpen {
   --slide5-panel-gap: 24px;
   gap: var(--slide5-panel-gap);
@@ -185,10 +192,48 @@
 .slide5FlowLayout__nodeStack {
   flex: 0 0 auto;
   min-width: 0;
+  width: fit-content;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 16px;
+}
+
+/* Trigger + descendants (branch, credit, free gift) in column 1; Notification in column 2 (top-aligned). */
+.slide5FlowLayout__pipeline {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.slide5FlowLayout__col {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.slide5FlowLayout__col--primary {
+  align-items: stretch;
+  gap: 16px;
+  width: var(--spark-trigger-card-width);
+  max-width: min(100%, var(--spark-trigger-card-width));
+}
+
+.slide5FlowLayout__col--primary .slide5FlowLayout__node {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.slide5FlowLayout__col--secondary {
+  align-items: flex-start;
   gap: 16px;
 }
 
@@ -212,10 +257,20 @@
   display: none !important;
 }
 
-/* Deferred nodes: entrance after canvas unlock (branch, credit, free gift) */
+.slide5FlowLayout__node--notification[hidden] {
+  display: none !important;
+}
+
+.slide5FlowLayout__node--abTest[hidden] {
+  display: none !important;
+}
+
+/* Deferred nodes: entrance after canvas unlock (branch, credit, free gift, notification, A/B test) */
 #flowBranchNodeWrap.flowBranchNodeWrap--enter .triggerNode__card,
 #flowCreditNodeWrap.flowCreditNodeWrap--enter .triggerNode__card,
-#flowFreeGiftNodeWrap.flowFreeGiftNodeWrap--enter .triggerNode__card {
+#flowFreeGiftNodeWrap.flowFreeGiftNodeWrap--enter .triggerNode__card,
+#flowNotificationNodeWrap.flowNotificationNodeWrap--enter .flowNotificationNode__surface,
+#flowAbTestNodeWrap.flowAbTestNodeWrap--enter .triggerNode__card {
   opacity: 0;
   transform: translateY(14px) scale(0.98);
   filter: blur(3px);
@@ -223,7 +278,10 @@
 
 #flowBranchNodeWrap.flowBranchNodeWrap--enter.flowBranchNodeWrap--enter-active .triggerNode__card,
 #flowCreditNodeWrap.flowCreditNodeWrap--enter.flowCreditNodeWrap--enter-active .triggerNode__card,
-#flowFreeGiftNodeWrap.flowFreeGiftNodeWrap--enter.flowFreeGiftNodeWrap--enter-active .triggerNode__card {
+#flowFreeGiftNodeWrap.flowFreeGiftNodeWrap--enter.flowFreeGiftNodeWrap--enter-active .triggerNode__card,
+#flowNotificationNodeWrap.flowNotificationNodeWrap--enter.flowNotificationNodeWrap--enter-active
+  .flowNotificationNode__surface,
+#flowAbTestNodeWrap.flowAbTestNodeWrap--enter.flowAbTestNodeWrap--enter-active .triggerNode__card {
   opacity: 1;
   transform: translateY(0) scale(1);
   filter: blur(0);
@@ -239,13 +297,189 @@
   #flowCreditNodeWrap.flowCreditNodeWrap--enter .triggerNode__card,
   #flowCreditNodeWrap.flowCreditNodeWrap--enter.flowCreditNodeWrap--enter-active .triggerNode__card,
   #flowFreeGiftNodeWrap.flowFreeGiftNodeWrap--enter .triggerNode__card,
-  #flowFreeGiftNodeWrap.flowFreeGiftNodeWrap--enter.flowFreeGiftNodeWrap--enter-active .triggerNode__card {
+  #flowFreeGiftNodeWrap.flowFreeGiftNodeWrap--enter.flowFreeGiftNodeWrap--enter-active .triggerNode__card,
+  #flowNotificationNodeWrap.flowNotificationNodeWrap--enter .flowNotificationNode__surface,
+  #flowNotificationNodeWrap.flowNotificationNodeWrap--enter.flowNotificationNodeWrap--enter-active
+    .flowNotificationNode__surface,
+  #flowAbTestNodeWrap.flowAbTestNodeWrap--enter .triggerNode__card,
+  #flowAbTestNodeWrap.flowAbTestNodeWrap--enter.flowAbTestNodeWrap--enter-active .triggerNode__card {
     opacity: 1;
     transform: none;
     filter: none;
     transition: none;
   }
 }
+
+/* Slide 5 — Notification node (canvas column beside trigger; card pattern from configure UI) */
+.flowNotificationNode {
+  display: block;
+  width: min(100%, var(--spark-trigger-card-width));
+  max-width: var(--spark-trigger-card-width);
+  box-sizing: border-box;
+  text-align: left;
+  color: #191d48;
+}
+
+.flowNotificationNode__surface {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: var(--spark-radius-lg);
+  background-color: #fff;
+  box-shadow: var(--spark-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transition: box-shadow 180ms ease;
+}
+
+/* Borrow trigger node card hover ring (same as `.triggerNode:hover .triggerNode__card`). */
+.flowNotificationNode:hover .flowNotificationNode__surface {
+  box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm);
+}
+
+.flowNotificationNode__top {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 28px;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.flowNotificationNode__header {
+  align-self: stretch;
+  min-height: 44px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.flowNotificationNode__iconWrap {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.flowNotificationNode__iconDisc {
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 4px;
+  border-radius: 100px;
+  background-color: #3901f1;
+  box-shadow: 0 1px 4px rgba(25, 29, 72, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.flowNotificationNode__iconImg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  object-fit: contain;
+}
+
+.flowNotificationNode__titles {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.flowNotificationNode__titleLine {
+  display: flex;
+  align-items: center;
+}
+
+.flowNotificationNode__title {
+  font-family: var(--spark-font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: #000000;
+}
+
+.flowNotificationNode__subtitle {
+  align-self: stretch;
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  line-height: 20px;
+  color: #191d48;
+}
+
+.flowNotificationNode__kebab {
+  flex-shrink: 0;
+  border-radius: 6px;
+  background-color: #e2e3ed;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.flowNotificationNode__kebabInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.flowNotificationNode__kebabImg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  object-fit: contain;
+}
+
+.flowNotificationNode__body {
+  align-self: stretch;
+  border-radius: 6px;
+  background-color: #f6f8f9;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.flowNotificationNode__pair {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+
+.flowNotificationNode__label {
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  line-height: 20px;
+  color: #616374;
+}
+
+.flowNotificationNode__text {
+  font-family: var(--spark-font-body);
+  font-size: 14px;
+  line-height: 20px;
+  color: #191d48;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A/B test node matches conditional branch card treatment — `.flowAbTestNode` rules follow `.flowBranchNode`. */
 
 /* Slide 5 credit node — title black Greycliff 16/24 bold; subtitle #191D48 Avenir 14/20 */
 .flowCreditNode .triggerNode__title {
@@ -1147,7 +1381,8 @@
  * :focus-visible .triggerNode__card so the 1px ring box-shadow doesn’t double with the border.
  */
 
-.flowBranchNode .triggerNode__card {
+.flowBranchNode .triggerNode__card,
+.flowAbTestNode .triggerNode__card {
   background-color: #ebedfc;
   border: none;
   box-shadow: var(--spark-shadow-sm);
@@ -1155,52 +1390,61 @@
 }
 
 /* Hover / open / focus — same ring language as default trigger node */
-.flowBranchNode:hover .triggerNode__card {
+.flowBranchNode:hover .triggerNode__card,
+.flowAbTestNode:hover .triggerNode__card {
   box-shadow: 0 0 0 1px var(--spark-palette-midnight-80), var(--spark-shadow-sm);
 }
 
-.flowBranchNode[aria-expanded="true"] .triggerNode__card {
+.flowBranchNode[aria-expanded="true"] .triggerNode__card,
+.flowAbTestNode[aria-expanded="true"] .triggerNode__card {
   box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm);
 }
 
-.flowBranchNode[aria-expanded="true"]:hover .triggerNode__card {
+.flowBranchNode[aria-expanded="true"]:hover .triggerNode__card,
+.flowAbTestNode[aria-expanded="true"]:hover .triggerNode__card {
   box-shadow: 0 0 0 1px var(--spark-color-active-ring), var(--spark-shadow-sm-hover);
 }
 
-.flowBranchNode:focus-visible .triggerNode__card {
+.flowBranchNode:focus-visible .triggerNode__card,
+.flowAbTestNode:focus-visible .triggerNode__card {
   box-shadow: var(--spark-shadow-sm), var(--spark-shadow-focus-ring);
 }
 
-.flowBranchNode:hover:focus-visible .triggerNode__card {
+.flowBranchNode:hover:focus-visible .triggerNode__card,
+.flowAbTestNode:hover:focus-visible .triggerNode__card {
   box-shadow:
     0 0 0 1px var(--spark-palette-midnight-80),
     var(--spark-shadow-sm),
     var(--spark-shadow-focus-ring);
 }
 
-.flowBranchNode[aria-expanded="true"]:focus-visible .triggerNode__card {
+.flowBranchNode[aria-expanded="true"]:focus-visible .triggerNode__card,
+.flowAbTestNode[aria-expanded="true"]:focus-visible .triggerNode__card {
   box-shadow:
     0 0 0 1px var(--spark-color-active-ring),
     var(--spark-shadow-sm),
     var(--spark-shadow-focus-ring);
 }
 
-.flowBranchNode[aria-expanded="true"]:hover:focus-visible .triggerNode__card {
+.flowBranchNode[aria-expanded="true"]:hover:focus-visible .triggerNode__card,
+.flowAbTestNode[aria-expanded="true"]:hover:focus-visible .triggerNode__card {
   box-shadow:
     0 0 0 1px var(--spark-color-active-ring),
     var(--spark-shadow-sm-hover),
     var(--spark-shadow-focus-ring);
 }
 
-/* Branch node icon: same 40×40 disc geometry as Trigger; midnight pill + shadow-2 (Figma). */
-.flowBranchNode .triggerNode__iconSlot {
+/* Branch + A/B node icon: same 40×40 disc geometry as Trigger; midnight pill + shadow-2 (Figma). */
+.flowBranchNode .triggerNode__iconSlot,
+.flowAbTestNode .triggerNode__iconSlot {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
   flex-shrink: 0;
 }
 
-.flowBranchNode .triggerNode__iconDisc {
+.flowBranchNode .triggerNode__iconDisc,
+.flowAbTestNode .triggerNode__iconDisc {
   width: 40px;
   height: 40px;
   padding: 4px;
@@ -1214,7 +1458,8 @@
   align-items: center;
 }
 
-.flowBranchNode .triggerNode__kebab {
+.flowBranchNode .triggerNode__kebab,
+.flowAbTestNode .triggerNode__kebab {
   background: var(--spark-palette-midnight-20);
 }
 
@@ -4820,46 +5065,11 @@
 }
 
 @media (max-width: 900px) {
-  .slide5FlowLayout {
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    transition: none;
-  }
-
+  /* Slide 5: always keep nodes + configure panels in a horizontal row (panel on the right).
+     Do not stack the canvas column — that regresses the dock next to nodes. Narrow screens still
+     scroll horizontally via .slide5Canvas overflow:auto. */
   .slide5FlowLayout--panelOpen {
     gap: var(--slide5-panel-gap);
-  }
-
-  .slide5FlowLayout--panelOpen .flowTriggerPanelRoot:not(.flowTriggerPanelRoot--open) {
-    margin-bottom: calc(-1 * var(--slide5-panel-gap));
-  }
-
-  .slide5FlowLayout--panelOpen .flowBranchPanelRoot:not(.flowBranchPanelRoot--open),
-  .slide5FlowLayout--panelOpen .flowCreditPanelRoot:not(.flowCreditPanelRoot--open),
-  .slide5FlowLayout--panelOpen .flowFreeGiftPanelRoot:not(.flowFreeGiftPanelRoot--open) {
-    margin-top: calc(-1 * var(--slide5-panel-gap));
-  }
-
-  .flowTriggerPanelRoot,
-  .flowBranchPanelRoot,
-  .flowCreditPanelRoot,
-  .flowFreeGiftPanelRoot {
-    transform: translateY(16px);
-  }
-
-  .flowTriggerPanelRoot,
-  .flowTriggerPanelRoot--open {
-    transform: none;
-  }
-
-  .flowBranchPanelRoot,
-  .flowBranchPanelRoot--open,
-  .flowCreditPanelRoot,
-  .flowCreditPanelRoot--open,
-  .flowFreeGiftPanelRoot,
-  .flowFreeGiftPanelRoot--open {
-    transform: none;
   }
 
   .flowTriggerPanelRoot--open,
