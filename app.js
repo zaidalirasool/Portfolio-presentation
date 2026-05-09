@@ -3775,6 +3775,20 @@ initSlideshow();
     });
   }
 
+  function syncFreeGiftCustomizeSheetPreview() {
+    const nameEl = document.getElementById("flowFreeGiftCustomizePreviewName");
+    const variantEl = document.getElementById("flowFreeGiftCustomizePreviewVariant");
+    const imgEl = document.getElementById("flowFreeGiftCustomizePreviewImg");
+    const nameText = freeGiftConfiguredName?.textContent?.trim() ?? "";
+    const variantText = freeGiftConfiguredVariantValue?.textContent?.trim() ?? "";
+    if (nameEl) nameEl.textContent = nameText || "Product name";
+    if (variantEl) variantEl.textContent = variantText || "Variant name";
+    if (imgEl instanceof HTMLImageElement && freeGiftConfiguredThumb instanceof HTMLImageElement) {
+      imgEl.src = freeGiftConfiguredThumb.currentSrc || freeGiftConfiguredThumb.src;
+      imgEl.alt = freeGiftConfiguredThumb.alt || "";
+    }
+  }
+
   let freeGiftCustomizeSheetKeyListener = null;
 
   function closeFlowFreeGiftCustomizeSheet() {
@@ -3808,7 +3822,7 @@ initSlideshow();
         { once: true },
       );
     }
-    window.setTimeout(finish, 450);
+    window.setTimeout(finish, 560);
   }
 
   function openFlowFreeGiftCustomizeSheet() {
@@ -3824,6 +3838,8 @@ initSlideshow();
       window.requestAnimationFrame(() => {
         if (sheet.dataset.active !== "1") return;
         sheet.classList.add("flowFreeGiftCustomizeSheet--open");
+
+        syncFreeGiftCustomizeSheetPreview();
 
         freeGiftCustomizeSheetKeyListener = (e) => {
           if (e.key === "Escape") {

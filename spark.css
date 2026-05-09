@@ -4532,6 +4532,10 @@
   .flowFreeGiftCustomizeSheet__surface {
     transition: none !important;
   }
+
+  .flowFreeGiftCustomizeSheet__surface {
+    will-change: auto;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4553,7 +4557,12 @@ html.flowFreeGiftCustomizeSheetOpen {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  align-items: stretch;
+  align-items: center;
+  --fgs-inset-top: 28px;
+  --fgs-inset-x: 24px;
+  --fgs-inset-bottom: min(120px, 14vh);
+  padding: var(--fgs-inset-top) var(--fgs-inset-x) var(--fgs-inset-bottom);
+  box-sizing: border-box;
   pointer-events: none;
 }
 
@@ -4567,10 +4576,12 @@ html.flowFreeGiftCustomizeSheetOpen {
   margin: 0;
   padding: 0;
   border: 0;
-  background: rgba(25, 29, 72, 0.38);
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 280ms ease;
+  transition: opacity 360ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .flowFreeGiftCustomizeSheet--open .flowFreeGiftCustomizeSheet__backdrop {
@@ -4580,17 +4591,27 @@ html.flowFreeGiftCustomizeSheetOpen {
 .flowFreeGiftCustomizeSheet__surface {
   position: relative;
   z-index: 1;
-  width: 100%;
-  height: min(100vh, 100dvh);
-  max-height: min(100vh, 100dvh);
+  width: min(1440px, 100%);
+  /* Definite height so column flex children (.main flex:1) receive space — height:auto collapses them */
+  height: min(
+    calc(100vh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
+    calc(100dvh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
+    1104px
+  );
+  max-height: min(
+    calc(100vh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
+    calc(100dvh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
+    1104px
+  );
   background: #f6f8f9;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -12px 48px rgba(25, 29, 72, 0.22);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(25, 29, 72, 0.22), 0 8px 24px rgba(25, 29, 72, 0.12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transform: translateY(105%);
-  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(calc(100% + 40px));
+  transition: transform 520ms cubic-bezier(0.25, 1, 0.45, 1);
+  will-change: transform;
 }
 
 .flowFreeGiftCustomizeSheet--open .flowFreeGiftCustomizeSheet__surface {
@@ -4599,6 +4620,8 @@ html.flowFreeGiftCustomizeSheetOpen {
 
 .flowFreeGiftCustomizeSheet__chrome {
   flex: 0 0 auto;
+  position: relative;
+  z-index: 30;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -4685,7 +4708,17 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 .flowFreeGiftCustomizeSheet__cancelBtn {
-  padding: 8px 16px;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
   border: 1.5px solid #191d48;
   background: transparent;
@@ -4697,12 +4730,27 @@ html.flowFreeGiftCustomizeSheetOpen {
   cursor: pointer;
 }
 
+.flowFreeGiftCustomizeSheet__cancelBtn::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
 .flowFreeGiftCustomizeSheet__cancelBtn:hover {
   background: rgba(25, 29, 72, 0.04);
 }
 
 .flowFreeGiftCustomizeSheet__doneBtn {
-  padding: 8px 16px;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
   border: 0;
   background: #3901f1;
@@ -4714,6 +4762,11 @@ html.flowFreeGiftCustomizeSheetOpen {
   cursor: pointer;
 }
 
+.flowFreeGiftCustomizeSheet__doneBtn::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
 .flowFreeGiftCustomizeSheet__doneBtn:hover {
   filter: brightness(1.06);
 }
@@ -4723,12 +4776,16 @@ html.flowFreeGiftCustomizeSheetOpen {
   min-height: 0;
   display: flex;
   align-items: stretch;
+  position: relative;
+  z-index: 1;
 }
 
 .flowFreeGiftCustomizeSheet__aside {
   flex: 0 0 auto;
   width: 304px;
   max-width: min(304px, 42vw);
+  align-self: stretch;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -4736,7 +4793,7 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 .flowFreeGiftCustomizeSheet__asideScroll {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   overflow: auto;
   padding: 20px;
@@ -4762,16 +4819,34 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 .flowFreeGiftCustomizeSheet__sectionRow {
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
   width: 100%;
-  display: flex;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
+  padding-block: 0;
+  padding-inline: 8px;
   border: 0;
   border-radius: 6px;
   background: #f6f8f9;
   cursor: pointer;
   text-align: left;
+  flex-shrink: 0;
+  font-family: var(--spark-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.flowFreeGiftCustomizeSheet__sectionRow::-moz-focus-inner {
+  border: 0;
+  padding: 0;
 }
 
 .flowFreeGiftCustomizeSheet__sectionRow:hover {
@@ -4781,16 +4856,32 @@ html.flowFreeGiftCustomizeSheetOpen {
 .flowFreeGiftCustomizeSheet__sectionRowGrip {
   display: flex;
   flex-shrink: 0;
+  align-items: center;
+}
+
+.flowFreeGiftCustomizeSheet__sectionRowGrip img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  max-width: 24px;
+  max-height: 24px;
+  flex-shrink: 0;
+  object-fit: contain;
 }
 
 .flowFreeGiftCustomizeSheet__sectionRowLabel {
   flex: 1 1 auto;
-  padding-left: 4px;
-  font-family: var(--spark-font-display);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 20px;
+  min-width: 0;
+  padding-left: 2px;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
   color: #191d48;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .flowFreeGiftCustomizeSheet__chevron {
@@ -4805,21 +4896,34 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 .flowFreeGiftCustomizeSheet__addSectionBtn {
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
   width: 100%;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  margin: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px;
+  padding-block: 0;
+  padding-inline: 10px;
   border-radius: 6px;
   border: 1.5px solid #191d48;
   background: transparent;
   font-family: var(--spark-font-display);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 24px;
+  line-height: 20px;
   color: #191d48;
   cursor: pointer;
+}
+
+.flowFreeGiftCustomizeSheet__addSectionBtn::-moz-focus-inner {
+  border: 0;
+  padding: 0;
 }
 
 .flowFreeGiftCustomizeSheet__addSectionBtn:hover {
@@ -4828,7 +4932,9 @@ html.flowFreeGiftCustomizeSheetOpen {
 
 .flowFreeGiftCustomizeSheet__asideFooter {
   flex: 0 0 auto;
-  padding: 16px;
+  align-self: stretch;
+  flex-shrink: 0;
+  padding: 24px 16px;
   background: #fff;
   border-top: 1px solid #e9eaeb;
 }
@@ -4838,7 +4944,8 @@ html.flowFreeGiftCustomizeSheetOpen {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 20px 16px;
+  min-height: 88px;
   border: 0;
   border-radius: 6px;
   background: #fafafa;
@@ -4860,36 +4967,48 @@ html.flowFreeGiftCustomizeSheetOpen {
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  padding: 16px 16px 24px;
+  padding: 12px clamp(16px, 4vw, 48px) 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .flowFreeGiftCustomizeSheet__previewShell {
-  max-width: 1104px;
-  margin: 0 auto;
-  min-height: 100%;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: min(1104px, 100%);
+  margin-inline: auto;
+  align-self: center;
+  min-height: 0;
   background: #f9f8f4;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   box-shadow: 0 0 32px rgba(25, 29, 72, 0.2), 0 2px 4px rgba(25, 29, 72, 0.1);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
 }
 
 .flowFreeGiftCustomizeSheet__previewViewport {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 24px;
+  width: 100%;
   padding-bottom: 24px;
+  box-sizing: border-box;
 }
 
 .flowFreeGiftCustomizeSheet__siteHeader {
   align-self: stretch;
+  flex-shrink: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 16px;
-  padding: 20px clamp(24px, 10vw, 148px);
+  padding: 20px 16px;
   background: #fff;
   border-bottom: 1px solid #e9eaeb;
 }
@@ -4897,6 +5016,7 @@ html.flowFreeGiftCustomizeSheetOpen {
 .flowFreeGiftCustomizeSheet__siteHeaderLead {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   font-family: var(--spark-font-display);
   font-size: 20px;
@@ -4914,6 +5034,9 @@ html.flowFreeGiftCustomizeSheetOpen {
 
 .flowFreeGiftCustomizeSheet__previewStack {
   width: min(752px, calc(100% - 48px));
+  max-width: 752px;
+  margin-inline: auto;
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -4927,24 +5050,29 @@ html.flowFreeGiftCustomizeSheetOpen {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  text-align: left;
 }
 
 .flowFreeGiftCustomizeSheet__giftHeadline {
   margin: 0;
+  width: 100%;
   font-family: Inter, var(--spark-font-body);
   font-size: 26px;
   font-weight: 600;
   line-height: 32px;
   color: #0b1317;
+  text-align: left;
 }
 
 .flowFreeGiftCustomizeSheet__giftSub {
   margin: 8px 0 0;
+  width: 100%;
   font-family: Inter, var(--spark-font-body);
   font-size: 16px;
   font-weight: 400;
   line-height: 24px;
   color: #0b1317;
+  text-align: left;
 }
 
 .flowFreeGiftCustomizeSheet__giftProductRow {
@@ -4956,8 +5084,9 @@ html.flowFreeGiftCustomizeSheetOpen {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 24px 32px;
+  box-sizing: border-box;
 }
 
 .flowFreeGiftCustomizeSheet__giftProductImgWrap {
@@ -4981,6 +5110,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
+  text-align: left;
 }
 
 .flowFreeGiftCustomizeSheet__giftBadge {
@@ -5016,6 +5146,8 @@ html.flowFreeGiftCustomizeSheetOpen {
 .flowFreeGiftCustomizeSheet__giftSelect {
   margin-top: 8px;
   align-self: stretch;
+  width: 100%;
+  max-width: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5028,6 +5160,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   font-weight: 400;
   line-height: 24px;
   color: #0b1317;
+  box-sizing: border-box;
 }
 
 .flowFreeGiftCustomizeSheet__giftSelectCaret {
@@ -5045,6 +5178,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   margin-top: 8px;
   display: flex;
   align-items: baseline;
+  justify-content: flex-start;
   gap: 8px;
 }
 
@@ -5067,6 +5201,7 @@ html.flowFreeGiftCustomizeSheetOpen {
 
 .flowFreeGiftCustomizeSheet__claimBtn {
   margin-top: 24px;
+  align-self: flex-start;
   padding: 12px 16px;
   border: 0;
   border-radius: 4px;
@@ -5085,13 +5220,15 @@ html.flowFreeGiftCustomizeSheetOpen {
   border-radius: 8px;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
+  justify-content: center;
   gap: 8px 12px;
   font-family: Inter, var(--spark-font-body);
   font-size: 16px;
   font-weight: 400;
   line-height: 24px;
   color: #0b1317;
+  text-align: center;
 }
 
 .flowFreeGiftCustomizeSheet__declineLink {
@@ -5106,6 +5243,7 @@ html.flowFreeGiftCustomizeSheetOpen {
 
 .flowFreeGiftCustomizeSheet__siteFooter {
   align-self: stretch;
+  flex-shrink: 0;
   padding: 20px clamp(24px, 10vw, 148px);
   background: #fff;
   border-top: 1px solid #e9eaeb;
@@ -5114,6 +5252,7 @@ html.flowFreeGiftCustomizeSheetOpen {
 .flowFreeGiftCustomizeSheet__siteFooterTop {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-family: var(--spark-font-display);
   font-size: 20px;
@@ -5123,7 +5262,7 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 .flowFreeGiftCustomizeSheet__siteFooterTop > span:first-child {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 
 .flowFreeGiftCustomizeSheet__footerOrb {
@@ -5138,6 +5277,7 @@ html.flowFreeGiftCustomizeSheetOpen {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  justify-content: center;
 }
 
 .flowFreeGiftCustomizeSheet__siteFooterBars span {
@@ -5159,6 +5299,25 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 @media (max-width: 720px) {
+  .flowFreeGiftCustomizeSheet {
+    --fgs-inset-top: 16px;
+    --fgs-inset-x: 12px;
+    --fgs-inset-bottom: min(120px, 16vh);
+    padding: var(--fgs-inset-top) var(--fgs-inset-x) var(--fgs-inset-bottom);
+  }
+
+  .flowFreeGiftCustomizeSheet__surface {
+    width: 100%;
+    height: min(
+      calc(100vh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
+      calc(100dvh - var(--fgs-inset-top) - var(--fgs-inset-bottom))
+    );
+    max-height: min(
+      calc(100vh - var(--fgs-inset-top) - var(--fgs-inset-bottom)),
+      calc(100dvh - var(--fgs-inset-top) - var(--fgs-inset-bottom))
+    );
+  }
+
   .flowFreeGiftCustomizeSheet__aside {
     width: 100%;
     max-width: none;
