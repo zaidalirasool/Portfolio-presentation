@@ -1635,44 +1635,8 @@ a:focus-visible {
   order: 3;
 }
 
-/*
- * Primary motion when the twin column reveals — softened to match deferred flow nodes on
- * slide 5 canvas (`spark.css`: translateY + scale + blur, ~650ms easing).
- */
-#caseFollowPhone.caseFollowPhone.caseFollowPhonePrimary--pairEnter:not(
-    .caseFollowPhonePrimary--pairEnter-active
-  ) {
-  opacity: 0.92;
-  transform: translateY(10px) scale(0.98);
-  transform-origin: left center;
-  filter: blur(2px);
-}
-
-#caseFollowPhone.caseFollowPhone.caseFollowPhonePrimary--pairEnter.caseFollowPhonePrimary--pairEnter-active {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transform-origin: left center;
-  filter: blur(0);
-  transition:
-    opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #caseFollowPhone.caseFollowPhone.caseFollowPhonePrimary--pairEnter,
-  #caseFollowPhone.caseFollowPhone.caseFollowPhonePrimary--pairEnter.caseFollowPhonePrimary--pairEnter-active {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
-  }
-}
-
-/* Phone mock — same entrance motion as deferred slide‑5 nodes (spark.css rhythm) */
-
-/* Phone width: never use 50% flex-basis here — with a hidden twin column that collapsed width
- * and made the mock a hairline. Twin layout overrides flex on both phones when revealed. */
+/* Phone mock shell (width). Twin column fades in via opacity only; layout width snaps when revealed. */
+/* Never use 50% flex-basis here — hidden twin used to collapse width to a hairline. */
 .caseFollowCompose .caseFollowPhone {
   flex: 0 0 auto;
   width: min(453px, calc(100vw - 112px));
@@ -2476,9 +2440,8 @@ a:focus-visible {
   overflow: hidden;
   border: none;
   transition:
-    opacity 580ms cubic-bezier(0.16, 1, 0.3, 1),
-    max-width 680ms cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0ms linear 680ms;
+    opacity 560ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0ms linear 560ms;
 }
 
 /* With two (or more) mocks in the row, primary + spawned need the same flex basis as the twin. */
@@ -2498,10 +2461,8 @@ a:focus-visible {
   visibility: visible;
   pointer-events: auto;
   border: none;
-  transform-origin: right center;
   transition:
-    opacity 580ms cubic-bezier(0.16, 1, 0.3, 1),
-    max-width 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 560ms cubic-bezier(0.16, 1, 0.3, 1),
     visibility 0ms linear 0ms;
 }
 

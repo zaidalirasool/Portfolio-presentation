@@ -2858,46 +2858,11 @@ function wireCaseFollowSlide7Canvas() {
     spawnedPrimaryMocks.push(clone);
   }
 
-  /** @type {number | undefined} */
-  let primaryPairRevealFinishTimer;
-
-  function clearPrimaryPairRevealMotion() {
-    window.clearTimeout(primaryPairRevealFinishTimer);
-    primaryPairRevealFinishTimer = undefined;
-    primaryPhone.classList.remove(
-      "caseFollowPhonePrimary--pairEnter",
-      "caseFollowPhonePrimary--pairEnter-active",
-    );
-  }
-
-  function playPrimaryPairRevealMotion() {
-    clearPrimaryPairRevealMotion();
-    primaryPhone.classList.remove(
-      "caseFollowPhonePrimary--pairEnter",
-      "caseFollowPhonePrimary--pairEnter-active",
-    );
-    const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
-    if (reduced) return;
-    void primaryPhone.offsetWidth;
-    primaryPhone.classList.add("caseFollowPhonePrimary--pairEnter");
-    window.requestAnimationFrame(() => {
-      primaryPhone.classList.add("caseFollowPhonePrimary--pairEnter-active");
-    });
-    primaryPairRevealFinishTimer = window.setTimeout(() => {
-      primaryPairRevealFinishTimer = undefined;
-      primaryPhone.classList.remove(
-        "caseFollowPhonePrimary--pairEnter",
-        "caseFollowPhonePrimary--pairEnter-active",
-      );
-    }, 720);
-  }
-
   function resetSlide7Ui() {
     canvasStep = 0;
     resetRewards();
     clearSpawnedPrimaryMocks();
     compose.classList.remove("caseFollowCompose--twinRevealed");
-    clearPrimaryPairRevealMotion();
     dup.setAttribute("aria-hidden", "true");
     primaryPhone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
   }
@@ -2922,7 +2887,6 @@ function wireCaseFollowSlide7Canvas() {
       compose.classList.add("caseFollowCompose--twinRevealed");
       dup.setAttribute("aria-hidden", "false");
       canvasStep = 2;
-      playPrimaryPairRevealMotion();
       return;
     }
 
