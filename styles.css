@@ -1588,20 +1588,27 @@ a:focus-visible {
   width: 100%;
   padding: clamp(28px, 5vw, 124px);
   box-sizing: border-box;
-  /* Dots come from `.stageWrap`; stay transparent so the grid is not double-painted */
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .caseFollowCompose {
+  /* Primary + twin (+ spawned): fixed bezel height (toolbar, schedule, optional promo on twin, scroll) */
+  --case-follow-phone-bezel-height: 980px;
   flex: 0 0 auto;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   margin: auto;
+}
+
+@media (max-height: 900px) {
+  .caseFollowCompose {
+    --case-follow-phone-bezel-height: min(980px, calc(100dvh - 168px));
+  }
 }
 
 .caseFollowCompose__pair {
@@ -1610,14 +1617,68 @@ a:focus-visible {
   justify-content: center;
   align-items: flex-start;
   gap: clamp(16px, 3vw, 36px);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Primary left, twin (second screen) right; spawned mocks extend further right (JS append order). */
+.caseFollowCompose__pair > #caseFollowPhone.caseFollowPhone {
+  order: 1;
+}
+
+.caseFollowCompose__pair > #caseFollowPhoneDup.caseFollowPhone {
+  order: 2;
+}
+
+.caseFollowCompose__pair > .caseFollowPhone.caseFollowPhone--spawned {
+  order: 3;
+}
+
+/*
+ * Primary motion when the twin column reveals — softened to match deferred flow nodes on
+ * slide 5 canvas (`spark.css`: translateY + scale + blur, ~650ms easing).
+ */
+#caseFollowPhone.caseFollowPhone.caseFollowPhonePrimary--pairEnter:not(
+    .caseFollowPhonePrimary--pairEnter-active
+  ) {
+  opacity: 0.92;
+  transform: translateY(10px) scale(0.98);
+  transform-origin: left center;
+  filter: blur(2px);
+}
+
+#caseFollowPhone.caseFollowPhone.caseFollowPhonePrimary--pairEnter.caseFollowPhonePrimary--pairEnter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transform-origin: left center;
+  filter: blur(0);
+  transition:
+    opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #caseFollowPhone.caseFollowPhone.caseFollowPhonePrimary--pairEnter,
+  #caseFollowPhone.caseFollowPhone.caseFollowPhonePrimary--pairEnter.caseFollowPhonePrimary--pairEnter-active {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }
 
 /* Phone mock — same entrance motion as deferred slide‑5 nodes (spark.css rhythm) */
 
+/* Phone width: never use 50% flex-basis here — with a hidden twin column that collapsed width
+ * and made the mock a hairline. Twin layout overrides flex on both phones when revealed. */
 .caseFollowCompose .caseFollowPhone {
-  flex: 0 1 min(453px, calc(50% - (clamp(16px, 3vw, 36px) / 2)));
+  flex: 0 0 auto;
   width: min(453px, calc(100vw - 112px));
-  max-width: 453px;
+  max-width: min(453px, calc(100% - 32px));
+  min-width: 0;
+  box-sizing: border-box;
   font-family:
     Inter,
     var(--spark-font-body, system-ui),
@@ -1625,7 +1686,46 @@ a:focus-visible {
   color: #0b1317;
 }
 
-.caseFollowPhone__bezel {
+/*
+ * Spawned primary mocks — same entrance recipe as deferred slide‑5 flow nodes
+ * (`#flowBranchNodeWrap…--enter .triggerNode__card` in spark.css).
+ */
+.caseFollowPhone.caseFollowPhone--spawned.caseFollowPhoneSpawn--nodeEnter:not(
+    .caseFollowPhoneSpawn--nodeEnter-active
+  ) {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+  transform-origin: center center;
+  filter: blur(3px);
+}
+
+.caseFollowPhone.caseFollowPhone--spawned.caseFollowPhoneSpawn--nodeEnter.caseFollowPhoneSpawn--nodeEnter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transform-origin: center center;
+  filter: blur(0);
+  transition:
+    opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caseFollowPhone.caseFollowPhone--spawned.caseFollowPhoneSpawn--nodeEnter,
+  .caseFollowPhone.caseFollowPhone--spawned.caseFollowPhoneSpawn--nodeEnter.caseFollowPhoneSpawn--nodeEnter-active {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Same fixed bezel height on primary (#caseFollowPhone), twin (#caseFollowPhoneDup), and spawned mocks */
+.caseFollowCompose .caseFollowPhone > .caseFollowPhone__bezel {
+  box-sizing: border-box;
+  height: var(--case-follow-phone-bezel-height);
+  min-height: var(--case-follow-phone-bezel-height);
+  max-height: var(--case-follow-phone-bezel-height);
+  flex-shrink: 0;
   background: var(--bg);
   border-radius: 32px;
   overflow: hidden;
@@ -1635,19 +1735,31 @@ a:focus-visible {
     0 42px 100px rgba(15, 19, 24, 0.12);
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-width: 0;
 }
 
-.caseFollowPhone__scroll {
+.caseFollowCompose .caseFollowPhone > .caseFollowPhone__bezel > .caseFollowAppHead {
+  flex: 0 0 auto;
+}
+
+.caseFollowCompose .caseFollowPhone > .caseFollowPhone__bezel > .caseFollowSheet--schedule,
+.caseFollowCompose .caseFollowPhone > .caseFollowPhone__bezel > .caseFollowPromo {
+  flex: 0 0 auto;
+}
+
+.caseFollowCompose .caseFollowPhone .caseFollowPhone__scroll {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  flex: 1;
+  flex: 1 1 0;
   min-height: 0;
-  max-height: min(72vh, 864px);
+  min-width: 0;
   padding-top: 16px;
   padding-bottom: 16px;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
 }
@@ -1748,6 +1860,8 @@ a:focus-visible {
 
 .caseFollowSheet--schedule {
   flex-shrink: 0;
+  margin-top: 16px;
+  margin-bottom: 16px;
   padding-top: 20px;
   padding-bottom: 20px;
   padding-left: 20px;
@@ -1881,6 +1995,7 @@ a:focus-visible {
   min-width: 0;
   overflow-x: auto;
   padding-bottom: 4px;
+  touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -2019,7 +2134,7 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-bottom: 28px;
+  padding-bottom: 0;
 }
 
 .caseFollowSheet--checkout {
@@ -2316,6 +2431,7 @@ a:focus-visible {
   display: block;
   width: 100%;
   height: auto;
+  max-height: min(380px, 44vh);
   aspect-ratio: 1;
   object-fit: cover;
   margin: 0;
@@ -2338,7 +2454,8 @@ a:focus-visible {
 
 @media (max-width: 980px) {
   .caseFollowCompose__pair > .caseFollowPhone {
-    flex: 1 1 100%;
+    flex: 0 0 auto;
+    width: min(453px, calc(100vw - 40px));
     max-width: 453px;
   }
 }
@@ -2358,9 +2475,15 @@ a:focus-visible {
   overflow: hidden;
   border: none;
   transition:
-    opacity 380ms cubic-bezier(0.16, 1, 0.3, 1),
-    max-width 460ms cubic-bezier(0.16, 1, 0.3, 1),
-    visibility 0ms linear 460ms;
+    opacity 580ms cubic-bezier(0.16, 1, 0.3, 1),
+    max-width 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0ms linear 680ms;
+}
+
+/* With two (or more) mocks in the row, primary + spawned need the same flex basis as the twin. */
+.caseFollowCompose--twinRevealed .caseFollowCompose__pair > #caseFollowPhone.caseFollowPhone,
+.caseFollowCompose--twinRevealed .caseFollowCompose__pair > .caseFollowPhone.caseFollowPhone--spawned {
+  flex: 0 1 min(453px, calc(50% - (clamp(16px, 3vw, 36px) / 2)));
 }
 
 .caseFollowCompose--twinRevealed .caseFollowCompose__pair > #caseFollowPhoneDup.caseFollowPhone {
@@ -2374,9 +2497,10 @@ a:focus-visible {
   visibility: visible;
   pointer-events: auto;
   border: none;
+  transform-origin: right center;
   transition:
-    opacity 380ms cubic-bezier(0.16, 1, 0.3, 1),
-    max-width 460ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 580ms cubic-bezier(0.16, 1, 0.3, 1),
+    max-width 680ms cubic-bezier(0.22, 1, 0.36, 1),
     visibility 0ms linear 0ms;
 }
 
