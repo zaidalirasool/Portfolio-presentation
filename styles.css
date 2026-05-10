@@ -696,6 +696,9 @@ a:focus-visible {
   max-width: min(320px, 92vw);
   line-height: 1.2;
 }
+.viewport.viewport--merchantMapDuplicate .node.node--hub.node--s8BenefitMorph .hubEmojiOnly {
+  font-size: 20px;
+}
 /* Sequential morph: Loyalty→benefit connector switches dotted → solid (one edge at a time in JS). */
 .viewport.viewport--merchantMapDuplicate .edges .edge.edge--challenge.edge--s8MorphSolid {
   opacity: 1 !important;

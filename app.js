@@ -2560,6 +2560,13 @@ function render(graph) {
       { id: "s8b-3", title: "Engagement tools", angle: 292.5 },
       { id: "s8b-4", title: "Relationship building", angle: 337.5 },
     ]);
+    /** Revealed on second recap-canvas tap — seated in the wedge between Engagement (`s8b-3`) and Relationship (`s8b-4`). */
+    const S8_LOYALTY_CHURN_BENEFIT = /** @type {const} */ ({
+      id: "s8b-5",
+      title: "Churn prevention",
+    });
+    /** Pause before hub morph sequence so Relationship-building + churn layout can settle after tap. */
+    const S8_CHURN_REVEAL_LAYOUT_MS = 450;
 
     /** Synthetic edges on slide‑8 (Subscriptions column + Retention-linked Loyalty). */
     const S8_EXTRA_GRAPH_EDGES = /** @type {readonly [string, string][]} */ ([
@@ -2833,6 +2840,7 @@ function render(graph) {
       if (set.has(S8_RETENTION_ID)) set.add("loyalty");
       if (set.has("loyalty")) {
         for (const it of S8_LOYALTY_BENEFIT_ITEMS) set.add(it.id);
+        if (nodeEls8.has(S8_LOYALTY_CHURN_BENEFIT.id)) set.add(S8_LOYALTY_CHURN_BENEFIT.id);
       }
       return set;
     }
@@ -2862,11 +2870,37 @@ function render(graph) {
     /** Scheduled `setTimeout` ids when morph runs sequentially — cancelled on slide 8 leave. */
     /** @type {number[]} */
     let s8MorphBenefitScheduledIds = [];
+    /** `true` once Churn sibling node + connectors are on the duplicate canvas (RB never moved). */
+    let s8ChurnBenefitRevealActive = false;
+    /**
+     * Isolated recap stage: `0` = four dashed pills; `1` = four ✅ hubs revealed (wait for churn tap);
+     * `2` = churn sibling revealed + ✅ morph queued/done (ignore further taps).
+     */
+    let s8RecapDuplicateCanvasTapPhase = 0;
+
+    function s8ResetRecapDuplicateCanvasTapPhase() {
+      s8RecapDuplicateCanvasTapPhase = 0;
+      s8ChurnBenefitRevealActive = false;
+    }
+
+    function s8UndoChurnSiblingReveal() {
+      if (!s8ChurnBenefitRevealActive) return;
+      edges8?.querySelector(
+        `.edge.edge--challenge[data-a="loyalty"][data-b="${S8_LOYALTY_CHURN_BENEFIT.id}"]`,
+      )?.remove();
+      const churnBtn = nodeEls8.get(S8_LOYALTY_CHURN_BENEFIT.id);
+      churnBtn?.remove();
+      nodeEls8.delete(S8_LOYALTY_CHURN_BENEFIT.id);
+      nodeById8.delete(S8_LOYALTY_CHURN_BENEFIT.id);
+      s8ChurnBenefitRevealActive = false;
+    }
 
     /** Reverts benefit nodes + dotted edges before other slide‑8 teardown. */
     function s8RestoreBenefitMorphSnapshots() {
       for (const tid of s8MorphBenefitScheduledIds) window.clearTimeout(tid);
       s8MorphBenefitScheduledIds.length = 0;
+
+      s8UndoChurnSiblingReveal();
 
       if (!s8BenefitMorphSnapshots?.size) {
         s8BenefitMorphSnapshots = null;
@@ -2928,13 +2962,97 @@ function render(graph) {
       });
     }
 
-    /** Tap on recap canvas (slide 8): Retention‑style hubs with ✅ plus each benefit phrase — one hub + connector at a time. */
-    function s8MorphBenefitFanToHubChecks() {
+    /**
+     * Second canvas tap: Relationship building stays fixed. Churn sits on the chord midpoint between
+     * Engagement and Relationship (same as inward bisector placement on the seeded fan arc), keeping
+     * Loyalty→Churn and Loyalty→RB edges in separate wedges without routing through sibling nodes.
+     */
+    function s8RevealChurnSiblingBesideRelationship() {
+      if (s8ChurnBenefitRevealActive) return;
+      const rbId = "s8b-4";
+      const rbRec = nodeById8.get(rbId);
+      const engagementRec = nodeById8.get("s8b-3");
+      const loy = nodeById8.get("loyalty");
+      const rbExisting = nodeEls8.get(rbId);
+      if (
+        !rbRec ||
+        !(rbExisting instanceof HTMLButtonElement) ||
+        !engagementRec ||
+        !loy ||
+        !nodes8 ||
+        !edges8
+      ) {
+        return;
+      }
+
+      const pRb = rbRec.pos;
+      const pEn = engagementRec.pos;
+      const chordDx = pRb.x - pEn.x;
+      const chordDy = pRb.y - pEn.y;
+      if (Math.hypot(chordDx, chordDy) < 1e-3) return;
+
+      const churnPos = {
+        x: (pEn.x + pRb.x) / 2,
+        y: (pEn.y + pRb.y) / 2,
+      };
+
+      const origin = { x: loy.pos.x, y: loy.pos.y };
+      const churnId = S8_LOYALTY_CHURN_BENEFIT.id;
+      nodeById8.set(churnId, { id: churnId, pos: { x: churnPos.x, y: churnPos.y } });
+      const ns = "http://www.w3.org/2000/svg";
+      const churnBtn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+      churnBtn.type = "button";
+      churnBtn.className = "node node--challenge";
+      churnBtn.dataset.id = churnId;
+      churnBtn.dataset.muted = "false";
+      churnBtn.dataset.hidden = "false";
+      churnBtn.style.left = `${churnPos.x}px`;
+      churnBtn.style.top = `${churnPos.y}px`;
+      churnBtn.setAttribute("aria-label", S8_LOYALTY_CHURN_BENEFIT.title);
+      churnBtn.style.transform = "translate(-50%, -50%)";
+
+      const outline = document.createElementNS(ns, "svg");
+      outline.setAttribute("class", "node__dotOutline");
+      outline.setAttribute("aria-hidden", "true");
+      outline.setAttribute("preserveAspectRatio", "none");
+      outline.appendChild(document.createElementNS(ns, "rect"));
+      churnBtn.appendChild(outline);
+      churnBtn.appendChild(el("span", "node__challengeLabel", S8_LOYALTY_CHURN_BENEFIT.title));
+      nodes8.appendChild(churnBtn);
+      nodeEls8.set(churnId, churnBtn);
+
+      const edgeChurn = document.createElementNS(ns, "path");
+      edgeChurn.setAttribute("class", "edge edge--challenge");
+      edgeChurn.dataset.a = "loyalty";
+      edgeChurn.dataset.b = churnId;
+      edgeChurn.setAttribute("d", edgePath(origin, churnPos));
+      edgeChurn.setAttribute("stroke", "rgba(0, 0, 0, 0.34)");
+      edgeChurn.setAttribute("stroke-width", "1");
+      edgeChurn.setAttribute("stroke-dasharray", "0.1 5");
+      edgeChurn.setAttribute("stroke-linecap", "round");
+      edgeChurn.setAttribute("fill", "none");
+      edges8.appendChild(edgeChurn);
+
+      s8ChurnBenefitRevealActive = true;
+
+      s8ApplyFiltering("repeat");
+    }
+
+    /** Tap pacing: recap canvas — first gesture morphs four benefits; second gesture reveals + morphs churn. */
+    function s8OnRecapDuplicateCanvasTap() {
+      if (s8RecapDuplicateCanvasTapPhase === 0) {
+        s8MorphFirstFourBenefitsOnly();
+      } else if (s8RecapDuplicateCanvasTapPhase === 1) {
+        s8RevealThenMorphChurnBenefitOnly();
+      }
+    }
+
+    /** First tap: ✅ hub morph + dotted→solid for s8b-1 … s8b-4 only (no churn). */
+    function s8MorphFirstFourBenefitsOnly() {
+      if (s8RecapDuplicateCanvasTapPhase !== 0) return;
       if (s8BenefitMorphSnapshots != null && s8BenefitMorphSnapshots.size > 0) return;
 
-      /** Green check emoji (explicit — user request). */
       const chkEmoji = "\u2705";
-
       /** @type {Map<string, { className: string; innerHTML: string }>} */
       const nextSnaps = new Map();
       for (const it of S8_LOYALTY_BENEFIT_ITEMS) {
@@ -2945,18 +3063,67 @@ function render(graph) {
       }
       if (!nextSnaps.size) return;
 
+      /** @type {readonly { id: string; title: string }[]} */
+      const morphOrder = [...S8_LOYALTY_BENEFIT_ITEMS];
+      /** Last item that actually snapshots (normally Relationship building `s8b-4`). */
+      let /** @type {string|null} */ lastMorphId = null;
+      for (let i = morphOrder.length - 1; i >= 0; i--) {
+        if (nextSnaps.has(morphOrder[i].id)) {
+          lastMorphId = morphOrder[i].id;
+          break;
+        }
+      }
+
       s8BenefitMorphSnapshots = nextSnaps;
-      let order = 0;
-      for (const it of S8_LOYALTY_BENEFIT_ITEMS) {
+
+      let seq = 0;
+      for (const it of morphOrder) {
         if (!nextSnaps.has(it.id)) continue;
-        const seq = order;
-        order += 1;
+        const isPhaseGate = lastMorphId !== null && it.id === lastMorphId;
+        const scheduleIdx = seq;
+        seq += 1;
         const tid = window.setTimeout(() => {
           s8ApplyOneBenefitMorph(it, chkEmoji);
           s8SolidifyBenefitConnector(it.id);
-        }, seq * S8_BENEFIT_MORPH_STAGGER_MS);
+          if (isPhaseGate) s8RecapDuplicateCanvasTapPhase = 1;
+        }, scheduleIdx * S8_BENEFIT_MORPH_STAGGER_MS);
         s8MorphBenefitScheduledIds.push(tid);
       }
+
+      if (seq === 0) {
+        s8BenefitMorphSnapshots = null;
+        return;
+      }
+    }
+
+    /** Second tap: reveal Churn in the Engagement–Relationship wedge + ✅ morph churn only. */
+    function s8RevealThenMorphChurnBenefitOnly() {
+      if (s8RecapDuplicateCanvasTapPhase !== 1) return;
+
+      const chkEmoji = "\u2705";
+      const churnId = S8_LOYALTY_CHURN_BENEFIT.id;
+
+      s8RevealChurnSiblingBesideRelationship();
+
+      const churnBtn = nodeEls8.get(churnId);
+      if (!(churnBtn instanceof HTMLButtonElement) || !churnBtn.classList.contains("node--challenge")) {
+        return;
+      }
+
+      if (!s8BenefitMorphSnapshots) s8BenefitMorphSnapshots = new Map();
+      if (!s8BenefitMorphSnapshots.has(churnId)) {
+        s8BenefitMorphSnapshots.set(churnId, {
+          className: churnBtn.className,
+          innerHTML: churnBtn.innerHTML,
+        });
+      }
+
+      const tid = window.setTimeout(() => {
+        s8ApplyOneBenefitMorph(S8_LOYALTY_CHURN_BENEFIT, chkEmoji);
+        s8SolidifyBenefitConnector(churnId);
+      }, S8_CHURN_REVEAL_LAYOUT_MS);
+      s8MorphBenefitScheduledIds.push(tid);
+      s8RecapDuplicateCanvasTapPhase = 2;
     }
 
     function s8SpawnFanout({ state, items, radius }) {
@@ -3292,11 +3459,12 @@ function render(graph) {
     }
 
     slide8EnterHook = () => {
+      s8ResetRecapDuplicateCanvasTapPhase();
       s8Build();
       s8ResetReroute();
       s8ApplyFiltering("repeat");
       merchantMapDuplicateEmptyCanvasTapHook = () => {
-        s8MorphBenefitFanToHubChecks();
+        s8OnRecapDuplicateCanvasTap();
       };
       requestAnimationFrame(() => s8ApplyDefaultRecapCameraTransform());
     };
@@ -3304,6 +3472,7 @@ function render(graph) {
     slide8LeaveHook = () => {
       merchantMapDuplicateEmptyCanvasTapHook = null;
       s8RestoreBenefitMorphSnapshots();
+      s8ResetRecapDuplicateCanvasTapPhase();
       s8ResetReroute();
     };
   }
