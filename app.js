@@ -60,6 +60,8 @@ let merchantMapDuplicatePanZoomWired = false;
  * Isolated camera + inactive nodes; recap capture uses enter/leave hooks off-screen when needed — never binds to Slide 4.
  */
 const MERCHANT_MAP_DUPLICATE_SLIDE_INDEX = 8;
+/** Slide after recap map — stat / typography only (`data-slide-index="9"`). */
+const MERCHANT_ADOPTION_STAT_SLIDE_INDEX = 9;
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
@@ -3463,24 +3465,40 @@ function render(graph) {
   // If a map slide is already active when the graph finishes loading, trigger the layout hook now.
   if (window.slideshowPagination) {
     const idx = window.slideshowPagination.index;
-    if (idx >= 1 && idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+    if (
+      idx >= 1 &&
+      idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX &&
+      idx !== MERCHANT_ADOPTION_STAT_SLIDE_INDEX
+    ) {
       slideshowSlide2LayoutHook();
     }
     if (idx === 3) slideshowEnterSlide4Hook?.();
   }
 
-  // Deck opens on the recap slide; `current` is already 8 so `goTo(8)` is a no-op — run enter + event here.
+  // Deck default may be recap (8) or follow-on stat (9); fire enter hook / initial event for whichever is active.
   requestAnimationFrame(() => {
     const pag = window.slideshowPagination;
-    if (!pag || pag.index !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) return;
-    slide8EnterHook?.();
-    document.dispatchEvent(
-      new CustomEvent("slideshow:change", {
-        bubbles: true,
-        composed: true,
-        detail: { index: MERCHANT_MAP_DUPLICATE_SLIDE_INDEX, count: pag.count },
-      }),
-    );
+    if (!pag) return;
+    if (pag.index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+      slide8EnterHook?.();
+      document.dispatchEvent(
+        new CustomEvent("slideshow:change", {
+          bubbles: true,
+          composed: true,
+          detail: { index: MERCHANT_MAP_DUPLICATE_SLIDE_INDEX, count: pag.count },
+        }),
+      );
+      return;
+    }
+    if (pag.index === MERCHANT_ADOPTION_STAT_SLIDE_INDEX) {
+      document.dispatchEvent(
+        new CustomEvent("slideshow:change", {
+          bubbles: true,
+          composed: true,
+          detail: { index: MERCHANT_ADOPTION_STAT_SLIDE_INDEX, count: pag.count },
+        }),
+      );
+    }
   });
 
   let isPanning = false;
@@ -3910,8 +3928,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 9) {
-    console.error(`[slideshow] expected 9 slide sections, found ${slides.length}`);
+  if (slides.length < 10) {
+    console.error(`[slideshow] expected 10 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -3945,7 +3963,8 @@ function initSlideshow() {
       index === 4 ||
       index === 5 ||
       index === 6 ||
-      index === 7
+      index === 7 ||
+      index === MERCHANT_ADOPTION_STAT_SLIDE_INDEX
     ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
@@ -4038,7 +4057,7 @@ function initSlideshow() {
     get count() { return count; }
   };
 
-  // Sync the initial state — default deck entry is the final recap slide.
+  // Sync the initial state — default deck entry is the final recap slide (slide 9 follows via pagination).
   for (let i = 0; i < slides.length; i++) {
     const on = i === INITIAL_SLIDE_INDEX;
     slides[i].classList.toggle("is-active", on);
@@ -4052,6 +4071,36 @@ function initSlideshow() {
 migrateSubscriptionsCardToBundledAsset();
 
 initSlideshow();
+
+(function initMerchantAdoptionLaunchedStrip() {
+  const stage = document.getElementById("merchantAdoptionStage");
+  const slide = document.querySelector(".slide.slide--merchantAdoptionStat");
+  const stripRoot = slide?.querySelector(".merchantAdoptionStrip");
+  if (!(stage instanceof HTMLElement) || !(slide instanceof HTMLElement)) return;
+
+  stage.addEventListener(
+    "click",
+    () => {
+      if (!slide.classList.contains("is-active")) return;
+      if (!slide.classList.contains("merchantAdoptionStat--stripOn")) {
+        slide.classList.remove("merchantAdoptionStat--stripPaused");
+        slide.classList.add("merchantAdoptionStat--stripOn");
+        if (stripRoot instanceof HTMLElement) stripRoot.setAttribute("aria-hidden", "false");
+        return;
+      }
+      slide.classList.toggle("merchantAdoptionStat--stripPaused");
+    },
+    { passive: true },
+  );
+
+  document.addEventListener("slideshow:change", (e) => {
+    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
+    if (e.detail.index !== MERCHANT_ADOPTION_STAT_SLIDE_INDEX) {
+      slide.classList.remove("merchantAdoptionStat--stripOn", "merchantAdoptionStat--stripPaused");
+      if (stripRoot instanceof HTMLElement) stripRoot.setAttribute("aria-hidden", "true");
+    }
+  });
+})();
 
 /** Case-follow slide uses large PNGs; `loading="lazy"` + `display:none` slides can defer or skip fetches. */
 (function setupCaseFollowImagePrefetch() {
@@ -4093,6 +4142,14 @@ initSlideshow();
     if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
     const idx = e.detail.index;
     if (idx >= 5) warm();
+
+    if (idx === MERCHANT_ADOPTION_STAT_SLIDE_INDEX) {
+      requestAnimationFrame(() => {
+        kickImgLoading(document.getElementById("merchantAdoptionStage"));
+        const im = new Image();
+        im.src = "./assets/launched-merchants.png?v=3";
+      });
+    }
 
     if (idx === 6) {
       warm();

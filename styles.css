@@ -135,6 +135,128 @@ a:focus-visible {
   white-space: nowrap;
 }
 
+.slide--merchantAdoptionStat .stageWrap.stageWrap--intro {
+  position: relative;
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.merchantAdoptionStrip {
+  position: absolute;
+  inset: 78px;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(0, 92%, 0);
+  transition:
+    opacity 1.15s cubic-bezier(0.22, 0.82, 0.28, 1),
+    transform 1.55s cubic-bezier(0.12, 0.88, 0.24, 1);
+}
+
+.merchantAdoptionStrip__track {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.merchantAdoptionStrip__img {
+  flex-shrink: 0;
+  width: calc(100% - 256px);
+  max-width: 100%;
+  height: auto;
+  display: block;
+  vertical-align: top;
+  user-select: none;
+  margin-inline: auto;
+}
+
+.slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip__track {
+  animation: merchantAdoptionStripMarquee-up 28s linear infinite;
+  animation-delay: 1.45s;
+}
+
+.slide--merchantAdoptionStat.merchantAdoptionStat--stripPaused .merchantAdoptionStrip__track {
+  animation-play-state: paused;
+}
+
+@keyframes merchantAdoptionStripMarquee-up {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merchantAdoptionStrip {
+    transition: opacity 0.55s ease-out;
+    transform: none;
+  }
+
+  .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip {
+    transform: none;
+  }
+
+  .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip__track {
+    animation: none;
+    animation-delay: 0s;
+  }
+
+  .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStat__heading {
+    transition: none;
+  }
+
+  .merchantAdoptionStat__heading {
+    transition: opacity 0.22s ease;
+  }
+}
+
+.slide--merchantAdoptionStat .merchantAdoptionStat {
+  position: relative;
+  z-index: 12;
+  max-width: min(920px, 92vw);
+  transform: translateZ(0);
+}
+
+.merchantAdoptionStat__heading {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 2.5vw, 28px);
+  position: relative;
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.48s ease, visibility 0s linear 0s;
+}
+
+.slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStat__heading {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.52s cubic-bezier(0.22, 0.82, 0.28, 1) 0.12s,
+    visibility 0s linear 0.64s;
+}
+
+.merchantAdoptionStat__label {
+  margin: 0;
+  font-size: 56px;
+  font-family: "Greycliff CF";
+  font-weight: 600;
+  line-height: 1.25;
+  text-transform: uppercase;
+  opacity: 0.92;
+}
+
 
 .btn {
   height: 38px;
