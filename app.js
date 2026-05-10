@@ -62,6 +62,8 @@ let merchantMapDuplicatePanZoomWired = false;
 const MERCHANT_MAP_DUPLICATE_SLIDE_INDEX = 8;
 /** Slide after recap map — stat / typography only (`data-slide-index="9"`). */
 const MERCHANT_ADOPTION_STAT_SLIDE_INDEX = 9;
+/** Slide after merchant adoption — full-bleed credits data image (`data-slide-index="10"`). */
+const CREDITS_DATA_SLIDE_INDEX = 10;
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
@@ -3468,7 +3470,8 @@ function render(graph) {
     if (
       idx >= 1 &&
       idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX &&
-      idx !== MERCHANT_ADOPTION_STAT_SLIDE_INDEX
+      idx !== MERCHANT_ADOPTION_STAT_SLIDE_INDEX &&
+      idx !== CREDITS_DATA_SLIDE_INDEX
     ) {
       slideshowSlide2LayoutHook();
     }
@@ -3496,6 +3499,16 @@ function render(graph) {
           bubbles: true,
           composed: true,
           detail: { index: MERCHANT_ADOPTION_STAT_SLIDE_INDEX, count: pag.count },
+        }),
+      );
+      return;
+    }
+    if (pag.index === CREDITS_DATA_SLIDE_INDEX) {
+      document.dispatchEvent(
+        new CustomEvent("slideshow:change", {
+          bubbles: true,
+          composed: true,
+          detail: { index: CREDITS_DATA_SLIDE_INDEX, count: pag.count },
         }),
       );
     }
@@ -3928,8 +3941,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 10) {
-    console.error(`[slideshow] expected 10 slide sections, found ${slides.length}`);
+  if (slides.length < 11) {
+    console.error(`[slideshow] expected 11 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -3964,7 +3977,8 @@ function initSlideshow() {
       index === 5 ||
       index === 6 ||
       index === 7 ||
-      index === MERCHANT_ADOPTION_STAT_SLIDE_INDEX
+      index === MERCHANT_ADOPTION_STAT_SLIDE_INDEX ||
+      index === CREDITS_DATA_SLIDE_INDEX
     ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
@@ -4196,6 +4210,21 @@ initSlideshow();
     if (idx === 7) {
       requestAnimationFrame(() => {
         const hero = document.getElementById("slideRewardsPerformanceImg");
+        if (hero instanceof HTMLImageElement) {
+          hero.loading = "eager";
+          const s = hero.getAttribute("src");
+          if (s && (!hero.complete || hero.naturalWidth === 0)) {
+            hero.removeAttribute("src");
+            hero.setAttribute("src", s);
+          }
+          void hero.decode?.().catch(() => {});
+        }
+      });
+    }
+
+    if (idx === CREDITS_DATA_SLIDE_INDEX) {
+      requestAnimationFrame(() => {
+        const hero = document.getElementById("slideCreditsDataImg");
         if (hero instanceof HTMLImageElement) {
           hero.loading = "eager";
           const s = hero.getAttribute("src");

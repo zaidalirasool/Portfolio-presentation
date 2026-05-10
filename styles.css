@@ -505,6 +505,46 @@ a:focus-visible {
   width: fit-content;
 }
 
+/* Slide 11 (data-slide-index="10"): credits data — image fills dotted stage frame edge-to-edge inner */
+.slide--creditsData .mapSlideMount > .stageWrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.slide--creditsData .sparkFrameImageCanvas--fullBleed {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: center;
+  align-content: stretch;
+}
+
+.slide--creditsData .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img,
+.slide--creditsData #slideCreditsDataImg {
+  /* Cap % + px so the asset actually scales down (intrinsic width can ignore a loose calc). */
+  width: min(52%, calc(100% - 156px));
+  max-width: 100%;
+  height: auto;
+  max-height: min(76vh, 100%);
+  min-width: 0;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  margin-inline: auto;
+}
+
 .viewport .edges {
   transition: opacity 380ms cubic-bezier(0.4, 0, 0.2, 1);
 }
