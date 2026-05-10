@@ -2975,7 +2975,7 @@ function wireCaseFollowSlide7Canvas() {
     creditsBannerAutoHideTid = window.setTimeout(() => {
       creditsBannerAutoHideTid = null;
       hideCreditsBannerAnimated();
-    }, 3000);
+    }, 2000);
   }
 
   function caseFollowUiHit(target) {
