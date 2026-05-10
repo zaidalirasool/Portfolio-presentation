@@ -2894,7 +2894,15 @@ function wireCaseFollowSlide7Canvas() {
   /** @type {number | null} */
   let thirdPostApplyRevealTid = null;
 
-  const THIRD_CANCEL_FLOW_SECTION_SELECTORS = [
+  /** @type {number | null} */
+  let thirdPhoneBannerAutoHideTid = null;
+
+  function clearThirdPhoneBannerAutoHide() {
+    if (thirdPhoneBannerAutoHideTid !== null) {
+      window.clearTimeout(thirdPhoneBannerAutoHideTid);
+      thirdPhoneBannerAutoHideTid = null;
+    }
+  }
     "section.caseFollowExampleProductOpts",
     "section.caseFollowCreditsLossCard",
     "section.caseFollowCancelSurvey",
@@ -2964,6 +2972,8 @@ function wireCaseFollowSlide7Canvas() {
 
     const storeC = /** @type {HTMLElement} */ (storeCredit.cloneNode(true));
     stripIdsForClone(storeC);
+    const postApplyAmount = storeC.querySelector(".caseFollowStoreCredit__amount");
+    if (postApplyAmount) postApplyAmount.textContent = "$5.00";
     wrap.appendChild(storeC);
 
     const checkoutWrap = document.createElement("div");
@@ -2973,10 +2983,83 @@ function wireCaseFollowSlide7Canvas() {
     checkoutWrap.appendChild(checkoutC);
     wrap.appendChild(checkoutWrap);
 
-    scroll.appendChild(wrap);
+    const navLink = scroll.querySelector(".caseFollowNavLink");
+    if (navLink) {
+      scroll.insertBefore(wrap, navLink);
+    } else {
+      scroll.appendChild(wrap);
+    }
     loader.hidden = true;
     loader.setAttribute("aria-hidden", "true");
     hideThirdCancelFlowSections(scroll);
+    showThirdPhoneCreditsBannerToast();
+  }
+
+  function hideThirdPhoneCreditsBannerAnimated() {
+    const banner = document.getElementById("caseFollowCreditsBannerThird");
+    if (!(banner instanceof HTMLElement)) return;
+    const hadVisible = banner.classList.contains("caseFollowCreditsBanner--visible");
+    const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+
+    banner.classList.remove("caseFollowCreditsBanner--visible");
+
+    const done = () => {
+      banner.hidden = true;
+      banner.setAttribute("aria-hidden", "true");
+    };
+
+    if (!hadVisible) {
+      done();
+      return;
+    }
+
+    if (reduced) {
+      done();
+      return;
+    }
+
+    const onEnd = (e) => {
+      if (e.target !== banner || e.propertyName !== "transform") return;
+      banner.removeEventListener("transitionend", onEnd);
+      window.clearTimeout(fallbackTid);
+      done();
+    };
+    banner.addEventListener("transitionend", onEnd);
+    const fallbackTid = window.setTimeout(() => {
+      banner.removeEventListener("transitionend", onEnd);
+      done();
+    }, 450);
+  }
+
+  function showThirdPhoneCreditsBannerToast() {
+    clearThirdPhoneBannerAutoHide();
+    const thirdBanner = document.getElementById("caseFollowCreditsBannerThird");
+    if (!(thirdBanner instanceof HTMLElement)) return;
+    thirdBanner.hidden = false;
+    thirdBanner.removeAttribute("aria-hidden");
+    const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+    thirdBanner.classList.remove("caseFollowCreditsBanner--visible");
+    if (reduced) {
+      thirdBanner.classList.add("caseFollowCreditsBanner--visible");
+    } else {
+      window.requestAnimationFrame(() => {
+        thirdBanner.classList.add("caseFollowCreditsBanner--visible");
+      });
+    }
+
+    thirdPhoneBannerAutoHideTid = window.setTimeout(() => {
+      thirdPhoneBannerAutoHideTid = null;
+      hideThirdPhoneCreditsBannerAnimated();
+    }, 1000);
+  }
+
+  function hideThirdPhoneCreditsBannerToast() {
+    clearThirdPhoneBannerAutoHide();
+    const thirdBanner = document.getElementById("caseFollowCreditsBannerThird");
+    if (!(thirdBanner instanceof HTMLElement)) return;
+    thirdBanner.classList.remove("caseFollowCreditsBanner--visible");
+    thirdBanner.hidden = true;
+    thirdBanner.setAttribute("aria-hidden", "true");
   }
 
   function resetThirdScreenApplyCreditsLoading() {
@@ -2990,6 +3073,7 @@ function wireCaseFollowSlide7Canvas() {
       loader.hidden = true;
       loader.setAttribute("aria-hidden", "true");
     }
+    hideThirdPhoneCreditsBannerToast();
   }
 
   function showThirdScreenApplyCreditsLoading() {
@@ -2998,6 +3082,7 @@ function wireCaseFollowSlide7Canvas() {
     if (!(scroll instanceof HTMLElement) || !(loader instanceof HTMLElement)) return;
     clearThirdPostApplyRevealTimer();
     removeThirdPostApplyClones();
+    hideThirdPhoneCreditsBannerToast();
     hideThirdCancelFlowSections(scroll);
     loader.hidden = false;
     loader.removeAttribute("aria-hidden");

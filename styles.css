@@ -2531,6 +2531,60 @@ a:focus-visible {
   }
 }
 
+.caseFollowCompose .caseFollowPhone .caseFollowNavLink {
+  width: 100%;
+  position: relative;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 20px;
+  border: none;
+  background-color: #fff;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  text-align: left;
+  font-size: 16px;
+  color: #0b1317;
+  font-family: Inter, var(--spark-font-body, system-ui), sans-serif;
+  cursor: default;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.caseFollowNavLink__label {
+  flex: 1;
+  position: relative;
+  font-size: 21.5px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.caseFollowNavLink__chevron {
+  height: 24px;
+  width: 24px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.caseFollowNavLink__chevronImg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.caseFollowNavLink__logOutIcon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
 .caseFollowCheckoutStack {
   --case-follow-product-shot-bg: linear-gradient(145deg, #f6f1e5 0%, #dff0ea 38%, #ebe9e4 100%);
   display: flex;
@@ -3001,11 +3055,11 @@ a:focus-visible {
   left: 21px;
 }
 
-#caseFollowPhoneDup.caseFollowPhone > .caseFollowPhone__bezel {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird).caseFollowPhone > .caseFollowPhone__bezel {
   position: relative;
 }
 
-#caseFollowPhoneDup .caseFollowCreditsBanner {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird) .caseFollowCreditsBanner {
   position: absolute;
   left: 12px;
   right: 12px;
@@ -3020,13 +3074,13 @@ a:focus-visible {
     opacity 0.28s ease;
 }
 
-#caseFollowPhoneDup .caseFollowCreditsBanner.caseFollowCreditsBanner--visible {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird) .caseFollowCreditsBanner.caseFollowCreditsBanner--visible {
   transform: translateY(0);
   opacity: 1;
 }
 
 /* Mirrors Infocard.module.css: .infocard + .circleCheckParent */
-#caseFollowPhoneDup .caseFollowCreditsBanner__inner {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird) .caseFollowCreditsBanner__inner {
   position: relative;
   width: 100%;
   box-sizing: border-box;
@@ -3047,7 +3101,7 @@ a:focus-visible {
     0 14px 32px rgba(15, 19, 24, 0.14);
 }
 
-#caseFollowPhoneDup .caseFollowCreditsBanner__check {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird) .caseFollowCreditsBanner__check {
   position: relative;
   flex-shrink: 0;
   width: 24px;
@@ -3057,14 +3111,14 @@ a:focus-visible {
   justify-content: center;
 }
 
-#caseFollowPhoneDup .caseFollowCreditsBanner__checkImg {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird) .caseFollowCreditsBanner__checkImg {
   display: block;
   width: 24px;
   height: 24px;
   filter: brightness(0) invert(1);
 }
 
-#caseFollowPhoneDup .caseFollowCreditsBanner__text {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird) .caseFollowCreditsBanner__text {
   flex: 1;
   position: relative;
   margin: 0;
@@ -3079,7 +3133,7 @@ a:focus-visible {
     transition: none;
   }
 
-  #caseFollowPhoneDup .caseFollowCreditsBanner {
+  :is(#caseFollowPhoneDup, #caseFollowPhoneThird) .caseFollowCreditsBanner {
     transition: none;
   }
 }
