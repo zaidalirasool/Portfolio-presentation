@@ -2565,9 +2565,6 @@ function render(graph) {
       id: "s8b-5",
       title: "Churn prevention",
     });
-    /** Pause before hub morph sequence so Relationship-building + churn layout can settle after tap. */
-    const S8_CHURN_REVEAL_LAYOUT_MS = 450;
-
     /** Synthetic edges on slide‑8 (Subscriptions column + Retention-linked Loyalty). */
     const S8_EXTRA_GRAPH_EDGES = /** @type {readonly [string, string][]} */ ([
       ["subscriptions", S8_RETENTION_ID],
@@ -2964,8 +2961,8 @@ function render(graph) {
 
     /**
      * Second canvas tap: Relationship building stays fixed. Churn sits on the chord midpoint between
-     * Engagement and Relationship (same as inward bisector placement on the seeded fan arc), keeping
-     * Loyalty→Churn and Loyalty→RB edges in separate wedges without routing through sibling nodes.
+     * Engagement and Relationship (bisector wedge). Churn is created as the final ✅ hub with a solid
+     * Loyalty connector (no dashed challenge prelude).
      */
     function s8RevealChurnSiblingBesideRelationship() {
       if (s8ChurnBenefitRevealActive) return;
@@ -3000,10 +2997,12 @@ function render(graph) {
       const churnId = S8_LOYALTY_CHURN_BENEFIT.id;
       nodeById8.set(churnId, { id: churnId, pos: { x: churnPos.x, y: churnPos.y } });
       const ns = "http://www.w3.org/2000/svg";
+      const chkEmoji = "\u2705";
       const churnBtn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
       churnBtn.type = "button";
-      churnBtn.className = "node node--challenge";
+      churnBtn.className = "node node--hub node--s8BenefitMorph";
       churnBtn.dataset.id = churnId;
+      churnBtn.dataset.hub = "true";
       churnBtn.dataset.muted = "false";
       churnBtn.dataset.hidden = "false";
       churnBtn.style.left = `${churnPos.x}px`;
@@ -3011,24 +3010,22 @@ function render(graph) {
       churnBtn.setAttribute("aria-label", S8_LOYALTY_CHURN_BENEFIT.title);
       churnBtn.style.transform = "translate(-50%, -50%)";
 
-      const outline = document.createElementNS(ns, "svg");
-      outline.setAttribute("class", "node__dotOutline");
-      outline.setAttribute("aria-hidden", "true");
-      outline.setAttribute("preserveAspectRatio", "none");
-      outline.appendChild(document.createElementNS(ns, "rect"));
-      churnBtn.appendChild(outline);
-      churnBtn.appendChild(el("span", "node__challengeLabel", S8_LOYALTY_CHURN_BENEFIT.title));
+      const row = el("div", "hubRow");
+      const emTag = el("span", "hubEmojiOnly", chkEmoji);
+      emTag.setAttribute("aria-hidden", "true");
+      row.appendChild(emTag);
+      row.appendChild(el("div", "hubText", S8_LOYALTY_CHURN_BENEFIT.title));
+      churnBtn.appendChild(row);
       nodes8.appendChild(churnBtn);
       nodeEls8.set(churnId, churnBtn);
 
       const edgeChurn = document.createElementNS(ns, "path");
-      edgeChurn.setAttribute("class", "edge edge--challenge");
+      edgeChurn.setAttribute("class", "edge edge--challenge edge--s8MorphSolid");
       edgeChurn.dataset.a = "loyalty";
       edgeChurn.dataset.b = churnId;
       edgeChurn.setAttribute("d", edgePath(origin, churnPos));
-      edgeChurn.setAttribute("stroke", "rgba(0, 0, 0, 0.34)");
+      edgeChurn.setAttribute("stroke", "rgba(0, 0, 0, 0.22)");
       edgeChurn.setAttribute("stroke-width", "1");
-      edgeChurn.setAttribute("stroke-dasharray", "0.1 5");
       edgeChurn.setAttribute("stroke-linecap", "round");
       edgeChurn.setAttribute("fill", "none");
       edges8.appendChild(edgeChurn);
@@ -3038,7 +3035,7 @@ function render(graph) {
       s8ApplyFiltering("repeat");
     }
 
-    /** Tap pacing: recap canvas — first gesture morphs four benefits; second gesture reveals + morphs churn. */
+    /** Tap pacing: recap canvas — first gesture morphs four benefits; second gesture reveals churn as ✅ hub + solid edge. */
     function s8OnRecapDuplicateCanvasTap() {
       if (s8RecapDuplicateCanvasTapPhase === 0) {
         s8MorphFirstFourBenefitsOnly();
@@ -3096,33 +3093,19 @@ function render(graph) {
       }
     }
 
-    /** Second tap: reveal Churn in the Engagement–Relationship wedge + ✅ morph churn only. */
+    /** Second tap: reveal Churn as the final ✅ hub + solid Loyalty edge (no challenge-pill prelude). */
     function s8RevealThenMorphChurnBenefitOnly() {
       if (s8RecapDuplicateCanvasTapPhase !== 1) return;
 
-      const chkEmoji = "\u2705";
       const churnId = S8_LOYALTY_CHURN_BENEFIT.id;
 
       s8RevealChurnSiblingBesideRelationship();
 
       const churnBtn = nodeEls8.get(churnId);
-      if (!(churnBtn instanceof HTMLButtonElement) || !churnBtn.classList.contains("node--challenge")) {
+      if (!(churnBtn instanceof HTMLButtonElement) || !churnBtn.classList.contains("node--hub")) {
         return;
       }
 
-      if (!s8BenefitMorphSnapshots) s8BenefitMorphSnapshots = new Map();
-      if (!s8BenefitMorphSnapshots.has(churnId)) {
-        s8BenefitMorphSnapshots.set(churnId, {
-          className: churnBtn.className,
-          innerHTML: churnBtn.innerHTML,
-        });
-      }
-
-      const tid = window.setTimeout(() => {
-        s8ApplyOneBenefitMorph(S8_LOYALTY_CHURN_BENEFIT, chkEmoji);
-        s8SolidifyBenefitConnector(churnId);
-      }, S8_CHURN_REVEAL_LAYOUT_MS);
-      s8MorphBenefitScheduledIds.push(tid);
       s8RecapDuplicateCanvasTapPhase = 2;
     }
 
