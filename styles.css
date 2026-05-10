@@ -1757,7 +1757,7 @@ a:focus-visible {
 .caseFollowLoyaltyCard,
 .caseFollowSheet--checkout,
 .caseFollowPromo,
-#caseFollowPhoneDup .caseFollowStoreCredit {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit {
   box-shadow:
     0 2px 8px rgba(15, 19, 24, 0.02),
     0 10px 42px rgba(15, 19, 24, 0.028);
@@ -2269,6 +2269,12 @@ a:focus-visible {
   gap: 16px;
   width: 100%;
   box-sizing: border-box;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts[hidden],
+#caseFollowPhoneThird .caseFollowCreditsLossCard[hidden],
+#caseFollowPhoneThird .caseFollowCancelSurvey[hidden] {
+  display: none !important;
 }
 
 #caseFollowPhoneThird .caseFollowThirdLoader__spinner {
@@ -2858,7 +2864,7 @@ a:focus-visible {
 }
 
 /* Twin mock only — store credit card below loyalty promo */
-#caseFollowPhoneDup .caseFollowStoreCredit {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit {
   box-sizing: border-box;
   align-self: stretch;
   width: 100%;
@@ -2872,7 +2878,7 @@ a:focus-visible {
   color: #0b1317;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__inner {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__inner {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -2880,7 +2886,7 @@ a:focus-visible {
   width: 100%;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__headerRow {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__headerRow {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2888,7 +2894,7 @@ a:focus-visible {
   min-width: 0;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__title {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__title {
   flex: 1;
   min-width: 0;
   margin: 0;
@@ -2897,18 +2903,18 @@ a:focus-visible {
   line-height: 31.29px;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__amountWrap {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__amountWrap {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-shrink: 0;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__amount {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__amount {
   font-weight: 600;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__box {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__box {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -2918,7 +2924,7 @@ a:focus-visible {
   font-size: 17.88px;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__toggleRow {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__toggleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2928,18 +2934,18 @@ a:focus-visible {
   min-width: 0;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__toggleLabel {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__toggleLabel {
   line-height: 26.82px;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__toggleControl {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__toggleControl {
   display: inline-flex;
   justify-content: flex-end;
   align-items: center;
   flex-shrink: 0;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__switch {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__switch {
   position: relative;
   width: 42px;
   height: 24px;
@@ -2951,12 +2957,12 @@ a:focus-visible {
   flex-shrink: 0;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__switch:focus-visible {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__switch:focus-visible {
   outline: 2px solid #467c99;
   outline-offset: 3px;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__switchTrack {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__switchTrack {
   position: absolute;
   left: 0;
   top: 0;
@@ -2967,19 +2973,19 @@ a:focus-visible {
   pointer-events: none;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__switch:not(.caseFollowStoreCredit__switch--on) .caseFollowStoreCredit__switchTrack {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__switch:not(.caseFollowStoreCredit__switch--on) .caseFollowStoreCredit__switchTrack {
   background: #e3e8ec;
   outline: 1px solid rgba(11, 19, 23, 0.1);
   outline-offset: -1px;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__switch--on .caseFollowStoreCredit__switchTrack {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__switch--on .caseFollowStoreCredit__switchTrack {
   background: #467c99;
   outline: 1px solid rgba(255, 255, 255, 0.35);
   outline-offset: -1px;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__switchThumb {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__switchThumb {
   position: absolute;
   top: 3px;
   left: 3px;
@@ -2991,7 +2997,7 @@ a:focus-visible {
   transition: left 0.2s ease;
 }
 
-#caseFollowPhoneDup .caseFollowStoreCredit__switch--on .caseFollowStoreCredit__switchThumb {
+:is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__switch--on .caseFollowStoreCredit__switchThumb {
   left: 21px;
 }
 
@@ -3069,7 +3075,7 @@ a:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #caseFollowPhoneDup .caseFollowStoreCredit__switchThumb {
+  :is(#caseFollowPhoneDup, #caseFollowPhoneThird .caseFollowThirdPostApply) .caseFollowStoreCredit__switchThumb {
     transition: none;
   }
 

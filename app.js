@@ -2894,6 +2894,34 @@ function wireCaseFollowSlide7Canvas() {
   /** @type {number | null} */
   let thirdPostApplyRevealTid = null;
 
+  const THIRD_CANCEL_FLOW_SECTION_SELECTORS = [
+    "section.caseFollowExampleProductOpts",
+    "section.caseFollowCreditsLossCard",
+    "section.caseFollowCancelSurvey",
+  ];
+
+  function forEachThirdCancelFlowSection(scroll, fn) {
+    if (!(scroll instanceof HTMLElement)) return;
+    for (const sel of THIRD_CANCEL_FLOW_SECTION_SELECTORS) {
+      const el = scroll.querySelector(sel);
+      if (el instanceof HTMLElement) fn(el);
+    }
+  }
+
+  function hideThirdCancelFlowSections(scroll) {
+    forEachThirdCancelFlowSection(scroll, (el) => {
+      el.hidden = true;
+      el.setAttribute("aria-hidden", "true");
+    });
+  }
+
+  function showThirdCancelFlowSections(scroll) {
+    forEachThirdCancelFlowSection(scroll, (el) => {
+      el.hidden = false;
+      el.removeAttribute("aria-hidden");
+    });
+  }
+
   function clearThirdPostApplyRevealTimer() {
     if (thirdPostApplyRevealTid !== null) {
       window.clearTimeout(thirdPostApplyRevealTid);
@@ -2914,14 +2942,11 @@ function wireCaseFollowSlide7Canvas() {
     const scroll = thirdPhone.querySelector(".caseFollowPhone__scroll");
     const loader = document.getElementById("caseFollowThirdLoader");
     const dupScroll = dup.querySelector(".caseFollowPhone__scroll");
-    const primaryScroll = primaryPhone.querySelector(".caseFollowPhone__scroll");
     if (!(scroll instanceof HTMLElement) || !(loader instanceof HTMLElement)) return;
-    if (!(dupScroll instanceof HTMLElement) || !(primaryScroll instanceof HTMLElement)) return;
+    if (!(dupScroll instanceof HTMLElement)) return;
 
-    const schedule = dupScroll.querySelector(":scope > section.caseFollowSheet--schedule");
-    const storeCredit = dupScroll.querySelector(":scope > div.caseFollowStoreCredit");
-    const checkoutStack = primaryScroll.querySelector(":scope > div.caseFollowCheckoutStack");
-    if (!schedule || !storeCredit || !checkoutStack) return;
+    const schedule = dupScroll.querySelector("section.caseFollowSheet--schedule");
+    if (!schedule) return;
 
     removeThirdPostApplyClones();
 
@@ -2929,16 +2954,14 @@ function wireCaseFollowSlide7Canvas() {
     wrap.className = "caseFollowThirdPostApply";
     wrap.dataset.caseFollowPostApply = "";
 
-    for (const el of [schedule, storeCredit, checkoutStack]) {
-      if (!(el instanceof HTMLElement)) continue;
-      const c = /** @type {HTMLElement} */ (el.cloneNode(true));
-      stripIdsForClone(c);
-      wrap.appendChild(c);
-    }
+    const scheduleC = /** @type {HTMLElement} */ (schedule.cloneNode(true));
+    stripIdsForClone(scheduleC);
+    wrap.appendChild(scheduleC);
 
     scroll.appendChild(wrap);
     loader.hidden = true;
     loader.setAttribute("aria-hidden", "true");
+    hideThirdCancelFlowSections(scroll);
   }
 
   function resetThirdScreenApplyCreditsLoading() {
@@ -2947,11 +2970,7 @@ function wireCaseFollowSlide7Canvas() {
     const scroll = thirdPhone.querySelector(".caseFollowPhone__scroll");
     const loader = document.getElementById("caseFollowThirdLoader");
     if (!(scroll instanceof HTMLElement)) return;
-    scroll.querySelectorAll(":scope > section").forEach((el) => {
-      if (!(el instanceof HTMLElement)) return;
-      el.hidden = false;
-      el.removeAttribute("aria-hidden");
-    });
+    showThirdCancelFlowSections(scroll);
     if (loader instanceof HTMLElement) {
       loader.hidden = true;
       loader.setAttribute("aria-hidden", "true");
@@ -2964,17 +2983,13 @@ function wireCaseFollowSlide7Canvas() {
     if (!(scroll instanceof HTMLElement) || !(loader instanceof HTMLElement)) return;
     clearThirdPostApplyRevealTimer();
     removeThirdPostApplyClones();
-    scroll.querySelectorAll(":scope > section").forEach((el) => {
-      if (!(el instanceof HTMLElement)) return;
-      el.hidden = true;
-      el.setAttribute("aria-hidden", "true");
-    });
+    hideThirdCancelFlowSections(scroll);
     loader.hidden = false;
     loader.removeAttribute("aria-hidden");
     thirdPostApplyRevealTid = window.setTimeout(() => {
       thirdPostApplyRevealTid = null;
       revealThirdPostApplyCards();
-    }, 1000);
+    }, 1200);
   }
 
   /** @type {number | null} */
