@@ -2697,9 +2697,9 @@ wireRewardsStrategyVideo();
 /**
  * Slide 7 (last case-follow slide): primary phone visible immediately.
  * 1st neutral canvas tap → Maris Loyalty reward stamp sequence (orders 5–12).
- * 2nd neutral canvas tap → reveal twin phone.
- * Further neutral taps (after twin is visible) → another primary mock appears beside the row
- * (deep clone + map-node-style opacity/scale entrance).
+ * 2nd neutral canvas tap → reveal twin phone (second screen).
+ * Credits toast on twin dismisses → next neutral canvas tap → third phone mock (third screen).
+ * Spawned primary mocks (if used) reuse the row layout rules above.
  */
 function wireCaseFollowSlide7Canvas() {
   const canvas = document.getElementById("caseFollowCanvas");
@@ -2709,8 +2709,10 @@ function wireCaseFollowSlide7Canvas() {
   const pair = compose?.querySelector(".caseFollowCompose__pair");
   const dup = document.getElementById("caseFollowPhoneDup");
   const primaryPhone = document.getElementById("caseFollowPhone");
+  const thirdPhone = document.getElementById("caseFollowPhoneThird");
   if (!(compose instanceof HTMLElement) || !(pair instanceof HTMLElement)) return;
   if (!(dup instanceof HTMLElement) || !(primaryPhone instanceof HTMLElement)) return;
+  if (!(thirdPhone instanceof HTMLElement)) return;
 
   const starStamp = {
     src: "./assets/affinity/Star-1.svg?v=1",
@@ -2744,8 +2746,14 @@ function wireCaseFollowSlide7Canvas() {
 
   if (rewardSlots.length !== rewardSlotIds.length) return;
 
-  /** 0 = stamps available, 1 = stamps started — next tap reveals twin, 2 = twin visible */
+  /** 0 = stamps available, 1 = stamps started — next tap reveals twin, 2 = twin visible, 3 = third visible */
   let canvasStep = 0;
+
+  /** After credits toast fully hides, next neutral canvas tap reveals `#caseFollowPhoneThird`. */
+  let thirdScreenArmed = false;
+
+  /** True while the credits toast is showing (or until hide completes). Used to arm the third screen only after a real toast. */
+  let bannerEligibleForThirdArm = false;
 
   /** Deep clones of `#caseFollowPhone` appended after the twin; cleared on slide reset. */
   /** @type {HTMLElement[]} */
@@ -2863,8 +2871,11 @@ function wireCaseFollowSlide7Canvas() {
     canvasStep = 0;
     resetRewards();
     clearSpawnedPrimaryMocks();
-    compose.classList.remove("caseFollowCompose--twinRevealed");
+    compose.classList.remove("caseFollowCompose--twinRevealed", "caseFollowCompose--thirdRevealed");
     dup.setAttribute("aria-hidden", "true");
+    thirdPhone.setAttribute("aria-hidden", "true");
+    thirdScreenArmed = false;
+    bannerEligibleForThirdArm = false;
     primaryPhone.classList.remove("caseFollowPhone--enter", "caseFollowPhone--enter-active");
     canvas.querySelectorAll(".caseFollowStoreCredit__switch").forEach((el) => {
       if (!(el instanceof HTMLElement)) return;
@@ -2889,15 +2900,38 @@ function wireCaseFollowSlide7Canvas() {
     }
   }
 
+  function finalizeCreditsBannerHidden() {
+    if (
+      bannerEligibleForThirdArm &&
+      compose.classList.contains("caseFollowCompose--twinRevealed") &&
+      !compose.classList.contains("caseFollowCompose--thirdRevealed")
+    ) {
+      thirdScreenArmed = true;
+    }
+    bannerEligibleForThirdArm = false;
+  }
+
   function hideCreditsBannerAnimated() {
     const banner = document.getElementById("caseFollowCreditsBanner");
     if (!(banner instanceof HTMLElement)) return;
+    const hadVisible = banner.classList.contains("caseFollowCreditsBanner--visible");
     const reduced = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
 
     banner.classList.remove("caseFollowCreditsBanner--visible");
-    if (reduced) {
+
+    const done = () => {
       banner.hidden = true;
       banner.setAttribute("aria-hidden", "true");
+      finalizeCreditsBannerHidden();
+    };
+
+    if (!hadVisible) {
+      done();
+      return;
+    }
+
+    if (reduced) {
+      done();
       return;
     }
 
@@ -2905,18 +2939,12 @@ function wireCaseFollowSlide7Canvas() {
       if (e.target !== banner || e.propertyName !== "transform") return;
       banner.removeEventListener("transitionend", onEnd);
       window.clearTimeout(fallbackTid);
-      if (!banner.classList.contains("caseFollowCreditsBanner--visible")) {
-        banner.hidden = true;
-        banner.setAttribute("aria-hidden", "true");
-      }
+      done();
     };
     banner.addEventListener("transitionend", onEnd);
     const fallbackTid = window.setTimeout(() => {
       banner.removeEventListener("transitionend", onEnd);
-      if (!banner.classList.contains("caseFollowCreditsBanner--visible")) {
-        banner.hidden = true;
-        banner.setAttribute("aria-hidden", "true");
-      }
+      done();
     }, 450);
   }
 
@@ -2936,9 +2964,11 @@ function wireCaseFollowSlide7Canvas() {
     banner.removeAttribute("aria-hidden");
     if (reduced) {
       banner.classList.add("caseFollowCreditsBanner--visible");
+      bannerEligibleForThirdArm = true;
     } else {
       requestAnimationFrame(() => {
         banner.classList.add("caseFollowCreditsBanner--visible");
+        bannerEligibleForThirdArm = true;
       });
     }
 
@@ -2968,6 +2998,21 @@ function wireCaseFollowSlide7Canvas() {
       compose.classList.add("caseFollowCompose--twinRevealed");
       dup.setAttribute("aria-hidden", "false");
       canvasStep = 2;
+      return;
+    }
+
+    if (
+      canvasStep === 2 &&
+      compose.classList.contains("caseFollowCompose--twinRevealed") &&
+      thirdScreenArmed &&
+      !compose.classList.contains("caseFollowCompose--thirdRevealed")
+    ) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      compose.classList.add("caseFollowCompose--thirdRevealed");
+      thirdPhone.setAttribute("aria-hidden", "false");
+      thirdScreenArmed = false;
+      canvasStep = 3;
       return;
     }
 

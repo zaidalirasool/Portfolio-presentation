@@ -1631,8 +1631,12 @@ a:focus-visible {
   order: 2;
 }
 
-.caseFollowCompose__pair > .caseFollowPhone.caseFollowPhone--spawned {
+.caseFollowCompose__pair > #caseFollowPhoneThird.caseFollowPhone {
   order: 3;
+}
+
+.caseFollowCompose__pair > .caseFollowPhone.caseFollowPhone--spawned {
+  order: 4;
 }
 
 /* Phone mock shell (width). Twin column fades in via opacity only; layout width snaps when revealed. */
@@ -1851,6 +1855,14 @@ a:focus-visible {
   font-size: 21.5px;
   font-weight: 600;
   line-height: 1.08;
+}
+
+.caseFollowThirdScreen__body {
+  margin: 10px 0 0;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(11, 19, 23, 0.82);
 }
 
 .caseFollowScheduleBtns {
@@ -2672,14 +2684,26 @@ a:focus-visible {
     visibility 0ms linear 560ms;
 }
 
-/* With two (or more) mocks in the row, primary + spawned need the same flex basis as the twin. */
-.caseFollowCompose--twinRevealed .caseFollowCompose__pair > #caseFollowPhone.caseFollowPhone,
-.caseFollowCompose--twinRevealed .caseFollowCompose__pair > .caseFollowPhone.caseFollowPhone--spawned {
-  flex: 0 1 min(453px, calc(50% - (clamp(16px, 3vw, 36px) / 2)));
+.caseFollowCompose:not(.caseFollowCompose--thirdRevealed)
+  .caseFollowCompose__pair
+  > #caseFollowPhoneThird.caseFollowPhone {
+  flex: 0 0 0;
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+  border: none;
+  transition:
+    opacity 560ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0ms linear 560ms;
 }
 
 .caseFollowCompose--twinRevealed .caseFollowCompose__pair > #caseFollowPhoneDup.caseFollowPhone {
-  flex: 0 1 min(453px, calc(50% - (clamp(16px, 3vw, 36px) / 2)));
   width: min(453px, calc(100vw - 112px));
   max-width: 453px;
   margin: unset;
@@ -2694,11 +2718,54 @@ a:focus-visible {
     visibility 0ms linear 0ms;
 }
 
+.caseFollowCompose--thirdRevealed .caseFollowCompose__pair > #caseFollowPhoneThird.caseFollowPhone {
+  width: min(453px, calc(100vw - 112px));
+  max-width: 453px;
+  margin: unset;
+  padding: unset;
+  overflow: visible;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  border: none;
+  transition:
+    opacity 560ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0ms linear 0ms;
+}
+
+/* Two mocks in the row (primary + twin): equal flex basis. */
+.caseFollowCompose--twinRevealed:not(.caseFollowCompose--thirdRevealed)
+  .caseFollowCompose__pair
+  > #caseFollowPhone.caseFollowPhone,
+.caseFollowCompose--twinRevealed:not(.caseFollowCompose--thirdRevealed)
+  .caseFollowCompose__pair
+  > .caseFollowPhone.caseFollowPhone--spawned {
+  flex: 0 1 min(453px, calc(50% - (clamp(16px, 3vw, 36px) / 2)));
+}
+
+.caseFollowCompose--twinRevealed:not(.caseFollowCompose--thirdRevealed)
+  .caseFollowCompose__pair
+  > #caseFollowPhoneDup.caseFollowPhone {
+  flex: 0 1 min(453px, calc(50% - (clamp(16px, 3vw, 36px) / 2)));
+}
+
+/* Three mocks visible: primary + twin + third (+ spawned matches column width). */
+.caseFollowCompose--thirdRevealed .caseFollowCompose__pair > #caseFollowPhone.caseFollowPhone,
+.caseFollowCompose--thirdRevealed .caseFollowCompose__pair > #caseFollowPhoneDup.caseFollowPhone,
+.caseFollowCompose--thirdRevealed .caseFollowCompose__pair > #caseFollowPhoneThird.caseFollowPhone,
+.caseFollowCompose--thirdRevealed .caseFollowCompose__pair > .caseFollowPhone.caseFollowPhone--spawned {
+  flex: 0 1 min(453px, calc((100% - 2 * clamp(16px, 3vw, 36px)) / 3));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .caseFollowCompose:not(.caseFollowCompose--twinRevealed)
     .caseFollowCompose__pair
     > #caseFollowPhoneDup.caseFollowPhone,
-  .caseFollowCompose--twinRevealed .caseFollowCompose__pair > #caseFollowPhoneDup.caseFollowPhone {
+  .caseFollowCompose--twinRevealed .caseFollowCompose__pair > #caseFollowPhoneDup.caseFollowPhone,
+  .caseFollowCompose:not(.caseFollowCompose--thirdRevealed)
+    .caseFollowCompose__pair
+    > #caseFollowPhoneThird.caseFollowPhone,
+  .caseFollowCompose--thirdRevealed .caseFollowCompose__pair > #caseFollowPhoneThird.caseFollowPhone {
     transition: none;
   }
 }
