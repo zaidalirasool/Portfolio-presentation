@@ -23,3 +23,6 @@ package-lock.json
 
 .fonttools_pkg/
 
+# Local repository backups (bundles are large; keep out of commits)
+backups/
+
