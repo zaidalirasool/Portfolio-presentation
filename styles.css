@@ -578,10 +578,11 @@ a:focus-visible {
 
 /* Slide 4: pre and loyalty stay visible by default. Subscriptions joins
    this set after clicking Repeat purchase (it's revealed via reveal()).
-   Repeat purchase and Measure performance show as muted/diffused — same as Merchant. */
-.viewport.viewport--slide4 .nodes .node[data-id="pre"]:not([data-hidden="true"]),
-.viewport.viewport--slide4 .nodes .node[data-id="loyalty"]:not([data-hidden="true"]),
-.viewport.viewport--slide4 .nodes .node[data-id="subscriptions"]:not([data-hidden="true"]) {
+   Repeat purchase and Measure performance show as muted/diffused — same as Merchant.
+   Not applied on #viewportMerchantMapDuplicate — that slide selects Repeat-only and must respect muted pre. */
+.viewport.viewport--slide4:not(.viewport--merchantMapDuplicate) .nodes .node[data-id="pre"]:not([data-hidden="true"]),
+.viewport.viewport--slide4:not(.viewport--merchantMapDuplicate) .nodes .node[data-id="loyalty"]:not([data-hidden="true"]),
+.viewport.viewport--slide4:not(.viewport--merchantMapDuplicate) .nodes .node[data-id="subscriptions"]:not([data-hidden="true"]) {
   opacity: 1;
   filter: none;
 }
@@ -608,11 +609,11 @@ a:focus-visible {
   transform: translate(-50%, -50%) scale(0.94) !important;
 }
 
-/* Keep the merchant→pre and pre→loyalty connectors active on slide 4 (before reroute) */
-.viewport.viewport--slide4 .edges .edge[data-a="merchant"][data-b="pre"],
-.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="merchant"],
-.viewport.viewport--slide4 .edges .edge[data-a="pre"][data-b="loyalty"],
-.viewport.viewport--slide4 .edges .edge[data-a="loyalty"][data-b="pre"] {
+/* Keep the merchant→pre and pre→loyalty connectors active on slide 4 (before reroute) — primary recap only */
+.viewport.viewport--slide4:not(.viewport--merchantMapDuplicate) .edges .edge[data-a="merchant"][data-b="pre"],
+.viewport.viewport--slide4:not(.viewport--merchantMapDuplicate) .edges .edge[data-a="pre"][data-b="merchant"],
+.viewport.viewport--slide4:not(.viewport--merchantMapDuplicate) .edges .edge[data-a="pre"][data-b="loyalty"],
+.viewport.viewport--slide4:not(.viewport--merchantMapDuplicate) .edges .edge[data-a="loyalty"][data-b="pre"] {
   opacity: 1 !important;
   stroke: var(--graph-stroke-strong) !important;
 }
@@ -638,6 +639,18 @@ a:focus-visible {
 .viewport.viewport--merchantMapDuplicate .edges,
 .viewport.viewport--merchantMapDuplicate .nodes {
   pointer-events: none;
+}
+
+/* Same slide: Repeat Purchase hub stays visually “on” (snapshot is frozen while Loyalty was selected → hub often reads muted). */
+.viewport.viewport--slide4.viewport--merchantMapDuplicate .nodes .node[data-id="repeat"] {
+  opacity: 1 !important;
+  filter: none !important;
+  visibility: visible !important;
+}
+.viewport.viewport--slide4.viewport--merchantMapDuplicate .edges .edge[data-a="merchant"][data-b="repeat"],
+.viewport.viewport--slide4.viewport--merchantMapDuplicate .edges .edge[data-a="repeat"][data-b="merchant"] {
+  opacity: 1 !important;
+  stroke: var(--graph-stroke-strong) !important;
 }
 
 /* ── Slide 4 Loyalty reroute ──────────────────────────────────────────────── */

@@ -26,9 +26,9 @@ let slideshowEnterSlide4Hook = /** @type {null | (() => void)} */ (null);
 /** Slide 4 leave: clear the slide 4 selection so it doesn't bleed into other slides. */
 let slideshowLeaveSlide4Hook = /** @type {null | (() => void)} */ (null);
 
-/** Slide 8 enter: build isolated Loyalty mindmap and reset its animation state. */
+/** Slide 8 enter: isolated recap — Repeat selected; Loyalty shown in Retention chain (not Pre). */
 let slide8EnterHook = /** @type {null | (() => void)} */ (null);
-/** Slide 8 leave: reset slide 8 animation state. */
+/** Slide 8 leave: reset recap-only reroute / fan-out state if any */
 let slide8LeaveHook = /** @type {null | (() => void)} */ (null);
 
 /** Live primary map camera; assigned when render() sets up pan/zoom on the merchant map (duplicate slide snapshot framing). */
@@ -2477,7 +2477,8 @@ function render(graph) {
     applyFiltering();
   };
 
-  // ─── Slide 8: isolated Loyalty mindmap ────────────────────────────────────
+  // ─── Slide 8: isolated recap — Loyalty anchored to Retention/Subscriptions (Slide 4 reroute layout);
+  // Pre ↔ Loyalty edge omitted. Repeat / Pre / hubs. ─
   // All state is scoped to #viewportMerchantMapDuplicate — no shared variables
   // with the primary map (nodeById, visibleIds, transformRef, etc.).
   {
@@ -2489,14 +2490,21 @@ function render(graph) {
     const nodeEls8  = /** @type {Map<string, HTMLButtonElement>} */ (new Map());
     const nodeById8 = /** @type {Map<string, {id:string, pos:{x:number,y:number}}>} */ (new Map());
 
+    const S8_RETENTION_ID = "retention-hub";
+
+    /** Synthetic edges on slide‑8 (Subscriptions column + Retention-linked Loyalty). */
+    const S8_EXTRA_GRAPH_EDGES = /** @type {readonly [string, string][]} */ ([
+      ["subscriptions", S8_RETENTION_ID],
+      [S8_RETENTION_ID, "loyalty"],
+    ]);
+
     const S8_RETENTION_OFFSET_Y = -160;
     const S8_LOYALTY_OFFSET_Y   = -320;
     const S8_FANOUT_RADIUS       = 380;
-    const S8_NODE_IDS = new Set(["merchant", "pre", "loyalty", "repeat", "measure", "subscriptions"]);
+    const S8_NODE_IDS = new Set(["merchant", "pre", "repeat", "measure", "subscriptions", "loyalty"]);
 
     let s8Built          = false;
     let s8Rerouted       = false;
-    let s8SubsRevealed   = false;
     let s8PriorLoyaltyPos  = /** @type {{x:number,y:number} | null} */ (null);
     let s8RetentionCleanup = /** @type {null | (() => void)} */ (null);
 
@@ -2512,7 +2520,8 @@ function render(graph) {
 
       vp8.style.width  = `${graph.canvas.width}px`;
       vp8.style.height = `${graph.canvas.height}px`;
-      vp8.className = "viewport viewport--slide4 viewport--merchantMapDuplicate";
+      vp8.className =
+        "viewport viewport--slide4 viewport--merchantMapDuplicate viewport--slide4-rerouted";
       edges8.setAttribute("viewBox", `0 0 ${graph.canvas.width} ${graph.canvas.height}`);
       edges8.setAttribute("preserveAspectRatio", "xMinYMin meet");
       edges8.setAttribute("overflow", "visible");
@@ -2522,8 +2531,29 @@ function render(graph) {
         nodeById8.set(n.id, { id: n.id, pos: { x: n.pos.x, y: n.pos.y } });
       }
 
+      const subNdLive = nodeById8.get("subscriptions");
+      if (subNdLive) {
+        nodeById8.set(S8_RETENTION_ID, {
+          id: S8_RETENTION_ID,
+          pos: { x: subNdLive.pos.x, y: subNdLive.pos.y + S8_RETENTION_OFFSET_Y },
+        });
+        const loyRec = nodeById8.get("loyalty");
+        if (loyRec) {
+          nodeById8.set("loyalty", {
+            id: "loyalty",
+            pos: { x: subNdLive.pos.x, y: subNdLive.pos.y + S8_LOYALTY_OFFSET_Y },
+          });
+        }
+      }
+
       for (const [aId, bId] of graph.edges) {
         if (!S8_NODE_IDS.has(aId) || !S8_NODE_IDS.has(bId)) continue;
+        if (
+          (aId === "pre" && bId === "loyalty") ||
+          (aId === "loyalty" && bId === "pre")
+        ) {
+          continue;
+        }
         const a = nodeById8.get(aId), b = nodeById8.get(bId);
         if (!a || !b) continue;
         const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -2536,6 +2566,35 @@ function render(graph) {
         edges8.appendChild(p);
       }
 
+      if (subNdLive) {
+        const aId = "subscriptions";
+        const bId = S8_RETENTION_ID;
+        const a = nodeById8.get(aId), b = nodeById8.get(bId);
+        if (a && b) {
+          const ep = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          ep.setAttribute("class", "edge");
+          ep.dataset.a = aId;
+          ep.dataset.b = bId;
+          ep.setAttribute("d", edgePath(a.pos, b.pos));
+          ep.setAttribute("stroke", "rgba(0,0,0,0.2)");
+          ep.setAttribute("stroke-width", "1");
+          ep.setAttribute("fill", "none");
+          edges8.appendChild(ep);
+        }
+        const loyP = nodeById8.get("loyalty");
+        const retP = nodeById8.get(S8_RETENTION_ID);
+        if (loyP && retP) {
+          const ep2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          ep2.setAttribute("class", "edge");
+          ep2.dataset.a = S8_RETENTION_ID;
+          ep2.dataset.b = "loyalty";
+          ep2.setAttribute("d", edgePath(retP.pos, loyP.pos));
+          ep2.setAttribute("stroke", "rgba(0,0,0,0.2)");
+          ep2.setAttribute("stroke-width", "1");
+          ep2.setAttribute("fill", "none");
+          edges8.appendChild(ep2);
+        }
+      }
       for (const n of graph.nodes) {
         if (!S8_NODE_IDS.has(n.id)) continue;
         const nd = nodeById8.get(n.id);
@@ -2545,7 +2604,7 @@ function render(graph) {
         btn.type = "button"; btn.className = "node";
         btn.style.left = `${nd.pos.x}px`; btn.style.top = `${nd.pos.y}px`;
         btn.dataset.id = n.id; btn.dataset.muted = "false";
-        btn.dataset.hidden = n.id === "subscriptions" ? "true" : "false";
+        btn.dataset.hidden = "false";
         btn.dataset.selected = "false";
         btn.setAttribute("aria-label", `${n.title} node`);
 
@@ -2561,21 +2620,6 @@ function render(graph) {
           row.appendChild(emojiSpan);
           row.appendChild(el("div", "hubText", sentenceCaseSmart(n.emojiLabel ?? n.title)));
           btn.appendChild(row);
-        } else if (n.id === "loyalty") {
-          btn.classList.add("node--imageCard");
-          btn.appendChild(el("div", "node__title", "Loyalty"));
-          const stack = el("div", "node__imageStack");
-          const ri = /** @type {HTMLImageElement} */ (document.createElement("img"));
-          ri.className = "node__comboLogo node__comboLogo--recharge";
-          ri.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.subscriptions ?? "";
-          ri.alt = "Recharge"; ri.hidden = true; ri.setAttribute("aria-hidden", "true");
-          const mi = /** @type {HTMLImageElement} */ (document.createElement("img"));
-          mi.className = "node__comboLogo node__comboLogo--loyaltyMain";
-          mi.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.loyalty ?? ""; mi.alt = "Loyalty";
-          stack.appendChild(ri); stack.appendChild(mi); btn.appendChild(stack);
-          const hanger = el("div", "cardHanger");
-          hanger.appendChild(el("span", "cardHanger__label", "Current framework"));
-          btn.appendChild(hanger);
         } else if (n.id === "subscriptions") {
           btn.classList.add("node--imageCard");
           btn.appendChild(el("div", "node__title", "Subscriptions"));
@@ -2584,30 +2628,67 @@ function render(graph) {
           ri.className = "node__comboLogo node__comboLogo--recharge";
           ri.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.subscriptions ?? ""; ri.alt = "Recharge";
           stack.appendChild(ri); btn.appendChild(stack);
+        } else if (n.id === "loyalty") {
+          btn.classList.add("node--imageCard");
+          btn.appendChild(el("div", "node__title", "Loyalty"));
+          const stack = el("div", "node__imageStack");
+          const ri = /** @type {HTMLImageElement} */ (document.createElement("img"));
+          ri.className = "node__comboLogo node__comboLogo--recharge";
+          ri.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.subscriptions ?? "";
+          ri.alt = "Recharge";
+          ri.hidden = false;
+          ri.removeAttribute("hidden");
+          ri.setAttribute("aria-hidden", "false");
+          const mi = /** @type {HTMLImageElement} */ (document.createElement("img"));
+          mi.className = "node__comboLogo node__comboLogo--loyaltyMain";
+          mi.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.loyalty ?? "";
+          mi.alt = "Loyalty";
+          mi.style.display = "none";
+          stack.appendChild(ri);
+          stack.appendChild(mi);
+          btn.appendChild(stack);
+          const hanger = el("div", "cardHanger");
+          hanger.appendChild(el("span", "cardHanger__label", "New framework"));
+          btn.appendChild(hanger);
         }
 
         nodes8.appendChild(btn);
         nodeEls8.set(n.id, btn);
       }
 
+      if (subNdLive) {
+        const retNd = nodeById8.get(S8_RETENTION_ID);
+        const retPos = retNd?.pos ?? {
+          x: subNdLive.pos.x,
+          y: subNdLive.pos.y + S8_RETENTION_OFFSET_Y,
+        };
+        const retBtn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+        retBtn.type = "button";
+        retBtn.className = "node node--hub node--retentionHub";
+        retBtn.style.left = `${retPos.x}px`;
+        retBtn.style.top = `${retPos.y}px`;
+        retBtn.dataset.id = S8_RETENTION_ID;
+        retBtn.dataset.hub = "true";
+        retBtn.dataset.muted = "false";
+        retBtn.dataset.hidden = "false";
+        retBtn.dataset.selected = "false";
+        retBtn.setAttribute("aria-label", "Retention hub");
+        const retRow = el("div", "hubRow");
+        const retEmoji = el("span", "hubEmojiOnly", "🤑");
+        retEmoji.setAttribute("aria-hidden", "true");
+        retRow.appendChild(retEmoji);
+        retRow.appendChild(el("div", "hubText", "Retention"));
+        retBtn.appendChild(retRow);
+        nodes8.appendChild(retBtn);
+        nodeEls8.set(S8_RETENTION_ID, retBtn);
+      }
+
       nodes8.addEventListener("click", (e) => {
         const t = /** @type {HTMLElement | null} */ (e.target instanceof HTMLElement ? e.target : null);
-        if (t?.closest(".cardHanger")) { if (!s8Rerouted) s8RerouteToRetention(); return; }
         const btn = t?.closest(".node");
         if (!(btn instanceof HTMLButtonElement)) return;
         const id = btn.dataset.id;
         if (!id || id.startsWith("s8c-") || id.startsWith("s8b-")) return;
-        if (id === "repeat" && !s8Rerouted) {
-          s8SubsRevealed = true;
-          const subBtn = nodeEls8.get("subscriptions");
-          if (subBtn) subBtn.dataset.hidden = "false";
-        }
-        if (id === "subscriptions" && s8SubsRevealed && !s8Rerouted) { s8RerouteToRetention(); return; }
-        if (id === "loyalty") {
-          const fan   = s8Rerouted ? s8Fanouts.benefits : s8Fanouts.challenges;
-          const spawn = s8Rerouted ? s8SpawnBenefits    : s8SpawnChallenges;
-          if (!fan.collapsing) { if (fan.cleanup) fan.collapse?.(); else spawn(); }
-        }
         s8ApplyFiltering(id);
       });
     }
@@ -2616,9 +2697,21 @@ function render(graph) {
       const set = new Set([id, "merchant"]);
       for (const [a, b] of graph.edges) {
         if (!S8_NODE_IDS.has(a) || !S8_NODE_IDS.has(b)) continue;
+        if (
+          (a === "pre" && b === "loyalty") ||
+          (a === "loyalty" && b === "pre")
+        ) {
+          continue;
+        }
         if (a === id) set.add(b);
         if (b === id) set.add(a);
       }
+      for (const [a, b] of S8_EXTRA_GRAPH_EDGES) {
+        if (a === id) set.add(b);
+        if (b === id) set.add(a);
+      }
+      if (set.has("subscriptions")) set.add(S8_RETENTION_ID);
+      if (set.has(S8_RETENTION_ID)) set.add("loyalty");
       return set;
     }
 
@@ -2732,16 +2825,18 @@ function render(graph) {
       };
     }
 
-    const s8SpawnChallenges = () => s8SpawnFanout({
-      state: s8Fanouts.challenges, radius: S8_FANOUT_RADIUS,
-      items: [
-        { id: "s8c-1", title: "One-time purchase focus",             angle: 150 },
-        { id: "s8c-2", title: "Lack of customization",               angle: 130 },
-        { id: "s8c-3", title: "No milestone-based journeys",         angle:  90 },
-        { id: "s8c-4", title: "Point hoarding",                      angle:  50 },
-        { id: "s8c-5", title: "Subscribers don’t feel engaged", angle:  30 },
-      ],
-    });
+    const s8SpawnChallenges = () =>
+      s8SpawnFanout({
+        state: s8Fanouts.challenges,
+        radius: S8_FANOUT_RADIUS,
+        items: [
+          { id: "s8c-1", title: "One-time purchase focus", angle: 150 },
+          { id: "s8c-2", title: "Lack of customization", angle: 130 },
+          { id: "s8c-3", title: "No milestone-based journeys", angle: 90 },
+          { id: "s8c-4", title: "Point hoarding", angle: 50 },
+          { id: "s8c-5", title: "Subscribers don’t feel engaged", angle: 30 },
+        ],
+      });
 
     const s8SpawnBenefits = () => s8SpawnFanout({
       state: s8Fanouts.benefits, radius: S8_FANOUT_RADIUS,
@@ -2754,11 +2849,10 @@ function render(graph) {
     });
 
     function s8RerouteToRetention() {
-      s8Rerouted = true;
-      s8Fanouts.challenges.cleanup?.();
       const loyBtn = nodeEls8.get("loyalty");
       if (!loyBtn || !vp8 || !edges8 || !nodes8) return;
-
+      s8Rerouted = true;
+      s8Fanouts.challenges.cleanup?.();
       const hangerLabelEl = loyBtn.querySelector(".cardHanger__label");
       const hangerEl      = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".cardHanger"));
       if (hangerLabelEl) hangerLabelEl.textContent = "New framework";
@@ -2854,52 +2948,79 @@ function render(graph) {
     }
 
     function s8ResetReroute() {
-      const loyBtn = nodeEls8.get("loyalty");
-      if (loyBtn) {
-        loyBtn.classList.remove("node--slide4-moving");
-        void loyBtn.offsetHeight;
-        const origNode = graph.nodes.find(n => n.id === "loyalty");
-        if (origNode) { loyBtn.style.left = `${origNode.pos.x}px`; loyBtn.style.top = `${origNode.pos.y}px`; }
-        const ri = /** @type {HTMLImageElement | null} */ (loyBtn.querySelector(".node__comboLogo--recharge"));
-        const mi = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".node__comboLogo--loyaltyMain"));
-        if (ri) { ri.classList.remove("node__comboLogo--recharge--pop"); ri.hidden = true; ri.setAttribute("aria-hidden", "true"); }
-        if (mi) { mi.classList.remove("node__comboLogo--loyaltyMainExit"); mi.style.removeProperty("display"); }
-        const hl = loyBtn.querySelector(".cardHanger__label");
-        const he = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".cardHanger"));
-        if (hl) hl.textContent = "Current framework";
-        if (he) he.style.removeProperty("display");
+      if (s8Rerouted) {
+        const loyBtn = nodeEls8.get("loyalty");
+        if (loyBtn) {
+          loyBtn.classList.remove("node--slide4-moving");
+          void loyBtn.offsetHeight;
+          const snap = nodeById8.get("loyalty");
+          if (snap) {
+            loyBtn.style.left = `${snap.pos.x}px`;
+            loyBtn.style.top = `${snap.pos.y}px`;
+          } else {
+            const origNode = graph.nodes.find(n => n.id === "loyalty");
+            if (origNode) {
+              loyBtn.style.left = `${origNode.pos.x}px`;
+              loyBtn.style.top = `${origNode.pos.y}px`;
+            }
+          }
+          const ri = /** @type {HTMLImageElement | null} */ (loyBtn.querySelector(".node__comboLogo--recharge"));
+          const mi = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".node__comboLogo--loyaltyMain"));
+          if (ri) {
+            ri.classList.remove("node__comboLogo--recharge--pop");
+            ri.hidden = true;
+            ri.setAttribute("aria-hidden", "true");
+          }
+          if (mi) {
+            mi.classList.remove("node__comboLogo--loyaltyMainExit");
+            mi.style.removeProperty("display");
+          }
+          const hl = loyBtn.querySelector(".cardHanger__label");
+          const he = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".cardHanger"));
+          if (hl) hl.textContent = "Current framework";
+          if (he) he.style.removeProperty("display");
+        }
+        if (s8PriorLoyaltyPos !== null) {
+          const n = nodeById8.get("loyalty");
+          if (n) { n.pos.x = s8PriorLoyaltyPos.x; n.pos.y = s8PriorLoyaltyPos.y; }
+          s8PriorLoyaltyPos = null;
+        }
+        vp8?.classList.remove("viewport--slide4-rerouted");
+        const preLoyaltyEdge = /** @type {SVGPathElement | null} */ (
+          edges8?.querySelector('.edge[data-a="pre"][data-b="loyalty"]') ??
+          edges8?.querySelector('.edge[data-a="loyalty"][data-b="pre"]')
+        );
+        if (preLoyaltyEdge) {
+          preLoyaltyEdge.style.removeProperty("transition");
+          preLoyaltyEdge.style.removeProperty("opacity");
+        }
       }
-      if (s8PriorLoyaltyPos !== null) {
-        const n = nodeById8.get("loyalty");
-        if (n) { n.pos.x = s8PriorLoyaltyPos.x; n.pos.y = s8PriorLoyaltyPos.y; }
-        s8PriorLoyaltyPos = null;
-      }
-      vp8?.classList.remove("viewport--slide4-rerouted");
       s8RetentionCleanup?.();
       s8Fanouts.challenges.cleanup?.();
       s8Fanouts.benefits.cleanup?.();
-      s8Rerouted = false; s8SubsRevealed = false;
+      s8Rerouted = false;
       const subBtn = nodeEls8.get("subscriptions");
-      if (subBtn) subBtn.dataset.hidden = "true";
-      const preLoyaltyEdge = /** @type {SVGPathElement | null} */ (
-        edges8?.querySelector('.edge[data-a="pre"][data-b="loyalty"]') ??
-        edges8?.querySelector('.edge[data-a="loyalty"][data-b="pre"]')
-      );
-      if (preLoyaltyEdge) { preLoyaltyEdge.style.removeProperty("transition"); preLoyaltyEdge.style.removeProperty("opacity"); }
+      if (subBtn) subBtn.dataset.hidden = "false";
     }
 
     slide8EnterHook = () => {
       s8Build();
       s8ResetReroute();
-      s8ApplyFiltering("loyalty");
+      s8ApplyFiltering("repeat");
       requestAnimationFrame(() => {
         if (!(stage8 instanceof HTMLElement) || !vp8) return;
         const stageR = stage8.getBoundingClientRect();
         if (stageR.width <= 0) return;
-        const loyData = graph.nodes.find(n => n.id === "loyalty");
-        const preData  = graph.nodes.find(n => n.id === "pre");
-        const tx = ((loyData?.pos.x ?? 180) + (preData?.pos.x ?? 640)) / 2;
-        const ty = ((loyData?.pos.y ?? 685) + (preData?.pos.y ?? 600)) / 2;
+        const repeatData = graph.nodes.find(n => n.id === "repeat");
+        const preData = graph.nodes.find(n => n.id === "pre");
+        const subData = graph.nodes.find(n => n.id === "subscriptions");
+        const rp = repeatData?.pos ?? { x: 380, y: 290 };
+        const pp = preData?.pos ?? { x: 640, y: 600 };
+        const sp = subData?.pos ?? { x: 425, y: 95 };
+        const rtp = { x: sp.x, y: sp.y + S8_RETENTION_OFFSET_Y };
+        const loyR = { x: sp.x, y: sp.y + S8_LOYALTY_OFFSET_Y };
+        const tx = (rp.x + pp.x + sp.x + rtp.x + loyR.x) / 5;
+        const ty = (rp.y + pp.y + sp.y + rtp.y + loyR.y) / 5;
         const t = centerToTransform({ canvas: graph.canvas, stageRect: stageR, targetWorld: { x: tx, y: ty }, scale: 1 });
         merchantMapDuplicateTransformRef.current = t;
         applyTransform(vp8, t);
