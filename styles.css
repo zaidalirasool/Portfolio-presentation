@@ -1857,19 +1857,157 @@ a:focus-visible {
   line-height: 1.08;
 }
 
-.caseFollowThirdScreen__body {
-  margin: 10px 0 0;
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 1.45;
-  color: rgba(11, 19, 23, 0.82);
-}
-
 .caseFollowScheduleBtns {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: 9px;
+}
+
+/* Third screen only — ExampleProductOptions.module.css */
+#caseFollowPhoneThird .caseFollowExampleProductOpts {
+  width: 100%;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 22.3px;
+  gap: 13.4px;
+  text-align: left;
+  font-size: 14.65px;
+  color: #0b1317;
+  font-family: Inter, var(--spark-font-body, system-ui), sans-serif;
+  background-color: #fff;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__headingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+  font-size: 21.97px;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__heading {
+  margin: 0;
+  position: relative;
+  line-height: 31.29px;
+  font-weight: 600;
+  font-size: inherit;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__listWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+  width: 100%;
+  color: #545a5d;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__item {
+  width: 100%;
+  max-width: 374.3px;
+  display: flex;
+  align-items: center;
+  gap: 16.7px;
+  box-sizing: border-box;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__thumb {
+  width: 100.1px;
+  height: auto;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  position: relative;
+  border-radius: 4.17px;
+  object-fit: cover;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__itemInner {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__frame {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__titleBlock {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__name {
+  margin: 0;
+  align-self: stretch;
+  position: relative;
+  font-size: 17.88px;
+  line-height: 26.82px;
+  font-weight: 600;
+  color: #0b1317;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__variant {
+  margin: 0;
+  align-self: stretch;
+  position: relative;
+  line-height: 22.35px;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__metaRow {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__priceCluster {
+  display: flex;
+  align-items: flex-start;
+  gap: 4.2px;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__qty,
+#caseFollowPhoneThird .caseFollowExampleProductOpts__priceCurrent {
+  position: relative;
+  line-height: 22.35px;
+  flex-shrink: 0;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__priceStrike {
+  display: none;
+  position: relative;
+  font-size: 15.64px;
+  text-decoration: line-through;
+  line-height: 22.35px;
+  color: #9da1a2;
+  flex-shrink: 0;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__pill {
+  border-radius: 11.17px;
+  background-color: #e7e7e8;
+  display: flex;
+  align-items: flex-start;
+  padding: 2.2px 8.9px;
+  font-size: 13.41px;
+  color: #0b1317;
+}
+
+#caseFollowPhoneThird .caseFollowExampleProductOpts__pillLabel {
+  position: relative;
+  line-height: 17.88px;
 }
 
 .caseFollowScheduleBtns__row {
