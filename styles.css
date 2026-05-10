@@ -2210,6 +2210,7 @@ a:focus-visible {
 #caseFollowPhoneThird .caseFollowCancelSurvey__ctaWrap {
   align-self: stretch;
   height: 40px;
+  margin-top: calc(13.41px - 7.5px);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
