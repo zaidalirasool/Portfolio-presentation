@@ -682,6 +682,30 @@ a:focus-visible {
   animation: retentionHubIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms both;
 }
 
+/* Last slide recap: dashed benefit bullets spring into hub cards (Retention-style + ✅) after canvas tap */
+.viewport.viewport--merchantMapDuplicate .node.node--hub.node--s8BenefitMorph {
+  animation-name: retentionHubIn;
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-fill-mode: both;
+}
+.viewport.viewport--merchantMapDuplicate .node.node--hub.node--s8BenefitMorph .hubText {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: min(320px, 92vw);
+  line-height: 1.2;
+}
+/* Sequential morph: Loyalty→benefit connector switches dotted → solid (one edge at a time in JS). */
+.viewport.viewport--merchantMapDuplicate .edges .edge.edge--challenge.edge--s8MorphSolid {
+  opacity: 1 !important;
+  stroke-dasharray: none !important;
+  stroke-dashoffset: 0 !important;
+  stroke-width: 1 !important;
+  stroke: rgba(0, 0, 0, 0.22) !important;
+  stroke-linecap: round !important;
+}
+
 /* New subscriptions→retention and retention→loyalty edges draw in */
 @keyframes edgeRerouteIn {
   from { stroke-dashoffset: var(--edge-len, 1000); }

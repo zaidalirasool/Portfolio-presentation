@@ -30,6 +30,11 @@ let slideshowLeaveSlide4Hook = /** @type {null | (() => void)} */ (null);
 let slide8EnterHook = /** @type {null | (() => void)} */ (null);
 /** Slide 8 leave: reset recap-only reroute / fan-out state if any */
 let slide8LeaveHook = /** @type {null | (() => void)} */ (null);
+/**
+ * Slide 8: invoked after a light tap on #stageMerchantMapDuplicate (movement below threshold).
+ * Set from render-scoped recap code; cleared on slide 8 leave. Does not run on drag-pan gestures.
+ */
+let merchantMapDuplicateEmptyCanvasTapHook = /** @type {null | (() => void)} */ (null);
 
 /** Live primary map camera; assigned when render() sets up pan/zoom on the merchant map (duplicate slide snapshot framing). */
 let getMerchantMapPrimaryTransform =
@@ -315,10 +320,16 @@ function wireMerchantMapDuplicatePanZoom() {
   let panStartClient = null;
   /** @type {{x:number,y:number} | null} */
   let panStartTransform = null;
+  /** Tracks pointer-down position to distinguish tap vs pan for slide‑8 recap affordances */
+  /** @type {null | {x:number,y:number,pointerId:number}} */
+  let dupTapProbe = null;
+
+  const DUP_TAP_MOVE_PX = 12;
 
   stageDup.addEventListener("pointerdown", (e) => {
     if (!(e.target instanceof Element)) return;
     if (e.target.closest(".node")) return;
+    dupTapProbe = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
     isPanning = true;
     panStartClient = { x: e.clientX, y: e.clientY };
     panStartTransform = { x: merchantMapDuplicateTransformRef.current.x, y: merchantMapDuplicateTransformRef.current.y };
@@ -337,13 +348,32 @@ function wireMerchantMapDuplicatePanZoom() {
     applyTransform(vpDup, merchantMapDuplicateTransformRef.current);
   });
 
+  const clearDupTap = () => {
+    dupTapProbe = null;
+  };
+
   const endPan = () => {
     isPanning = false;
     panStartClient = null;
     panStartTransform = null;
+    clearDupTap();
   };
 
-  stageDup.addEventListener("pointerup", endPan);
+  const maybeFireDupCanvasTap = (e) => {
+    if (!dupTapProbe || dupTapProbe.pointerId !== e.pointerId) return;
+    const moved = Math.hypot(e.clientX - dupTapProbe.x, e.clientY - dupTapProbe.y);
+    const ok =
+      moved < DUP_TAP_MOVE_PX &&
+      window.slideshowPagination?.index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX &&
+      typeof merchantMapDuplicateEmptyCanvasTapHook === "function";
+    clearDupTap();
+    if (ok) merchantMapDuplicateEmptyCanvasTapHook?.();
+  };
+
+  stageDup.addEventListener("pointerup", (e) => {
+    maybeFireDupCanvasTap(e);
+    endPan();
+  });
   stageDup.addEventListener("pointercancel", endPan);
   stageDup.addEventListener("lostpointercapture", endPan);
 
@@ -2541,6 +2571,8 @@ function render(graph) {
     const S8_RETENTION_OFFSET_Y = -160;
     const S8_LOYALTY_OFFSET_Y   = -320;
     const S8_FANOUT_RADIUS       = 380;
+    /** Wall-clock gap between sequential benefit‐hub morphs + dotted→solid edge updates (slide 8 canvas tap). */
+    const S8_BENEFIT_MORPH_STAGGER_MS = 560;
     const S8_NODE_IDS = new Set(["merchant", "pre", "repeat", "measure", "subscriptions", "loyalty"]);
 
     let s8Built          = false;
@@ -2821,6 +2853,109 @@ function render(graph) {
         p.classList.toggle("edge--active", isActive);
         p.classList.toggle("edge--muted",  Boolean(active) && !isActive);
         p.classList.toggle("edge--hidden", ha || hb);
+      }
+    }
+
+    /** Populated while dashed benefit nodes are morphed into hub cards; cleared on slide 8 leave. */
+    let s8BenefitMorphSnapshots =
+      /** @type {null | Map<string, { className: string; innerHTML: string }>} */ (null);
+    /** Scheduled `setTimeout` ids when morph runs sequentially — cancelled on slide 8 leave. */
+    /** @type {number[]} */
+    let s8MorphBenefitScheduledIds = [];
+
+    /** Reverts benefit nodes + dotted edges before other slide‑8 teardown. */
+    function s8RestoreBenefitMorphSnapshots() {
+      for (const tid of s8MorphBenefitScheduledIds) window.clearTimeout(tid);
+      s8MorphBenefitScheduledIds.length = 0;
+
+      if (!s8BenefitMorphSnapshots?.size) {
+        s8BenefitMorphSnapshots = null;
+        return;
+      }
+      for (const [id, snap] of s8BenefitMorphSnapshots) {
+        const btn = nodeEls8.get(id);
+        if (btn instanceof HTMLButtonElement) {
+          btn.className = snap.className;
+          btn.innerHTML = snap.innerHTML;
+          btn.style.removeProperty("--s8-benefit-morph-delay");
+          delete btn.dataset.hub;
+        }
+      }
+      if (edges8) {
+        for (const p of /** @type {NodeListOf<SVGPathElement>} */ (
+          edges8.querySelectorAll(".edge.edge--challenge.edge--s8MorphSolid")
+        )) {
+          p.classList.remove("edge--s8MorphSolid");
+          p.style.removeProperty("transition");
+        }
+        for (const p of /** @type {NodeListOf<SVGPathElement>} */ (edges8.querySelectorAll(".edge.edge--challenge.edge--s8MorphFade"))) {
+          p.classList.remove("edge--s8MorphFade");
+        }
+      }
+      s8BenefitMorphSnapshots = null;
+    }
+
+    /** One benefit node → Retention‑style ✅ hub + its loyalty connector → solid (slide 8). */
+    function s8ApplyOneBenefitMorph(it, chkEmoji) {
+      const btn = nodeEls8.get(it.id);
+      if (!(btn instanceof HTMLButtonElement)) return;
+      if (!btn.classList.contains("node--challenge")) return;
+      btn.classList.remove("node--challenge");
+      btn.classList.add("node--hub", "node--s8BenefitMorph");
+      btn.dataset.hub = "true";
+      btn.style.removeProperty("--s8-benefit-morph-delay");
+      btn.replaceChildren();
+      const row = el("div", "hubRow");
+      const emTag = el("span", "hubEmojiOnly", chkEmoji);
+      emTag.setAttribute("aria-hidden", "true");
+      row.appendChild(emTag);
+      row.appendChild(el("div", "hubText", it.title));
+      btn.appendChild(row);
+      btn.setAttribute("aria-label", it.title);
+    }
+
+    /** Loyalty → `benefitId` dotted challenge edge converts to solid, in sync with that benefit’s hub. */
+    function s8SolidifyBenefitConnector(benefitId) {
+      if (!edges8) return;
+      const sel = `.edge.edge--challenge[data-a="loyalty"][data-b="${benefitId}"]`;
+      const p = edges8.querySelector(sel);
+      if (!(p instanceof SVGPathElement)) return;
+      p.style.transition =
+        "stroke-dasharray 420ms cubic-bezier(0.4, 0, 0.2, 1), stroke 380ms ease, stroke-width 380ms ease";
+      void p.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        p.classList.add("edge--s8MorphSolid");
+      });
+    }
+
+    /** Tap on recap canvas (slide 8): Retention‑style hubs with ✅ plus each benefit phrase — one hub + connector at a time. */
+    function s8MorphBenefitFanToHubChecks() {
+      if (s8BenefitMorphSnapshots != null && s8BenefitMorphSnapshots.size > 0) return;
+
+      /** Green check emoji (explicit — user request). */
+      const chkEmoji = "\u2705";
+
+      /** @type {Map<string, { className: string; innerHTML: string }>} */
+      const nextSnaps = new Map();
+      for (const it of S8_LOYALTY_BENEFIT_ITEMS) {
+        const btn = nodeEls8.get(it.id);
+        if (!(btn instanceof HTMLButtonElement)) continue;
+        if (!btn.classList.contains("node--challenge")) continue;
+        nextSnaps.set(it.id, { className: btn.className, innerHTML: btn.innerHTML });
+      }
+      if (!nextSnaps.size) return;
+
+      s8BenefitMorphSnapshots = nextSnaps;
+      let order = 0;
+      for (const it of S8_LOYALTY_BENEFIT_ITEMS) {
+        if (!nextSnaps.has(it.id)) continue;
+        const seq = order;
+        order += 1;
+        const tid = window.setTimeout(() => {
+          s8ApplyOneBenefitMorph(it, chkEmoji);
+          s8SolidifyBenefitConnector(it.id);
+        }, seq * S8_BENEFIT_MORPH_STAGGER_MS);
+        s8MorphBenefitScheduledIds.push(tid);
       }
     }
 
@@ -3160,10 +3295,15 @@ function render(graph) {
       s8Build();
       s8ResetReroute();
       s8ApplyFiltering("repeat");
+      merchantMapDuplicateEmptyCanvasTapHook = () => {
+        s8MorphBenefitFanToHubChecks();
+      };
       requestAnimationFrame(() => s8ApplyDefaultRecapCameraTransform());
     };
 
     slide8LeaveHook = () => {
+      merchantMapDuplicateEmptyCanvasTapHook = null;
+      s8RestoreBenefitMorphSnapshots();
       s8ResetReroute();
     };
   }
