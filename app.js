@@ -26,6 +26,11 @@ let slideshowEnterSlide4Hook = /** @type {null | (() => void)} */ (null);
 /** Slide 4 leave: clear the slide 4 selection so it doesn't bleed into other slides. */
 let slideshowLeaveSlide4Hook = /** @type {null | (() => void)} */ (null);
 
+/** Slide 8 enter: build isolated Loyalty mindmap and reset its animation state. */
+let slide8EnterHook = /** @type {null | (() => void)} */ (null);
+/** Slide 8 leave: reset slide 8 animation state. */
+let slide8LeaveHook = /** @type {null | (() => void)} */ (null);
+
 /** Live primary map camera; assigned when render() sets up pan/zoom on the merchant map (duplicate slide snapshot framing). */
 let getMerchantMapPrimaryTransform =
   /** @type {null | (() => { x: number; y: number; scale: number })} */ (null);
@@ -2472,6 +2477,440 @@ function render(graph) {
     applyFiltering();
   };
 
+  // ─── Slide 8: isolated Loyalty mindmap ────────────────────────────────────
+  // All state is scoped to #viewportMerchantMapDuplicate — no shared variables
+  // with the primary map (nodeById, visibleIds, transformRef, etc.).
+  {
+    const stage8 = /** @type {HTMLElement | null} */ (document.getElementById("stageMerchantMapDuplicate"));
+    const vp8    = document.getElementById("viewportMerchantMapDuplicate");
+    const edges8 = /** @type {SVGSVGElement | null} */ (document.getElementById("edgesMerchantMapDuplicate"));
+    const nodes8 = document.getElementById("nodesMerchantMapDuplicate");
+
+    const nodeEls8  = /** @type {Map<string, HTMLButtonElement>} */ (new Map());
+    const nodeById8 = /** @type {Map<string, {id:string, pos:{x:number,y:number}}>} */ (new Map());
+
+    const S8_RETENTION_OFFSET_Y = -160;
+    const S8_LOYALTY_OFFSET_Y   = -320;
+    const S8_FANOUT_RADIUS       = 380;
+    const S8_NODE_IDS = new Set(["merchant", "pre", "loyalty", "repeat", "measure", "subscriptions"]);
+
+    let s8Built          = false;
+    let s8Rerouted       = false;
+    let s8SubsRevealed   = false;
+    let s8PriorLoyaltyPos  = /** @type {{x:number,y:number} | null} */ (null);
+    let s8RetentionCleanup = /** @type {null | (() => void)} */ (null);
+
+    /** @type {{challenges: {cleanup:null|(()=>void), collapse:null|(()=>void), collapsing:boolean}, benefits: {cleanup:null|(()=>void), collapse:null|(()=>void), collapsing:boolean}}} */
+    const s8Fanouts = {
+      challenges: { cleanup: null, collapse: null, collapsing: false },
+      benefits:   { cleanup: null, collapse: null, collapsing: false },
+    };
+
+    function s8Build() {
+      if (s8Built || !vp8 || !edges8 || !nodes8) return;
+      s8Built = true;
+
+      vp8.style.width  = `${graph.canvas.width}px`;
+      vp8.style.height = `${graph.canvas.height}px`;
+      vp8.className = "viewport viewport--slide4 viewport--merchantMapDuplicate";
+      edges8.setAttribute("viewBox", `0 0 ${graph.canvas.width} ${graph.canvas.height}`);
+      edges8.setAttribute("preserveAspectRatio", "xMinYMin meet");
+      edges8.setAttribute("overflow", "visible");
+
+      for (const n of graph.nodes) {
+        if (!S8_NODE_IDS.has(n.id)) continue;
+        nodeById8.set(n.id, { id: n.id, pos: { x: n.pos.x, y: n.pos.y } });
+      }
+
+      for (const [aId, bId] of graph.edges) {
+        if (!S8_NODE_IDS.has(aId) || !S8_NODE_IDS.has(bId)) continue;
+        const a = nodeById8.get(aId), b = nodeById8.get(bId);
+        if (!a || !b) continue;
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("class", "edge");
+        p.dataset.a = aId; p.dataset.b = bId;
+        p.setAttribute("d", edgePath(a.pos, b.pos));
+        p.setAttribute("stroke", "rgba(0,0,0,0.2)");
+        p.setAttribute("stroke-width", "1");
+        p.setAttribute("fill", "none");
+        edges8.appendChild(p);
+      }
+
+      for (const n of graph.nodes) {
+        if (!S8_NODE_IDS.has(n.id)) continue;
+        const nd = nodeById8.get(n.id);
+        if (!nd) continue;
+
+        const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+        btn.type = "button"; btn.className = "node";
+        btn.style.left = `${nd.pos.x}px`; btn.style.top = `${nd.pos.y}px`;
+        btn.dataset.id = n.id; btn.dataset.muted = "false";
+        btn.dataset.hidden = n.id === "subscriptions" ? "true" : "false";
+        btn.dataset.selected = "false";
+        btn.setAttribute("aria-label", `${n.title} node`);
+
+        if (n.id === "merchant") {
+          btn.classList.add("node--merchant");
+          btn.appendChild(el("div", "node__title", "Merchant"));
+        } else if (n.id === "pre" || n.id === "repeat" || n.id === "measure") {
+          btn.classList.add("node--hub");
+          btn.dataset.hub = "true";
+          const row = el("div", "hubRow");
+          const emojiSpan = el("span", "hubEmojiOnly", n.emoji ?? "");
+          emojiSpan.setAttribute("aria-hidden", "true");
+          row.appendChild(emojiSpan);
+          row.appendChild(el("div", "hubText", sentenceCaseSmart(n.emojiLabel ?? n.title)));
+          btn.appendChild(row);
+        } else if (n.id === "loyalty") {
+          btn.classList.add("node--imageCard");
+          btn.appendChild(el("div", "node__title", "Loyalty"));
+          const stack = el("div", "node__imageStack");
+          const ri = /** @type {HTMLImageElement} */ (document.createElement("img"));
+          ri.className = "node__comboLogo node__comboLogo--recharge";
+          ri.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.subscriptions ?? "";
+          ri.alt = "Recharge"; ri.hidden = true; ri.setAttribute("aria-hidden", "true");
+          const mi = /** @type {HTMLImageElement} */ (document.createElement("img"));
+          mi.className = "node__comboLogo node__comboLogo--loyaltyMain";
+          mi.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.loyalty ?? ""; mi.alt = "Loyalty";
+          stack.appendChild(ri); stack.appendChild(mi); btn.appendChild(stack);
+          const hanger = el("div", "cardHanger");
+          hanger.appendChild(el("span", "cardHanger__label", "Current framework"));
+          btn.appendChild(hanger);
+        } else if (n.id === "subscriptions") {
+          btn.classList.add("node--imageCard");
+          btn.appendChild(el("div", "node__title", "Subscriptions"));
+          const stack = el("div", "node__imageStack");
+          const ri = /** @type {HTMLImageElement} */ (document.createElement("img"));
+          ri.className = "node__comboLogo node__comboLogo--recharge";
+          ri.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.subscriptions ?? ""; ri.alt = "Recharge";
+          stack.appendChild(ri); btn.appendChild(stack);
+        }
+
+        nodes8.appendChild(btn);
+        nodeEls8.set(n.id, btn);
+      }
+
+      nodes8.addEventListener("click", (e) => {
+        const t = /** @type {HTMLElement | null} */ (e.target instanceof HTMLElement ? e.target : null);
+        if (t?.closest(".cardHanger")) { if (!s8Rerouted) s8RerouteToRetention(); return; }
+        const btn = t?.closest(".node");
+        if (!(btn instanceof HTMLButtonElement)) return;
+        const id = btn.dataset.id;
+        if (!id || id.startsWith("s8c-") || id.startsWith("s8b-")) return;
+        if (id === "repeat" && !s8Rerouted) {
+          s8SubsRevealed = true;
+          const subBtn = nodeEls8.get("subscriptions");
+          if (subBtn) subBtn.dataset.hidden = "false";
+        }
+        if (id === "subscriptions" && s8SubsRevealed && !s8Rerouted) { s8RerouteToRetention(); return; }
+        if (id === "loyalty") {
+          const fan   = s8Rerouted ? s8Fanouts.benefits : s8Fanouts.challenges;
+          const spawn = s8Rerouted ? s8SpawnBenefits    : s8SpawnChallenges;
+          if (!fan.collapsing) { if (fan.cleanup) fan.collapse?.(); else spawn(); }
+        }
+        s8ApplyFiltering(id);
+      });
+    }
+
+    function s8GetConnected(id) {
+      const set = new Set([id, "merchant"]);
+      for (const [a, b] of graph.edges) {
+        if (!S8_NODE_IDS.has(a) || !S8_NODE_IDS.has(b)) continue;
+        if (a === id) set.add(b);
+        if (b === id) set.add(a);
+      }
+      return set;
+    }
+
+    function s8ApplyFiltering(selectedId) {
+      const active = selectedId ? s8GetConnected(selectedId) : null;
+      for (const [id, btn] of nodeEls8) {
+        const hidden = btn.dataset.hidden === "true";
+        btn.dataset.selected = String(id === selectedId);
+        btn.dataset.muted    = String(!hidden && Boolean(active) && !active.has(id));
+      }
+      if (!edges8) return;
+      for (const p of /** @type {NodeListOf<SVGPathElement>} */ (edges8.querySelectorAll(".edge[data-a][data-b]"))) {
+        const a = p.dataset.a, b = p.dataset.b;
+        const ha = nodeEls8.get(a ?? "")?.dataset.hidden === "true";
+        const hb = nodeEls8.get(b ?? "")?.dataset.hidden === "true";
+        const isActive = Boolean(active && a && b && active.has(a) && active.has(b));
+        p.classList.toggle("edge--active", isActive);
+        p.classList.toggle("edge--muted",  Boolean(active) && !isActive);
+        p.classList.toggle("edge--hidden", ha || hb);
+      }
+    }
+
+    function s8SpawnFanout({ state, items, radius }) {
+      if (state.cleanup || !nodes8 || !edges8 || !vp8) return;
+      const loyNode = nodeById8.get("loyalty");
+      if (!loyNode) return;
+      const origin = { x: loyNode.pos.x, y: loyNode.pos.y };
+      const snapTransform = { ...merchantMapDuplicateTransformRef.current };
+
+      /** @type {HTMLButtonElement[]} */ const createdNodes = [];
+      /** @type {SVGPathElement[]} */   const createdEdges = [];
+      const targets = items.map(it => {
+        const rad = (it.angle * Math.PI) / 180;
+        return { x: origin.x + radius * Math.cos(rad), y: origin.y + radius * Math.sin(rad) };
+      });
+
+      items.forEach((c, i) => {
+        const { x, y } = targets[i];
+        nodeById8.set(c.id, { id: c.id, pos: { x, y } });
+
+        const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+        btn.type = "button"; btn.className = "node node--challenge";
+        btn.dataset.id = c.id; btn.dataset.muted = "false"; btn.dataset.hidden = "false";
+        btn.style.left = `${x}px`; btn.style.top = `${y}px`;
+        btn.setAttribute("aria-label", c.title);
+
+        const ns = "http://www.w3.org/2000/svg";
+        const outline = document.createElementNS(ns, "svg");
+        outline.setAttribute("class", "node__dotOutline"); outline.setAttribute("aria-hidden", "true");
+        outline.setAttribute("preserveAspectRatio", "none");
+        outline.appendChild(document.createElementNS(ns, "rect"));
+        btn.appendChild(outline);
+        btn.appendChild(el("span", "node__challengeLabel", c.title));
+
+        const dx = origin.x - x, dy = origin.y - y;
+        btn.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(0.4)`;
+        btn.style.opacity = "0";
+        nodes8.appendChild(btn); createdNodes.push(btn);
+
+        window.setTimeout(() => {
+          btn.style.transform = "translate(-50%,-50%) scale(1)";
+          btn.style.opacity   = "1";
+        }, 80 + i * 90);
+
+        const p = document.createElementNS(ns, "path");
+        p.setAttribute("class", "edge edge--challenge");
+        p.dataset.a = "loyalty"; p.dataset.b = c.id;
+        p.setAttribute("d", edgePath(origin, { x, y }));
+        p.setAttribute("stroke", "rgba(0,0,0,0.34)");
+        p.setAttribute("stroke-width", "1");
+        p.setAttribute("stroke-dasharray", "0.1 5");
+        p.setAttribute("stroke-linecap", "round");
+        p.setAttribute("fill", "none");
+        p.style.opacity = "0"; p.style.transition = "opacity 320ms ease";
+        edges8.appendChild(p); createdEdges.push(p);
+        window.setTimeout(() => { p.style.opacity = "1"; }, 80 + i * 90 + 200);
+      });
+
+      if (stage8 instanceof HTMLElement) {
+        const stageR = stage8.getBoundingClientRect();
+        if (stageR.width > 0) {
+          const meanY = targets.reduce((s, p) => s + p.y, 0) / targets.length;
+          const panTarget = centerToTransform({
+            canvas: graph.canvas, stageRect: stageR,
+            targetWorld: { x: origin.x, y: (origin.y + meanY) / 2 },
+            scale: merchantMapDuplicateTransformRef.current.scale,
+          });
+          animateTo(merchantMapDuplicateTransformRef, vp8, panTarget, 700);
+        }
+      }
+
+      state.cleanup = () => {
+        createdNodes.forEach(n => n.remove());
+        createdEdges.forEach(e => e.remove());
+        items.forEach(c => nodeById8.delete(c.id));
+        state.cleanup = state.collapse = null; state.collapsing = false;
+      };
+      state.collapse = () => {
+        if (state.collapsing || !state.cleanup) return;
+        state.collapsing = true;
+        items.forEach((_c, i) => {
+          const node = createdNodes[i]; if (!node) return;
+          const dx = origin.x - parseFloat(node.style.left);
+          const dy = origin.y - parseFloat(node.style.top);
+          node.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(0.4)`;
+          node.style.opacity = "0";
+        });
+        createdEdges.forEach(e => { e.style.opacity = "0"; });
+        animateTo(merchantMapDuplicateTransformRef, vp8, snapTransform, 700);
+        window.setTimeout(() => state.cleanup?.(), 720);
+      };
+    }
+
+    const s8SpawnChallenges = () => s8SpawnFanout({
+      state: s8Fanouts.challenges, radius: S8_FANOUT_RADIUS,
+      items: [
+        { id: "s8c-1", title: "One-time purchase focus",             angle: 150 },
+        { id: "s8c-2", title: "Lack of customization",               angle: 130 },
+        { id: "s8c-3", title: "No milestone-based journeys",         angle:  90 },
+        { id: "s8c-4", title: "Point hoarding",                      angle:  50 },
+        { id: "s8c-5", title: "Subscribers don’t feel engaged", angle:  30 },
+      ],
+    });
+
+    const s8SpawnBenefits = () => s8SpawnFanout({
+      state: s8Fanouts.benefits, radius: S8_FANOUT_RADIUS,
+      items: [
+        { id: "s8b-1", title: "Subscription based milestones",     angle: 202.5 },
+        { id: "s8b-2", title: "Customizable reward incentives",    angle: 247.5 },
+        { id: "s8b-3", title: "Engagement tool",                   angle: 292.5 },
+        { id: "s8b-4", title: "Relationship building",             angle: 337.5 },
+      ],
+    });
+
+    function s8RerouteToRetention() {
+      s8Rerouted = true;
+      s8Fanouts.challenges.cleanup?.();
+      const loyBtn = nodeEls8.get("loyalty");
+      if (!loyBtn || !vp8 || !edges8 || !nodes8) return;
+
+      const hangerLabelEl = loyBtn.querySelector(".cardHanger__label");
+      const hangerEl      = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".cardHanger"));
+      if (hangerLabelEl) hangerLabelEl.textContent = "New framework";
+      if (hangerEl) hangerEl.style.setProperty("display", "none");
+
+      const subNode = nodeById8.get("subscriptions");
+      const subX = subNode?.pos.x ?? 425, subY = subNode?.pos.y ?? 95;
+      const RET_POS = { x: subX, y: subY + S8_RETENTION_OFFSET_Y };
+      const LOY_POS = { x: subX, y: subY + S8_LOYALTY_OFFSET_Y };
+
+      const preLoyaltyEdge = /** @type {SVGPathElement | null} */ (
+        edges8.querySelector('.edge[data-a="pre"][data-b="loyalty"]') ??
+        edges8.querySelector('.edge[data-a="loyalty"][data-b="pre"]')
+      );
+      if (preLoyaltyEdge) {
+        preLoyaltyEdge.style.setProperty("transition", "opacity 350ms ease");
+        requestAnimationFrame(() => preLoyaltyEdge.style.setProperty("opacity", "0", "important"));
+      }
+      vp8.classList.add("viewport--slide4-rerouted");
+
+      loyBtn.classList.add("node--slide4-moving");
+      requestAnimationFrame(() => {
+        loyBtn.style.left = `${LOY_POS.x}px`;
+        loyBtn.style.top  = `${LOY_POS.y}px`;
+      });
+      const loyNode = nodeById8.get("loyalty");
+      if (loyNode && s8PriorLoyaltyPos === null) {
+        s8PriorLoyaltyPos = { x: loyNode.pos.x, y: loyNode.pos.y };
+        loyNode.pos.x = LOY_POS.x; loyNode.pos.y = LOY_POS.y;
+      }
+
+      if (stage8 instanceof HTMLElement) {
+        const stageR = stage8.getBoundingClientRect();
+        if (stageR.width > 0) {
+          const panTarget = centerToTransform({
+            canvas: graph.canvas, stageRect: stageR,
+            targetWorld: { x: subX, y: subY + S8_RETENTION_OFFSET_Y },
+            scale: merchantMapDuplicateTransformRef.current.scale,
+          });
+          animateTo(merchantMapDuplicateTransformRef, vp8, panTarget, 700);
+        }
+      }
+
+      window.setTimeout(() => {
+        const ri = /** @type {HTMLImageElement | null} */ (loyBtn.querySelector(".node__comboLogo--recharge"));
+        const mi = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".node__comboLogo--loyaltyMain"));
+        if (mi) { mi.classList.add("node__comboLogo--loyaltyMainExit"); window.setTimeout(() => { mi.style.display = "none"; }, 350); }
+        if (ri) { ri.hidden = false; ri.removeAttribute("aria-hidden"); ri.classList.add("node__comboLogo--recharge--pop"); }
+        if (hangerEl) hangerEl.style.removeProperty("display");
+        const subBtn = nodeEls8.get("subscriptions");
+        if (subBtn) subBtn.dataset.hidden = "false";
+      }, 950);
+
+      window.setTimeout(() => {
+        nodeById8.set("s8-ret", { id: "s8-ret", pos: { x: RET_POS.x, y: RET_POS.y } });
+        const retBtn = document.createElement("button");
+        retBtn.type = "button"; retBtn.className = "node node--hub node--retentionHub";
+        retBtn.dataset.id = "s8-ret"; retBtn.dataset.hub = "true";
+        retBtn.dataset.muted = "false"; retBtn.dataset.hidden = "false";
+        retBtn.style.left = `${RET_POS.x}px`; retBtn.style.top = `${RET_POS.y}px`;
+        retBtn.setAttribute("aria-label", "Retention hub");
+        const retRow = el("div", "hubRow");
+        const retEmoji = el("span", "hubEmojiOnly", "🤑"); retEmoji.setAttribute("aria-hidden", "true");
+        retRow.appendChild(retEmoji); retRow.appendChild(el("div", "hubText", "Retention"));
+        retBtn.appendChild(retRow); nodes8.appendChild(retBtn); nodeEls8.set("s8-ret", retBtn);
+
+        const edgeDefs = [
+          { aId: "subscriptions", bId: "s8-ret" },
+          { aId: "s8-ret",        bId: "loyalty" },
+        ];
+        const tempPaths = /** @type {SVGPathElement[]} */ ([]);
+        for (const { aId, bId } of edgeDefs) {
+          const a = nodeById8.get(aId), b = nodeById8.get(bId);
+          if (!a || !b) continue;
+          const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          p.setAttribute("class", "edge edge--reroute");
+          p.dataset.a = aId; p.dataset.b = bId;
+          p.setAttribute("d", edgePath(a.pos, b.pos));
+          p.setAttribute("stroke", "rgba(0,0,0,0.34)");
+          p.setAttribute("stroke-width", "0.5");
+          p.setAttribute("fill", "none");
+          edges8.appendChild(p);
+          const len = p.getTotalLength ? p.getTotalLength() : 500;
+          p.style.setProperty("--edge-len", `${Math.ceil(len) || 500}`);
+          tempPaths.push(p);
+        }
+        s8RetentionCleanup = () => {
+          retBtn.remove(); tempPaths.forEach(p => p.remove());
+          nodeById8.delete("s8-ret"); nodeEls8.delete("s8-ret");
+          s8RetentionCleanup = null;
+        };
+      }, 950);
+    }
+
+    function s8ResetReroute() {
+      const loyBtn = nodeEls8.get("loyalty");
+      if (loyBtn) {
+        loyBtn.classList.remove("node--slide4-moving");
+        void loyBtn.offsetHeight;
+        const origNode = graph.nodes.find(n => n.id === "loyalty");
+        if (origNode) { loyBtn.style.left = `${origNode.pos.x}px`; loyBtn.style.top = `${origNode.pos.y}px`; }
+        const ri = /** @type {HTMLImageElement | null} */ (loyBtn.querySelector(".node__comboLogo--recharge"));
+        const mi = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".node__comboLogo--loyaltyMain"));
+        if (ri) { ri.classList.remove("node__comboLogo--recharge--pop"); ri.hidden = true; ri.setAttribute("aria-hidden", "true"); }
+        if (mi) { mi.classList.remove("node__comboLogo--loyaltyMainExit"); mi.style.removeProperty("display"); }
+        const hl = loyBtn.querySelector(".cardHanger__label");
+        const he = /** @type {HTMLElement | null} */ (loyBtn.querySelector(".cardHanger"));
+        if (hl) hl.textContent = "Current framework";
+        if (he) he.style.removeProperty("display");
+      }
+      if (s8PriorLoyaltyPos !== null) {
+        const n = nodeById8.get("loyalty");
+        if (n) { n.pos.x = s8PriorLoyaltyPos.x; n.pos.y = s8PriorLoyaltyPos.y; }
+        s8PriorLoyaltyPos = null;
+      }
+      vp8?.classList.remove("viewport--slide4-rerouted");
+      s8RetentionCleanup?.();
+      s8Fanouts.challenges.cleanup?.();
+      s8Fanouts.benefits.cleanup?.();
+      s8Rerouted = false; s8SubsRevealed = false;
+      const subBtn = nodeEls8.get("subscriptions");
+      if (subBtn) subBtn.dataset.hidden = "true";
+      const preLoyaltyEdge = /** @type {SVGPathElement | null} */ (
+        edges8?.querySelector('.edge[data-a="pre"][data-b="loyalty"]') ??
+        edges8?.querySelector('.edge[data-a="loyalty"][data-b="pre"]')
+      );
+      if (preLoyaltyEdge) { preLoyaltyEdge.style.removeProperty("transition"); preLoyaltyEdge.style.removeProperty("opacity"); }
+    }
+
+    slide8EnterHook = () => {
+      s8Build();
+      s8ResetReroute();
+      s8ApplyFiltering("loyalty");
+      requestAnimationFrame(() => {
+        if (!(stage8 instanceof HTMLElement) || !vp8) return;
+        const stageR = stage8.getBoundingClientRect();
+        if (stageR.width <= 0) return;
+        const loyData = graph.nodes.find(n => n.id === "loyalty");
+        const preData  = graph.nodes.find(n => n.id === "pre");
+        const tx = ((loyData?.pos.x ?? 180) + (preData?.pos.x ?? 640)) / 2;
+        const ty = ((loyData?.pos.y ?? 685) + (preData?.pos.y ?? 600)) / 2;
+        const t = centerToTransform({ canvas: graph.canvas, stageRect: stageR, targetWorld: { x: tx, y: ty }, scale: 1 });
+        merchantMapDuplicateTransformRef.current = t;
+        applyTransform(vp8, t);
+      });
+    };
+
+    slide8LeaveHook = () => {
+      s8ResetReroute();
+    };
+  }
+
   // If a map slide is already active when the graph finishes loading, trigger the layout hook now.
   if (window.slideshowPagination && window.slideshowPagination.index >= 1) {
     slideshowSlide2LayoutHook();
@@ -2931,6 +3370,7 @@ function initSlideshow() {
     const viewport = document.getElementById("viewport");
 
     // Slide 4 recap (index 3) renders the map in mount3; all other slides park the shared stage in mount1 (slide 2 shell).
+    // Slide 8 has its own isolated DOM — it does not use the shared stage.
     if (
       index === 0 ||
       index === 1 ||
@@ -2938,8 +3378,7 @@ function initSlideshow() {
       index === 4 ||
       index === 5 ||
       index === 6 ||
-      index === 7 ||
-      index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX
+      index === 7
     ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
@@ -2948,22 +3387,16 @@ function initSlideshow() {
       if (mount3) mountMapStage(mount3);
     }
 
-    if (prevSlideIndex === 3 && index !== 3) {
-      captureMerchantMapDuplicateSnapshotFromDom();
-    }
-
-    // Opening the duplicate straight from Slide 7/8/etc. cannot reuse recap-by-leave snapshot.
-    if (prevSlideIndex !== 3 && index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
-      merchantMapDuplicateSnapshot = null;
-    }
-
     if (leavingSlide4) slideshowLeaveSlide4Hook?.();
+    if (prevSlideIndex === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX && index !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+      slide8LeaveHook?.();
+    }
     if (index === 3) slideshowEnterSlide4Hook?.();
 
     current = index;
 
     if (index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
-      paintMerchantMapDuplicateSlide();
+      slide8EnterHook?.();
     }
 
     for (let i = 0; i < slides.length; i++) {
@@ -2980,19 +3413,18 @@ function initSlideshow() {
       else btn.removeAttribute("aria-current");
     });
 
-    if (index === 1 || index === 3 || index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+    if (index === 1 || index === 3) {
       slideshowSlide2LayoutHook?.();
       requestAnimationFrame(() => {
         slideshowSlide2LayoutHook?.();
         window.setTimeout(() => slideshowSlide2LayoutHook?.(), 560);
       });
-      if (index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
-        const iso = document.getElementById("stageMerchantMapDuplicate");
-        if (iso instanceof HTMLElement) iso.focus({ preventScroll: true });
-      } else {
-        const stage = document.getElementById("stage");
-        if (stage instanceof HTMLElement) stage.focus({ preventScroll: true });
-      }
+      const stage = document.getElementById("stage");
+      if (stage instanceof HTMLElement) stage.focus({ preventScroll: true });
+    }
+    if (index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+      const iso = document.getElementById("stageMerchantMapDuplicate");
+      if (iso instanceof HTMLElement) iso.focus({ preventScroll: true });
     }
 
     document.dispatchEvent(
