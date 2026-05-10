@@ -26,6 +26,149 @@ let slideshowEnterSlide4Hook = /** @type {null | (() => void)} */ (null);
 /** Slide 4 leave: clear the slide 4 selection so it doesn't bleed into other slides. */
 let slideshowLeaveSlide4Hook = /** @type {null | (() => void)} */ (null);
 
+/** Live primary map camera; assigned whenever render() initializes the merchant map (used for recap isolate snapshot framing). */
+let getMerchantMapPrimaryTransform =
+  /** @type {null | (() => { x: number; y: number; scale: number })} */ (null);
+
+/** Frozen DOM + framing captured from the recap slide (#viewport--slide4) when leaving recap; repaint + pan applies only to {#viewportMerchantMapIsolate}. */
+let merchantMapIsolateSnapshot = /** @type {null | {
+  edgesHtml: string;
+  nodesHtml: string;
+  viewBox: string | null;
+  vw: string;
+  vh: string;
+  slide4Rerouted: boolean;
+  transform: { x: number; y: number; scale: number };
+}} */ (null);
+
+const merchantMapIsolateTransformRef = { current: { x: 0, y: 0, scale: 1 } };
+
+let merchantMapIsolatePanZoomWired = false;
+
+/** Deck index matching `data-slide-index="8"` (recap isolate clone). Keep in sync with `index.html`. */
+const MERCHANT_MAP_ISOLATE_SLIDE_INDEX = 8;
+
+function captureMerchantMapIsolateSnapshotFromDom() {
+  const edges = document.getElementById("edges");
+  const nodes = document.getElementById("nodes");
+  const vp = document.getElementById("viewport");
+  const getT = getMerchantMapPrimaryTransform;
+  if (!(edges instanceof SVGSVGElement) || !nodes || !vp || typeof getT !== "function") return;
+  merchantMapIsolateSnapshot = {
+    edgesHtml: edges.innerHTML,
+    nodesHtml: nodes.innerHTML,
+    viewBox: edges.getAttribute("viewBox"),
+    vw: vp.style.width,
+    vh: vp.style.height,
+    slide4Rerouted: vp.classList.contains("viewport--slide4-rerouted"),
+    transform: getT(),
+  };
+}
+
+function ensureMerchantMapIsolateSnapshot() {
+  if (!merchantMapIsolateSnapshot) captureMerchantMapIsolateSnapshotFromDom();
+}
+
+function paintMerchantMapIsolateSlide() {
+  ensureMerchantMapIsolateSnapshot();
+  const snap = merchantMapIsolateSnapshot;
+  const isolateVp = document.getElementById("viewportMerchantMapIsolate");
+  const isolateEdges = document.getElementById("edgesMerchantMapIsolate");
+  const isolateNodes = document.getElementById("nodesMerchantMapIsolate");
+  if (!snap || !isolateVp || !isolateEdges || !isolateNodes) return;
+
+  merchantMapIsolateTransformRef.current = { ...snap.transform };
+
+  isolateEdges.innerHTML = snap.edgesHtml;
+  if (snap.viewBox) isolateEdges.setAttribute("viewBox", snap.viewBox);
+  isolateEdges.setAttribute("preserveAspectRatio", "xMinYMin meet");
+  isolateNodes.innerHTML = snap.nodesHtml;
+
+  isolateVp.style.width = snap.vw;
+  isolateVp.style.height = snap.vh;
+
+  let cls = "viewport viewport--slide4 viewport--merchantMapIsolate";
+  if (snap.slide4Rerouted) cls += " viewport--slide4-rerouted";
+  isolateVp.className = cls;
+
+  applyTransform(isolateVp, merchantMapIsolateTransformRef.current);
+}
+
+function wireMerchantMapIsolatePanZoom() {
+  if (merchantMapIsolatePanZoomWired) return;
+  const stageIso = document.getElementById("stageMerchantMapIsolate");
+  const vpIso = document.getElementById("viewportMerchantMapIsolate");
+  if (!(stageIso instanceof HTMLElement) || !vpIso) return;
+  merchantMapIsolatePanZoomWired = true;
+
+  const isoMinScale = 0.55;
+  const isoMaxScale = 2.0;
+
+  let isPanning = false;
+  /** @type {{x:number,y:number} | null} */
+  let panStartClient = null;
+  /** @type {{x:number,y:number} | null} */
+  let panStartTransform = null;
+
+  stageIso.addEventListener("pointerdown", (e) => {
+    if (!(e.target instanceof Element)) return;
+    if (e.target.closest(".node")) return;
+    isPanning = true;
+    panStartClient = { x: e.clientX, y: e.clientY };
+    panStartTransform = { x: merchantMapIsolateTransformRef.current.x, y: merchantMapIsolateTransformRef.current.y };
+    stageIso.setPointerCapture(e.pointerId);
+  });
+
+  stageIso.addEventListener("pointermove", (e) => {
+    if (!isPanning || !panStartClient || !panStartTransform) return;
+    const dx = e.clientX - panStartClient.x;
+    const dy = e.clientY - panStartClient.y;
+    merchantMapIsolateTransformRef.current = {
+      ...merchantMapIsolateTransformRef.current,
+      x: panStartTransform.x + dx,
+      y: panStartTransform.y + dy
+    };
+    applyTransform(vpIso, merchantMapIsolateTransformRef.current);
+  });
+
+  const endPan = () => {
+    isPanning = false;
+    panStartClient = null;
+    panStartTransform = null;
+  };
+
+  stageIso.addEventListener("pointerup", endPan);
+  stageIso.addEventListener("pointercancel", endPan);
+  stageIso.addEventListener("lostpointercapture", endPan);
+
+  stageIso.addEventListener(
+    "wheel",
+    (e) => {
+      const idx = window.slideshowPagination?.index;
+      if (idx !== MERCHANT_MAP_ISOLATE_SLIDE_INDEX) return;
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? -1 : 1;
+      const zoomIntensity = 0.11;
+      const factor = 1 + zoomIntensity * dir;
+
+      const prev = merchantMapIsolateTransformRef.current;
+      const nextScale = clamp(prev.scale * factor, isoMinScale, isoMaxScale);
+      if (Math.abs(nextScale - prev.scale) < 1e-6) return;
+
+      const world = worldFromClient(stageIso, prev, e.clientX, e.clientY);
+      const r = stageIso.getBoundingClientRect();
+      const sx = e.clientX - r.left;
+      const sy = e.clientY - r.top;
+      const nextX = sx - world.x * nextScale;
+      const nextY = sy - world.y * nextScale;
+
+      merchantMapIsolateTransformRef.current = { x: nextX, y: nextY, scale: nextScale };
+      applyTransform(vpIso, merchantMapIsolateTransformRef.current);
+    },
+    { passive: false }
+  );
+}
+
 // Defensive: remove any stale hint element if present (e.g., old cached HTML).
 document.getElementById("stageHint")?.remove();
 
@@ -847,6 +990,7 @@ function render(graph) {
 
   // Pan / zoom (also used for drag calculations)
   const transformRef = { current: { x: 0, y: 0, scale: 1 } };
+  getMerchantMapPrimaryTransform = () => ({ ...transformRef.current });
   const minScale = 0.55;
   const maxScale = 2.0;
 
@@ -2208,7 +2352,8 @@ function render(graph) {
     if (e.target.closest(".node")) return;
 
     // Slide 4 is a controlled demo state — empty-canvas clicks are no-ops there.
-    if (window.slideshowPagination?.index === 3) return;
+    if (window.slideshowPagination?.index === 3 || window.slideshowPagination?.index === MERCHANT_MAP_ISOLATE_SLIDE_INDEX)
+      return;
 
     const hadSelection = state.selectedId != null;
     if (hadSelection) {
@@ -2446,8 +2591,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 8) {
-    console.error(`[slideshow] expected 8 slide sections, found ${slides.length}`);
+  if (slides.length < 9) {
+    console.error(`[slideshow] expected 9 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -2471,7 +2616,16 @@ function initSlideshow() {
     const viewport = document.getElementById("viewport");
 
     // Slide 4 recap (index 3) renders the map in mount3; all other slides park the shared stage in mount1 (slide 2 shell).
-    if (index === 0 || index === 1 || index === 2 || index === 4 || index === 5 || index === 6 || index === 7) {
+    if (
+      index === 0 ||
+      index === 1 ||
+      index === 2 ||
+      index === 4 ||
+      index === 5 ||
+      index === 6 ||
+      index === 7 ||
+      index === MERCHANT_MAP_ISOLATE_SLIDE_INDEX
+    ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
     } else if (index === 3) {
@@ -2479,10 +2633,19 @@ function initSlideshow() {
       if (mount3) mountMapStage(mount3);
     }
 
+    // Snapshot recap DOM + framing before leaving removes viewport--slide4 / mutates live graph visuals.
+    if (current === 3 && index !== 3) {
+      captureMerchantMapIsolateSnapshotFromDom();
+    }
+
     if (leavingSlide4) slideshowLeaveSlide4Hook?.();
     if (index === 3) slideshowEnterSlide4Hook?.();
 
     current = index;
+
+    if (index === MERCHANT_MAP_ISOLATE_SLIDE_INDEX) {
+      paintMerchantMapIsolateSlide();
+    }
 
     for (let i = 0; i < slides.length; i++) {
       const on = i === index;
@@ -2498,14 +2661,19 @@ function initSlideshow() {
       else btn.removeAttribute("aria-current");
     });
 
-    if (index === 1 || index === 3) {
+    if (index === 1 || index === 3 || index === MERCHANT_MAP_ISOLATE_SLIDE_INDEX) {
       slideshowSlide2LayoutHook?.();
       requestAnimationFrame(() => {
         slideshowSlide2LayoutHook?.();
         window.setTimeout(() => slideshowSlide2LayoutHook?.(), 560);
       });
-      const stage = document.getElementById("stage");
-      if (stage instanceof HTMLElement) stage.focus({ preventScroll: true });
+      if (index === MERCHANT_MAP_ISOLATE_SLIDE_INDEX) {
+        const iso = document.getElementById("stageMerchantMapIsolate");
+        if (iso instanceof HTMLElement) iso.focus({ preventScroll: true });
+      } else {
+        const stage = document.getElementById("stage");
+        if (stage instanceof HTMLElement) stage.focus({ preventScroll: true });
+      }
     }
 
     document.dispatchEvent(
@@ -2558,6 +2726,7 @@ function initSlideshow() {
     slides[i].setAttribute("aria-hidden", i === 0 ? "false" : "true");
   }
 
+  wireMerchantMapIsolatePanZoom();
   console.info(`[slideshow] ready — ${count} slides`);
 }
 
@@ -2622,10 +2791,13 @@ initSlideshow();
       return;
     }
 
-    if (idx === 1 || idx === 3) {
+    if (idx === 1 || idx === 3 || idx === MERCHANT_MAP_ISOLATE_SLIDE_INDEX) {
       requestAnimationFrame(() => {
-        const nodes = document.getElementById("nodes");
-        kickImgLoading(nodes ?? undefined);
+        const imgRoot =
+          idx === MERCHANT_MAP_ISOLATE_SLIDE_INDEX
+            ? document.getElementById("nodesMerchantMapIsolate")
+            : document.getElementById("nodes");
+        kickImgLoading(imgRoot ?? undefined);
       });
       return;
     }

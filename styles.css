@@ -634,6 +634,12 @@ a:focus-visible {
   opacity: 0 !important;
 }
 
+/* Recap isolate slide: cloned SVG/HTML has no wired node handlers — pan/zoom hits the stage only. */
+.viewport.viewport--merchantMapIsolate .edges,
+.viewport.viewport--merchantMapIsolate .nodes {
+  pointer-events: none;
+}
+
 /* ── Slide 4 Loyalty reroute ──────────────────────────────────────────────── */
 
 /* Loyalty slides to its new position — extend the base node transition to include left/top */
