@@ -56,6 +56,24 @@ let merchantMapDuplicatePanZoomWired = false;
  */
 const MERCHANT_MAP_DUPLICATE_SLIDE_INDEX = 8;
 
+/**
+ * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
+ * Does not alter the primary merchant map `#viewport`; pan/zoom on this slide reads/writes
+ * {@link merchantMapDuplicateTransformRef} only.
+ *
+ * Tune framing here rather than scattering magic numbers elsewhere.
+ */
+const MERCHANT_MAP_DUPLICATE_DEFAULT_CAMERA = Object.freeze({
+  /** Padding around Loyalty + post-reroute benefit anchors when fitting to stage (canvas / world coords). */
+  labelPadWx: 280,
+  labelPadWy: 118,
+  fitStagePaddingPx: 52,
+  /** Applied after bbox fit (same semantics as viewport `translateX` / `translateY`, px). */
+  screenTranslateX: 0,
+  /** Negative pulls the recap diagram upward on screen vs the fitted center. */
+  screenTranslateY: -324,
+});
+
 /** Keeps Loyalty reposition replay aligned with render-scoped LOYALTY_ORIGIN_POS. */
 const DUPLICATE_REPLAY_LOYALTY_ORIGIN = { x: 180, y: 685 };
 
@@ -882,6 +900,19 @@ function centerToTransform({ canvas, stageRect, targetWorld, scale }) {
   const tx = viewCx - targetWorld.x * scale;
   const ty = viewCy - targetWorld.y * scale;
   return { x: tx, y: ty, scale };
+}
+
+/** Fits a world-space AABB into the stage with uniform scale; centers the rectangle. */
+function fitWorldRectToStageTransform(stageRect, minWX, maxWX, minWY, maxWY, paddingPx = 44) {
+  const cx = (minWX + maxWX) / 2;
+  const cy = (minWY + maxWY) / 2;
+  const cw = Math.max(maxWX - minWX, 140);
+  const ch = Math.max(maxWY - minWY, 100);
+  const availW = Math.max(stageRect.width - 2 * paddingPx, 1);
+  const availH = Math.max(stageRect.height - 2 * paddingPx, 1);
+  const scaleFit = Math.min(availW / cw, availH / ch);
+  const scale = clamp(scaleFit, 0.35, 1);
+  return centerToTransform({ canvas: {}, stageRect, targetWorld: { x: cx, y: cy }, scale });
 }
 
 function applyTransform(viewportEl, t) {
@@ -2492,10 +2523,19 @@ function render(graph) {
 
     const S8_RETENTION_ID = "retention-hub";
 
+    /** Post-reroute Loyalty benefits fan — angles match `s8SpawnBenefits`; titles match deck copy. */
+    const S8_LOYALTY_BENEFIT_ITEMS = /** @type {const} */ ([
+      { id: "s8b-1", title: "Subscription based milestones", angle: 202.5 },
+      { id: "s8b-2", title: "Customizable reward incentives", angle: 247.5 },
+      { id: "s8b-3", title: "Engagement tools", angle: 292.5 },
+      { id: "s8b-4", title: "Relationship building", angle: 337.5 },
+    ]);
+
     /** Synthetic edges on slide‑8 (Subscriptions column + Retention-linked Loyalty). */
     const S8_EXTRA_GRAPH_EDGES = /** @type {readonly [string, string][]} */ ([
       ["subscriptions", S8_RETENTION_ID],
       [S8_RETENTION_ID, "loyalty"],
+      ...S8_LOYALTY_BENEFIT_ITEMS.map((it) => /** @type {[string,string]} */ (["loyalty", it.id])),
     ]);
 
     const S8_RETENTION_OFFSET_Y = -160;
@@ -2513,6 +2553,54 @@ function render(graph) {
       challenges: { cleanup: null, collapse: null, collapsing: false },
       benefits:   { cleanup: null, collapse: null, collapsing: false },
     };
+
+    /** Dotted Loyalty→benefits fan (Slide 4 post-reroute layout). */
+    function s8SeedStaticLoyaltyBenefitsFanout() {
+      const loy = nodeById8.get("loyalty");
+      if (!loy || !nodes8 || !edges8) return;
+      const origin = { x: loy.pos.x, y: loy.pos.y };
+      const ns = "http://www.w3.org/2000/svg";
+      for (const c of S8_LOYALTY_BENEFIT_ITEMS) {
+        const rad = (c.angle * Math.PI) / 180;
+        const x = origin.x + S8_FANOUT_RADIUS * Math.cos(rad);
+        const y = origin.y + S8_FANOUT_RADIUS * Math.sin(rad);
+        nodeById8.set(c.id, { id: c.id, pos: { x, y } });
+
+        const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+        btn.type = "button";
+        btn.className = "node node--challenge";
+        btn.dataset.id = c.id;
+        btn.dataset.muted = "false";
+        btn.dataset.hidden = "false";
+        btn.style.left = `${x}px`;
+        btn.style.top = `${y}px`;
+        btn.setAttribute("aria-label", c.title);
+
+        const outline = document.createElementNS(ns, "svg");
+        outline.setAttribute("class", "node__dotOutline");
+        outline.setAttribute("aria-hidden", "true");
+        outline.setAttribute("preserveAspectRatio", "none");
+        outline.appendChild(document.createElementNS(ns, "rect"));
+        btn.appendChild(outline);
+        btn.appendChild(el("span", "node__challengeLabel", c.title));
+        btn.style.transform = "translate(-50%, -50%)";
+
+        nodes8.appendChild(btn);
+        nodeEls8.set(c.id, btn);
+
+        const edgeP = document.createElementNS(ns, "path");
+        edgeP.setAttribute("class", "edge edge--challenge");
+        edgeP.dataset.a = "loyalty";
+        edgeP.dataset.b = c.id;
+        edgeP.setAttribute("d", edgePath(origin, { x, y }));
+        edgeP.setAttribute("stroke", "rgba(0, 0, 0, 0.34)");
+        edgeP.setAttribute("stroke-width", "1");
+        edgeP.setAttribute("stroke-dasharray", "0.1 5");
+        edgeP.setAttribute("stroke-linecap", "round");
+        edgeP.setAttribute("fill", "none");
+        edges8.appendChild(edgeP);
+      }
+    }
 
     function s8Build() {
       if (s8Built || !vp8 || !edges8 || !nodes8) return;
@@ -2647,9 +2735,6 @@ function render(graph) {
           stack.appendChild(ri);
           stack.appendChild(mi);
           btn.appendChild(stack);
-          const hanger = el("div", "cardHanger");
-          hanger.appendChild(el("span", "cardHanger__label", "New framework"));
-          btn.appendChild(hanger);
         }
 
         nodes8.appendChild(btn);
@@ -2683,6 +2768,8 @@ function render(graph) {
         nodeEls8.set(S8_RETENTION_ID, retBtn);
       }
 
+      s8SeedStaticLoyaltyBenefitsFanout();
+
       nodes8.addEventListener("click", (e) => {
         const t = /** @type {HTMLElement | null} */ (e.target instanceof HTMLElement ? e.target : null);
         const btn = t?.closest(".node");
@@ -2712,6 +2799,9 @@ function render(graph) {
       }
       if (set.has("subscriptions")) set.add(S8_RETENTION_ID);
       if (set.has(S8_RETENTION_ID)) set.add("loyalty");
+      if (set.has("loyalty")) {
+        for (const it of S8_LOYALTY_BENEFIT_ITEMS) set.add(it.id);
+      }
       return set;
     }
 
@@ -2838,15 +2928,12 @@ function render(graph) {
         ],
       });
 
-    const s8SpawnBenefits = () => s8SpawnFanout({
-      state: s8Fanouts.benefits, radius: S8_FANOUT_RADIUS,
-      items: [
-        { id: "s8b-1", title: "Subscription based milestones",     angle: 202.5 },
-        { id: "s8b-2", title: "Customizable reward incentives",    angle: 247.5 },
-        { id: "s8b-3", title: "Engagement tool",                   angle: 292.5 },
-        { id: "s8b-4", title: "Relationship building",             angle: 337.5 },
-      ],
-    });
+    const s8SpawnBenefits = () =>
+      s8SpawnFanout({
+        state: s8Fanouts.benefits,
+        radius: S8_FANOUT_RADIUS,
+        items: [...S8_LOYALTY_BENEFIT_ITEMS],
+      });
 
     function s8RerouteToRetention() {
       const loyBtn = nodeEls8.get("loyalty");
@@ -3003,14 +3090,47 @@ function render(graph) {
       if (subBtn) subBtn.dataset.hidden = "false";
     }
 
-    slide8EnterHook = () => {
-      s8Build();
-      s8ResetReroute();
-      s8ApplyFiltering("repeat");
-      requestAnimationFrame(() => {
-        if (!(stage8 instanceof HTMLElement) || !vp8) return;
-        const stageR = stage8.getBoundingClientRect();
-        if (stageR.width <= 0) return;
+    /**
+     * Default recap framing: Loyalty plus static post-reroute benefit fan, fitted to `#stageMerchantMapDuplicate`.
+     * Only updates {@link merchantMapDuplicateTransformRef} + `#viewportMerchantMapDuplicate` — never `#viewport`.
+     */
+    function s8ApplyDefaultRecapCameraTransform() {
+      if (!(stage8 instanceof HTMLElement) || !vp8) return;
+      const stageR = stage8.getBoundingClientRect();
+      if (stageR.width <= 0) return;
+
+      const cam = MERCHANT_MAP_DUPLICATE_DEFAULT_CAMERA;
+
+      /** @type {{x:number,y:number}[]} */
+      const framingPts = [];
+      const loyN = nodeById8.get("loyalty");
+      if (loyN) framingPts.push(loyN.pos);
+      for (const it of S8_LOYALTY_BENEFIT_ITEMS) {
+        const bn = nodeById8.get(it.id);
+        if (bn) framingPts.push(bn.pos);
+      }
+
+      let t;
+      if (framingPts.length >= 2) {
+        let minWX = Infinity;
+        let maxWX = -Infinity;
+        let minWY = Infinity;
+        let maxWY = -Infinity;
+        for (const p of framingPts) {
+          minWX = Math.min(minWX, p.x - cam.labelPadWx);
+          maxWX = Math.max(maxWX, p.x + cam.labelPadWx);
+          minWY = Math.min(minWY, p.y - cam.labelPadWy);
+          maxWY = Math.max(maxWY, p.y + cam.labelPadWy);
+        }
+        t = fitWorldRectToStageTransform(
+          stageR,
+          minWX,
+          maxWX,
+          minWY,
+          maxWY,
+          cam.fitStagePaddingPx
+        );
+      } else {
         const repeatData = graph.nodes.find(n => n.id === "repeat");
         const preData = graph.nodes.find(n => n.id === "pre");
         const subData = graph.nodes.find(n => n.id === "subscriptions");
@@ -3019,12 +3139,28 @@ function render(graph) {
         const sp = subData?.pos ?? { x: 425, y: 95 };
         const rtp = { x: sp.x, y: sp.y + S8_RETENTION_OFFSET_Y };
         const loyR = { x: sp.x, y: sp.y + S8_LOYALTY_OFFSET_Y };
-        const tx = (rp.x + pp.x + sp.x + rtp.x + loyR.x) / 5;
-        const ty = (rp.y + pp.y + sp.y + rtp.y + loyR.y) / 5;
-        const t = centerToTransform({ canvas: graph.canvas, stageRect: stageR, targetWorld: { x: tx, y: ty }, scale: 1 });
-        merchantMapDuplicateTransformRef.current = t;
-        applyTransform(vp8, t);
-      });
+        const tcx = (rp.x + pp.x + sp.x + rtp.x + loyR.x) / 5;
+        const tcy = (rp.y + pp.y + sp.y + rtp.y + loyR.y) / 5;
+        t = centerToTransform({
+          canvas: graph.canvas,
+          stageRect: stageR,
+          targetWorld: { x: tcx, y: tcy },
+          scale: 1,
+        });
+      }
+
+      t.x += cam.screenTranslateX;
+      t.y += cam.screenTranslateY;
+
+      merchantMapDuplicateTransformRef.current = t;
+      applyTransform(vp8, t);
+    }
+
+    slide8EnterHook = () => {
+      s8Build();
+      s8ResetReroute();
+      s8ApplyFiltering("repeat");
+      requestAnimationFrame(() => s8ApplyDefaultRecapCameraTransform());
     };
 
     slide8LeaveHook = () => {
@@ -3033,10 +3169,27 @@ function render(graph) {
   }
 
   // If a map slide is already active when the graph finishes loading, trigger the layout hook now.
-  if (window.slideshowPagination && window.slideshowPagination.index >= 1) {
-    slideshowSlide2LayoutHook();
-    if (window.slideshowPagination.index === 3) slideshowEnterSlide4Hook?.();
+  if (window.slideshowPagination) {
+    const idx = window.slideshowPagination.index;
+    if (idx >= 1 && idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+      slideshowSlide2LayoutHook();
+    }
+    if (idx === 3) slideshowEnterSlide4Hook?.();
   }
+
+  // Deck opens on the recap slide; `current` is already 8 so `goTo(8)` is a no-op — run enter + event here.
+  requestAnimationFrame(() => {
+    const pag = window.slideshowPagination;
+    if (!pag || pag.index !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) return;
+    slide8EnterHook?.();
+    document.dispatchEvent(
+      new CustomEvent("slideshow:change", {
+        bubbles: true,
+        composed: true,
+        detail: { index: MERCHANT_MAP_DUPLICATE_SLIDE_INDEX, count: pag.count },
+      }),
+    );
+  });
 
   let isPanning = false;
   /** @type {{x:number,y:number} | null} */
@@ -3471,7 +3624,8 @@ function initSlideshow() {
   }
 
   const count = slides.length;
-  let current = 0;
+  const INITIAL_SLIDE_INDEX = MERCHANT_MAP_DUPLICATE_SLIDE_INDEX;
+  let current = INITIAL_SLIDE_INDEX;
 
   function goTo(index) {
     if (index < 0 || index >= count || index === current) return;
@@ -3562,9 +3716,9 @@ function initSlideshow() {
     const li = document.createElement("li");
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "slideshowPagination__dot" + (i === 0 ? " is-active" : "");
+    btn.className = "slideshowPagination__dot" + (i === INITIAL_SLIDE_INDEX ? " is-active" : "");
     btn.setAttribute("aria-label", `Slide ${i + 1} of ${count}`);
-    if (i === 0) btn.setAttribute("aria-current", "true");
+    if (i === INITIAL_SLIDE_INDEX) btn.setAttribute("aria-current", "true");
     btn.addEventListener("click", () => goTo(i));
     li.appendChild(btn);
     list.appendChild(li);
@@ -3592,10 +3746,11 @@ function initSlideshow() {
     get count() { return count; }
   };
 
-  // Sync the initial state (slide 0 already has is-active in HTML; this re-asserts)
+  // Sync the initial state — default deck entry is the final recap slide.
   for (let i = 0; i < slides.length; i++) {
-    slides[i].classList.toggle("is-active", i === 0);
-    slides[i].setAttribute("aria-hidden", i === 0 ? "false" : "true");
+    const on = i === INITIAL_SLIDE_INDEX;
+    slides[i].classList.toggle("is-active", on);
+    slides[i].setAttribute("aria-hidden", on ? "false" : "true");
   }
 
   wireMerchantMapDuplicatePanZoom();
