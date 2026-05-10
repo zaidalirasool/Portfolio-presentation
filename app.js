@@ -4147,7 +4147,7 @@ initSlideshow();
       requestAnimationFrame(() => {
         kickImgLoading(document.getElementById("merchantAdoptionStage"));
         const im = new Image();
-        im.src = "./assets/launched-merchants.png?v=3";
+        im.src = "./assets/launched-merchants.png?v=6";
       });
     }
 
