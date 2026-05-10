@@ -2446,8 +2446,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 7) {
-    console.error(`[slideshow] expected 7 slide sections, found ${slides.length}`);
+  if (slides.length < 8) {
+    console.error(`[slideshow] expected 8 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -2471,7 +2471,7 @@ function initSlideshow() {
     const viewport = document.getElementById("viewport");
 
     // Slide 4 recap (index 3) renders the map in mount3; all other slides park the shared stage in mount1 (slide 2 shell).
-    if (index === 0 || index === 1 || index === 2 || index === 4 || index === 5 || index === 6) {
+    if (index === 0 || index === 1 || index === 2 || index === 4 || index === 5 || index === 6 || index === 7) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
     } else if (index === 3) {
@@ -2633,6 +2633,21 @@ initSlideshow();
     if (idx === 2) {
       requestAnimationFrame(() => {
         const hero = document.querySelector(".imageSlideCanvas__img");
+        if (hero instanceof HTMLImageElement) {
+          hero.loading = "eager";
+          const s = hero.getAttribute("src");
+          if (s && (!hero.complete || hero.naturalWidth === 0)) {
+            hero.removeAttribute("src");
+            hero.setAttribute("src", s);
+          }
+          void hero.decode?.().catch(() => {});
+        }
+      });
+    }
+
+    if (idx === 7) {
+      requestAnimationFrame(() => {
+        const hero = document.getElementById("slideRewardsPerformanceImg");
         if (hero instanceof HTMLImageElement) {
           hero.loading = "eager";
           const s = hero.getAttribute("src");
@@ -2903,6 +2918,8 @@ function wireCaseFollowSlide7Canvas() {
       thirdPhoneBannerAutoHideTid = null;
     }
   }
+
+  const THIRD_CANCEL_FLOW_SECTION_SELECTORS = [
     "section.caseFollowExampleProductOpts",
     "section.caseFollowCreditsLossCard",
     "section.caseFollowCancelSurvey",
@@ -3050,7 +3067,7 @@ function wireCaseFollowSlide7Canvas() {
     thirdPhoneBannerAutoHideTid = window.setTimeout(() => {
       thirdPhoneBannerAutoHideTid = null;
       hideThirdPhoneCreditsBannerAnimated();
-    }, 1000);
+    }, 1400);
   }
 
   function hideThirdPhoneCreditsBannerToast() {
