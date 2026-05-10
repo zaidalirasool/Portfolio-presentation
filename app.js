@@ -413,7 +413,7 @@ function wireMerchantMapDuplicatePanZoom() {
 document.getElementById("stageHint")?.remove();
 
 const MERCHANT_LOGO_KEY = "merchantLogoDataUrl";
-const MERCHANT_DEFAULT_LOGO_SRC = "./assets/merchant-logo.svg?v=5";
+const MERCHANT_DEFAULT_LOGO_SRC = "./assets/merchant-logo.svg?v=6";
 const NODE_CARD_IMAGE_KEY = "nodeCardImageDataUrlById";
 const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
 const NODE_POSITIONS_KEY = "nodePositionsById";
@@ -424,21 +424,21 @@ const GRAPH_LAYOUT_VERSION = "mindmap-v14";
 const LEGACY_PERSONALIZATION_IMAGE_KEY = "personalizationCardImageDataUrl";
 const LEGACY_PERSONALIZATION_IMAGE_CLEANED_KEY = "personalizationCardImageCleaned";
 const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
-  personalization: "./assets/cards/personalization.png?v=3",
-  ab: "./assets/cards/ab-testing-default.png?v=5",
-  loyalty: "./assets/cards/loyalty-default.png?v=7",
-  referral: "./assets/cards/referral.png?v=3",
-  mail: "./assets/cards/mailing-sms.png?v=3",
-  chat: "./assets/cards/customer-chat.png?v=3",
-  ads: "./assets/cards/advertising.png?v=3",
-  affiliates: "./assets/cards/affiliates.png?v=3",
-  data: "./assets/cards/customer-data.png?v=3",
-  quant: "./assets/cards/quant-analytics.png?v=3",
-  qual: "./assets/cards/qual-analytics.png?v=3",
-  crm: "./assets/cards/crm.png?v=3",
-  subscriptions: "./assets/cards/recharge.jpg?v=5",
-  reorder: "./assets/cards/upsell-cross-sell-default.png?v=4",
-  upsell: "./assets/cards/post-purchase-default.png?v=4"
+  personalization: "./assets/cards/personalization.png?v=4",
+  ab: "./assets/cards/ab-testing-default.png?v=6",
+  loyalty: "./assets/cards/loyalty-default.png?v=8",
+  referral: "./assets/cards/referral.png?v=4",
+  mail: "./assets/cards/mailing-sms.png?v=4",
+  chat: "./assets/cards/customer-chat.png?v=4",
+  ads: "./assets/cards/advertising.png?v=4",
+  affiliates: "./assets/cards/affiliates.png?v=4",
+  data: "./assets/cards/customer-data.png?v=4",
+  quant: "./assets/cards/quant-analytics.png?v=4",
+  qual: "./assets/cards/qual-analytics.png?v=4",
+  crm: "./assets/cards/crm.png?v=4",
+  subscriptions: "./assets/cards/recharge.jpg?v=6",
+  reorder: "./assets/cards/upsell-cross-sell-default.png?v=5",
+  upsell: "./assets/cards/post-purchase-default.png?v=5"
 };
 
 function getSavedNodePositions() {
@@ -3649,9 +3649,9 @@ function render(graph) {
    * slides up and outward to its resting spot.
    */
   const MERCHANT_LOGO_CARDS = [
-    { src: "./assets/logos/tiege.png?v=5",  label: "Tiège Hanley", logo: "tiege", wx: -215, wy: -195, delay: 0   },
-    { src: "./assets/logos/arrae.png?v=5",  label: "Arrae",         logo: "arrae", wx:    0, wy: -230, delay: 75  },
-    { src: "./assets/logos/kollo.png?v=5",  label: "Kollo Health",  logo: "kollo", wx:  215, wy: -195, delay: 150 },
+    { src: "./assets/logos/tiege.png?v=6",  label: "Tiège Hanley", logo: "tiege", wx: -215, wy: -195, delay: 0   },
+    { src: "./assets/logos/arrae.png?v=6",  label: "Arrae",         logo: "arrae", wx:    0, wy: -230, delay: 75  },
+    { src: "./assets/logos/kollo.png?v=6",  label: "Kollo Health",  logo: "kollo", wx:  215, wy: -195, delay: 150 },
   ];
 
   function spawnMerchantClones() {
@@ -4119,10 +4119,10 @@ initSlideshow();
 /** Case-follow slide uses large PNGs; `loading="lazy"` + `display:none` slides can defer or skip fetches. */
 (function setupCaseFollowImagePrefetch() {
   const urls = [
-    "./assets/case-follow-products-promo.png?v=4",
-    "./assets/case-follow-product-bundle.png?v=4",
-    "./assets/case-follow-product-algae-mask.png?v=5",
-    "./assets/case-follow-app-head-bg.png?v=3",
+    "./assets/case-follow-products-promo.png?v=5",
+    "./assets/case-follow-product-bundle.png?v=5",
+    "./assets/case-follow-product-algae-mask.png?v=6",
+    "./assets/case-follow-app-head-bg.png?v=4",
   ];
   let ran = false;
   function warm() {
@@ -4161,7 +4161,7 @@ initSlideshow();
       requestAnimationFrame(() => {
         kickImgLoading(document.getElementById("merchantAdoptionStage"));
         const im = new Image();
-        im.src = "./assets/launched-merchants.png?v=8";
+        im.src = "./assets/launched-merchants.png?v=9";
       });
     }
 
@@ -4307,12 +4307,12 @@ function wireCaseFollowSlide7Canvas() {
   if (!(thirdPhone instanceof HTMLElement)) return;
 
   const starStamp = {
-    src: "./assets/affinity/Star-1.svg?v=3",
+    src: "./assets/affinity/Star-1.svg?v=4",
     width: 21,
     height: 20,
   };
   const giftStamp = {
-    src: "./assets/affinity/Gift-white-stroke.svg?v=3",
+    src: "./assets/affinity/Gift-white-stroke.svg?v=4",
     width: 32,
     height: 32,
     className: "caseFollowGiftImg",
