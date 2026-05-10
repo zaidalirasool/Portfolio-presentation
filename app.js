@@ -2888,6 +2888,93 @@ function wireCaseFollowSlide7Canvas() {
       creditsBanner.hidden = true;
       creditsBanner.setAttribute("aria-hidden", "true");
     }
+    resetThirdScreenApplyCreditsLoading();
+  }
+
+  /** @type {number | null} */
+  let thirdPostApplyRevealTid = null;
+
+  function clearThirdPostApplyRevealTimer() {
+    if (thirdPostApplyRevealTid !== null) {
+      window.clearTimeout(thirdPostApplyRevealTid);
+      thirdPostApplyRevealTid = null;
+    }
+  }
+
+  function removeThirdPostApplyClones() {
+    const scroll = thirdPhone.querySelector(".caseFollowPhone__scroll");
+    if (!(scroll instanceof HTMLElement)) return;
+    scroll.querySelectorAll("[data-case-follow-post-apply]").forEach((el) => {
+      el.remove();
+    });
+  }
+
+  function revealThirdPostApplyCards() {
+    if (!compose.classList.contains("caseFollowCompose--thirdRevealed")) return;
+    const scroll = thirdPhone.querySelector(".caseFollowPhone__scroll");
+    const loader = document.getElementById("caseFollowThirdLoader");
+    const dupScroll = dup.querySelector(".caseFollowPhone__scroll");
+    const primaryScroll = primaryPhone.querySelector(".caseFollowPhone__scroll");
+    if (!(scroll instanceof HTMLElement) || !(loader instanceof HTMLElement)) return;
+    if (!(dupScroll instanceof HTMLElement) || !(primaryScroll instanceof HTMLElement)) return;
+
+    const schedule = dupScroll.querySelector(":scope > section.caseFollowSheet--schedule");
+    const storeCredit = dupScroll.querySelector(":scope > div.caseFollowStoreCredit");
+    const checkoutStack = primaryScroll.querySelector(":scope > div.caseFollowCheckoutStack");
+    if (!schedule || !storeCredit || !checkoutStack) return;
+
+    removeThirdPostApplyClones();
+
+    const wrap = document.createElement("div");
+    wrap.className = "caseFollowThirdPostApply";
+    wrap.dataset.caseFollowPostApply = "";
+
+    for (const el of [schedule, storeCredit, checkoutStack]) {
+      if (!(el instanceof HTMLElement)) continue;
+      const c = /** @type {HTMLElement} */ (el.cloneNode(true));
+      stripIdsForClone(c);
+      wrap.appendChild(c);
+    }
+
+    scroll.appendChild(wrap);
+    loader.hidden = true;
+    loader.setAttribute("aria-hidden", "true");
+  }
+
+  function resetThirdScreenApplyCreditsLoading() {
+    clearThirdPostApplyRevealTimer();
+    removeThirdPostApplyClones();
+    const scroll = thirdPhone.querySelector(".caseFollowPhone__scroll");
+    const loader = document.getElementById("caseFollowThirdLoader");
+    if (!(scroll instanceof HTMLElement)) return;
+    scroll.querySelectorAll(":scope > section").forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      el.hidden = false;
+      el.removeAttribute("aria-hidden");
+    });
+    if (loader instanceof HTMLElement) {
+      loader.hidden = true;
+      loader.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function showThirdScreenApplyCreditsLoading() {
+    const scroll = thirdPhone.querySelector(".caseFollowPhone__scroll");
+    const loader = document.getElementById("caseFollowThirdLoader");
+    if (!(scroll instanceof HTMLElement) || !(loader instanceof HTMLElement)) return;
+    clearThirdPostApplyRevealTimer();
+    removeThirdPostApplyClones();
+    scroll.querySelectorAll(":scope > section").forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      el.hidden = true;
+      el.setAttribute("aria-hidden", "true");
+    });
+    loader.hidden = false;
+    loader.removeAttribute("aria-hidden");
+    thirdPostApplyRevealTid = window.setTimeout(() => {
+      thirdPostApplyRevealTid = null;
+      revealThirdPostApplyCards();
+    }, 1000);
   }
 
   /** @type {number | null} */
@@ -3053,6 +3140,16 @@ function wireCaseFollowSlide7Canvas() {
     sw.setAttribute("aria-checked", next ? "true" : "false");
     sw.classList.toggle("caseFollowStoreCredit__switch--on", next);
     syncCaseFollowCreditsBanner(next);
+  });
+
+  thirdPhone.addEventListener("click", (e) => {
+    if (!compose.classList.contains("caseFollowCompose--thirdRevealed")) return;
+    const btn =
+      e.target instanceof Element ? e.target.closest(".caseFollowCreditsLossCard__cta") : null;
+    if (!(btn instanceof HTMLButtonElement) || !thirdPhone.contains(btn)) return;
+    const loader = document.getElementById("caseFollowThirdLoader");
+    if (loader instanceof HTMLElement && !loader.hidden) return;
+    showThirdScreenApplyCreditsLoading();
   });
 
   document.addEventListener("slideshow:change", (e) => {

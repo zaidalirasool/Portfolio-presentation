@@ -2243,6 +2243,56 @@ a:focus-visible {
   background: #38637a;
 }
 
+#caseFollowPhoneThird .caseFollowPhone__scroll {
+  position: relative;
+}
+
+#caseFollowPhoneThird .caseFollowThirdLoader {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+#caseFollowPhoneThird .caseFollowThirdLoader:not([hidden]) {
+  display: flex;
+}
+
+#caseFollowPhoneThird .caseFollowThirdPostApply {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#caseFollowPhoneThird .caseFollowThirdLoader__spinner {
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
+  border: 3px solid #e8ecee;
+  border-top-color: #467c99;
+  border-radius: 50%;
+  animation: caseFollowThirdLoaderSpin 0.75s linear infinite;
+}
+
+@keyframes caseFollowThirdLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #caseFollowPhoneThird .caseFollowThirdLoader__spinner {
+    animation-duration: 1.5s;
+  }
+}
+
 .caseFollowScheduleBtns__row {
   display: flex;
   gap: 12px;
