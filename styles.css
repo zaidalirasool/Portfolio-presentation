@@ -634,6 +634,12 @@ a:focus-visible {
   opacity: 0 !important;
 }
 
+/* Duplicate slide (last deck): cloned SVG/HTML has no live node handlers — pan/zoom on #stageMerchantMapDuplicate only. */
+.viewport.viewport--merchantMapDuplicate .edges,
+.viewport.viewport--merchantMapDuplicate .nodes {
+  pointer-events: none;
+}
+
 /* ── Slide 4 Loyalty reroute ──────────────────────────────────────────────── */
 
 /* Loyalty slides to its new position — extend the base node transition to include left/top */

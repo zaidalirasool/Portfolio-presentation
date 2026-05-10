@@ -26,6 +26,332 @@ let slideshowEnterSlide4Hook = /** @type {null | (() => void)} */ (null);
 /** Slide 4 leave: clear the slide 4 selection so it doesn't bleed into other slides. */
 let slideshowLeaveSlide4Hook = /** @type {null | (() => void)} */ (null);
 
+/** Live primary map camera; assigned when render() sets up pan/zoom on the merchant map (duplicate slide snapshot framing). */
+let getMerchantMapPrimaryTransform =
+  /** @type {null | (() => { x: number; y: number; scale: number })} */ (null);
+
+/** Frozen edges/nodes markup + recap framing copied when leaving Slide 4; repainted onto #viewportMerchantMapDuplicate only. */
+let merchantMapDuplicateSnapshot = /** @type {null | {
+  edgesHtml: string;
+  nodesHtml: string;
+  viewBox: string | null;
+  vw: string;
+  vh: string;
+  slide4Rerouted: boolean;
+  transform: { x: number; y: number; scale: number };
+}} */ (null);
+
+const merchantMapDuplicateTransformRef = { current: { x: 0, y: 0, scale: 1 } };
+
+let merchantMapDuplicatePanZoomWired = false;
+
+/**
+ * Last deck slide (#viewportMerchantMapDuplicate): copy-pastes Slide 4 recap SVG + node markup only.
+ * Isolated camera + inactive nodes; recap capture uses enter/leave hooks off-screen when needed — never binds to Slide 4.
+ */
+const MERCHANT_MAP_DUPLICATE_SLIDE_INDEX = 8;
+
+/** Keeps Loyalty reposition replay aligned with render-scoped LOYALTY_ORIGIN_POS. */
+const DUPLICATE_REPLAY_LOYALTY_ORIGIN = { x: 180, y: 685 };
+
+/** True when cloned HTML plausibly still contains only the seeded merchant node (never baked Slide 4). */
+function merchantMapDuplicateSnapshotLooksIncomplete(
+  snap = /** @type {typeof merchantMapDuplicateSnapshot} */ (merchantMapDuplicateSnapshot)
+) {
+  if (!snap) return true;
+  return !snap.nodesHtml.includes('data-id="loyalty"');
+}
+
+/** Matches the recap slide’s active DOM fingerprint (viewport class + Loyalty rendered). */
+function viewportHasSlide4RecapAppearance() {
+  const vp = document.getElementById("viewport");
+  const nodes = document.getElementById("nodes");
+  return (
+    vp instanceof HTMLElement &&
+    vp.classList.contains("viewport--slide4") &&
+    nodes instanceof HTMLElement &&
+    !!nodes.querySelector('.node[data-id="loyalty"]')
+  );
+}
+
+/**
+ * Locks in-motion Slide 4 transforms (Loyalty move, Loyalty/Recharge fades, dashed fan-outs,
+ * rerouted edge dashes, Repeat→Subscriptions reveals) onto a detached markup clone only —
+ * serialization only captured static innerHTML misses transition end-states vs live pixels.
+ *
+ * @param {Element} fromEl
+ * @param {Element} toEl
+ */
+function applyComputedVisualFreezeToClone(fromEl, toEl) {
+  if (!(fromEl instanceof Element) || !(toEl instanceof Element)) return;
+  const cs = getComputedStyle(fromEl);
+
+  // Stop CSS timelines from re-running once the markup is pasted into the isolate viewport.
+  toEl.style.setProperty("transition", "none");
+  toEl.style.setProperty("animation", "none");
+
+  toEl.style.opacity = cs.opacity;
+  toEl.style.display = cs.display;
+  toEl.style.visibility = cs.visibility;
+
+  const pos = cs.position;
+  if (pos === "absolute" || pos === "fixed" || pos === "relative") {
+    if (cs.left !== "auto") toEl.style.left = cs.left;
+    if (cs.top !== "auto") toEl.style.top = cs.top;
+    if (cs.right !== "auto") toEl.style.right = cs.right;
+    if (cs.bottom !== "auto") toEl.style.bottom = cs.bottom;
+  }
+
+  const tf = cs.transform;
+  if (tf && tf !== "none") {
+    (/** @type {HTMLElement | SVGElement} */ (toEl)).style.transform = tf;
+  }
+  if (cs.filter && cs.filter !== "none") {
+    toEl.style.filter = cs.filter;
+  }
+}
+
+/** @param {SVGPathElement} pathEl */
+function normalizedEdgeConnectorKey(pathEl) {
+  const a = pathEl.dataset.a;
+  const b = pathEl.dataset.b;
+  if (!a || !b) return null;
+  return a < b ? `${a}\x00${b}` : `${b}\x00${a}`;
+}
+
+/**
+ * Freeze connector paths onto a cloned <svg>; keys undirected endpoints (data-a / data-b).
+ */
+function freezeEdgesDetachedClone(primarySvg, clonedSvg) {
+  if (!(primarySvg instanceof SVGSVGElement) || !(clonedSvg instanceof SVGSVGElement)) return;
+
+  /** @type {Map<string, SVGPathElement>} */
+  const cloneByKey = new Map();
+  for (const cp of clonedSvg.querySelectorAll("path.edge")) {
+    if (!(cp instanceof SVGPathElement)) continue;
+    const k = normalizedEdgeConnectorKey(cp);
+    if (k) cloneByKey.set(k, cp);
+  }
+
+  for (const livePath of primarySvg.querySelectorAll("path.edge")) {
+    if (!(livePath instanceof SVGPathElement)) continue;
+    const key = normalizedEdgeConnectorKey(livePath);
+    if (!key) continue;
+    const copyPath = cloneByKey.get(key);
+    if (!copyPath) continue;
+
+    applyComputedVisualFreezeToClone(livePath, copyPath);
+
+    const pcs = window.getComputedStyle(livePath);
+    if (pcs.strokeDashoffset && pcs.strokeDashoffset !== "none") {
+      copyPath.style.strokeDashoffset = pcs.strokeDashoffset;
+    }
+    const arr = livePath.getAttribute("stroke-dasharray");
+    if (arr) copyPath.setAttribute("stroke-dasharray", arr);
+  }
+}
+
+/**
+ * Freeze stacked card nodes (.node[data-id]) and common nested Loyalty/Recharge imgs.
+ *
+ * @param {HTMLElement} primaryNodes
+ * @param {HTMLElement} clonedNodesRoot
+ */
+function freezeNodeDetachedClone(primaryNodes, clonedNodesRoot) {
+  if (!(primaryNodes instanceof HTMLElement) || !(clonedNodesRoot instanceof HTMLElement)) return;
+
+  /** @type {Map<string, HTMLElement>} */
+  const cloneById = new Map();
+  for (const cn of clonedNodesRoot.querySelectorAll(".node[data-id]")) {
+    if (cn instanceof HTMLElement) cloneById.set(String(cn.dataset.id), cn);
+  }
+
+  for (const liveBtn of primaryNodes.querySelectorAll(".node[data-id]")) {
+    if (!(liveBtn instanceof HTMLElement)) continue;
+    const cid = String(liveBtn.dataset.id);
+    const cloneBtn = cloneById.get(cid);
+    if (!(cloneBtn instanceof HTMLElement)) continue;
+
+    applyComputedVisualFreezeToClone(liveBtn, cloneBtn);
+
+    const liveImgs = [...liveBtn.querySelectorAll("img")];
+    const cloneImgs = [...cloneBtn.querySelectorAll("img")];
+    const n = Math.min(liveImgs.length, cloneImgs.length);
+    for (let i = 0; i < n; i++) applyComputedVisualFreezeToClone(liveImgs[i], cloneImgs[i]);
+
+    const hLive = liveBtn.querySelector(".cardHanger");
+    const hClone = cloneBtn.querySelector(".cardHanger");
+    if (hLive instanceof HTMLElement && hClone instanceof HTMLElement) {
+      applyComputedVisualFreezeToClone(hLive, hClone);
+    }
+
+    const lblLive = liveBtn.querySelector(".node__challengeLabel");
+    const lblClone = cloneBtn.querySelector(".node__challengeLabel");
+    if (lblLive instanceof HTMLElement && lblClone instanceof HTMLElement) {
+      applyComputedVisualFreezeToClone(lblLive, lblClone);
+    }
+  }
+}
+
+function captureMerchantMapDuplicateSnapshotFromDom() {
+  const edges = document.getElementById("edges");
+  const nodes = document.getElementById("nodes");
+  const vp = document.getElementById("viewport");
+  const getT = getMerchantMapPrimaryTransform;
+  if (!(edges instanceof SVGSVGElement) || !nodes || !vp || typeof getT !== "function") return;
+
+  /** Temporarily enters Slide 4 recap on the hidden primary map while off-recap slides. */
+  let didForceBake = false;
+  if (!viewportHasSlide4RecapAppearance()) {
+    slideshowEnterSlide4Hook?.();
+    slideshowSlide2LayoutHook?.();
+    didForceBake = true;
+  }
+
+  // Ensure layout/transform interpolation has flushed before we read computed styles.
+  void nodes.offsetHeight;
+  void vp.offsetHeight;
+
+  const nodesDetached =
+    nodes instanceof HTMLElement ? /** @type {HTMLElement} */ (nodes.cloneNode(true)) : null;
+  const edgesDetached =
+    edges instanceof SVGSVGElement ? /** @type {SVGSVGElement} */ (edges.cloneNode(true)) : null;
+
+  if (nodesDetached && edgesDetached) {
+    freezeNodeDetachedClone(nodes, nodesDetached);
+    freezeEdgesDetachedClone(edges, edgesDetached);
+
+    merchantMapDuplicateSnapshot = {
+      edgesHtml: edgesDetached.innerHTML,
+      nodesHtml: nodesDetached.innerHTML,
+      viewBox: edges.getAttribute("viewBox"),
+      vw: vp.style.width,
+      vh: vp.style.height,
+      slide4Rerouted: vp.classList.contains("viewport--slide4-rerouted"),
+      transform: getT(),
+    };
+  } else {
+    merchantMapDuplicateSnapshot = {
+      edgesHtml: edges.innerHTML,
+      nodesHtml: nodes.innerHTML,
+      viewBox: edges.getAttribute("viewBox"),
+      vw: vp.style.width,
+      vh: vp.style.height,
+      slide4Rerouted: vp.classList.contains("viewport--slide4-rerouted"),
+      transform: getT(),
+    };
+  }
+
+  if (didForceBake) slideshowLeaveSlide4Hook?.();
+}
+
+function ensureMerchantMapDuplicateSnapshot() {
+  if (merchantMapDuplicateSnapshotLooksIncomplete()) captureMerchantMapDuplicateSnapshotFromDom();
+}
+
+function paintMerchantMapDuplicateSlide() {
+  ensureMerchantMapDuplicateSnapshot();
+  const snap = merchantMapDuplicateSnapshot;
+  const dupVp = document.getElementById("viewportMerchantMapDuplicate");
+  const dupEdges = document.getElementById("edgesMerchantMapDuplicate");
+  const dupNodes = document.getElementById("nodesMerchantMapDuplicate");
+  if (!snap || !dupVp || !dupEdges || !dupNodes) return;
+
+  merchantMapDuplicateTransformRef.current = { ...snap.transform };
+
+  dupEdges.innerHTML = snap.edgesHtml;
+  if (snap.viewBox) dupEdges.setAttribute("viewBox", snap.viewBox);
+  dupEdges.setAttribute("preserveAspectRatio", "xMinYMin meet");
+  dupNodes.innerHTML = snap.nodesHtml;
+
+  dupVp.style.width = snap.vw;
+  dupVp.style.height = snap.vh;
+
+  let cls = "viewport viewport--slide4 viewport--merchantMapDuplicate";
+  if (snap.slide4Rerouted) cls += " viewport--slide4-rerouted";
+  dupVp.className = cls;
+
+  applyTransform(dupVp, merchantMapDuplicateTransformRef.current);
+  // `slideshow:change` queues `kickImgLoading` on `#nodesMerchantMapDuplicate` (next rAF): it
+  // rewires `<img src>` and would cancel any Loyalty/CSS animations fired before then.
+  scheduleReplayMerchantMapDuplicateLoyaltyAnimations(dupVp);
+}
+
+function wireMerchantMapDuplicatePanZoom() {
+  if (merchantMapDuplicatePanZoomWired) return;
+  const stageDup = document.getElementById("stageMerchantMapDuplicate");
+  const vpDup = document.getElementById("viewportMerchantMapDuplicate");
+  if (!(stageDup instanceof HTMLElement) || !vpDup) return;
+  merchantMapDuplicatePanZoomWired = true;
+
+  const isoMinScale = 0.55;
+  const isoMaxScale = 2.0;
+
+  let isPanning = false;
+  /** @type {{x:number,y:number} | null} */
+  let panStartClient = null;
+  /** @type {{x:number,y:number} | null} */
+  let panStartTransform = null;
+
+  stageDup.addEventListener("pointerdown", (e) => {
+    if (!(e.target instanceof Element)) return;
+    if (e.target.closest(".node")) return;
+    isPanning = true;
+    panStartClient = { x: e.clientX, y: e.clientY };
+    panStartTransform = { x: merchantMapDuplicateTransformRef.current.x, y: merchantMapDuplicateTransformRef.current.y };
+    stageDup.setPointerCapture(e.pointerId);
+  });
+
+  stageDup.addEventListener("pointermove", (e) => {
+    if (!isPanning || !panStartClient || !panStartTransform) return;
+    const dx = e.clientX - panStartClient.x;
+    const dy = e.clientY - panStartClient.y;
+    merchantMapDuplicateTransformRef.current = {
+      ...merchantMapDuplicateTransformRef.current,
+      x: panStartTransform.x + dx,
+      y: panStartTransform.y + dy
+    };
+    applyTransform(vpDup, merchantMapDuplicateTransformRef.current);
+  });
+
+  const endPan = () => {
+    isPanning = false;
+    panStartClient = null;
+    panStartTransform = null;
+  };
+
+  stageDup.addEventListener("pointerup", endPan);
+  stageDup.addEventListener("pointercancel", endPan);
+  stageDup.addEventListener("lostpointercapture", endPan);
+
+  stageDup.addEventListener(
+    "wheel",
+    (e) => {
+      const idx = window.slideshowPagination?.index;
+      if (idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) return;
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? -1 : 1;
+      const zoomIntensity = 0.11;
+      const factor = 1 + zoomIntensity * dir;
+
+      const prev = merchantMapDuplicateTransformRef.current;
+      const nextScale = clamp(prev.scale * factor, isoMinScale, isoMaxScale);
+      if (Math.abs(nextScale - prev.scale) < 1e-6) return;
+
+      const world = worldFromClient(stageDup, prev, e.clientX, e.clientY);
+      const r = stageDup.getBoundingClientRect();
+      const sx = e.clientX - r.left;
+      const sy = e.clientY - r.top;
+      const nextX = sx - world.x * nextScale;
+      const nextY = sy - world.y * nextScale;
+
+      merchantMapDuplicateTransformRef.current = { x: nextX, y: nextY, scale: nextScale };
+      applyTransform(vpDup, merchantMapDuplicateTransformRef.current);
+    },
+    { passive: false }
+  );
+}
+
 // Defensive: remove any stale hint element if present (e.g., old cached HTML).
 document.getElementById("stageHint")?.remove();
 
@@ -223,6 +549,134 @@ function burstRechargeConfetti(anchorEl) {
     bit.style.animationDuration = `${ms}ms`;
     document.body.appendChild(bit);
     window.setTimeout(() => bit.remove(), ms + 60);
+  }
+}
+
+/**
+ * Deferred so Loyalty subtree `kickImgLoading` (`slideshow:change`, next rAF) finishes first —
+ * otherwise `<img>` src rewiring aborts restarted CSS animations.
+ *
+ * @param {HTMLElement} dupViewport
+ */
+function scheduleReplayMerchantMapDuplicateLoyaltyAnimations(dupViewport) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => replayMerchantMapDuplicateLoyaltyAnimations(dupViewport));
+    });
+  });
+}
+
+/**
+ * CSS snapshot freeze stamps `transition`/`animation: none` on the clone tree so pasted markup
+ * matches final pixels — remove that only on Loyalty subtree and rerun the obvious motion cues.
+ *
+ * @param {HTMLElement} dupViewport `#viewportMerchantMapDuplicate`
+ */
+function replayMerchantMapDuplicateLoyaltyAnimations(dupViewport) {
+  const loyalty = dupViewport.querySelector('.nodes .node[data-id="loyalty"]')
+    ?? dupViewport.querySelector('.node[data-id="loyalty"]');
+  if (!(loyalty instanceof HTMLElement)) return;
+
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+  const stripMotionFreeze = (el) => {
+    if (!(el instanceof Element)) return;
+    if (!(el instanceof HTMLElement || (typeof SVGElement !== "undefined" && el instanceof SVGElement))) {
+      return;
+    }
+    el.style.removeProperty("transition");
+    el.style.removeProperty("animation");
+  };
+
+  /** Snapshot freeze also copies computed opacity/transform/filter — inline values fight keyframes. */
+  const stripFreezePaintPins = (el) => {
+    if (!(el instanceof HTMLElement || (typeof SVGElement !== "undefined" && el instanceof SVGElement))) return;
+    el.style.removeProperty("opacity");
+    el.style.removeProperty("transform");
+    el.style.removeProperty("filter");
+  };
+
+  stripMotionFreeze(loyalty);
+  loyalty.style.removeProperty("transform");
+  loyalty.style.removeProperty("opacity");
+  loyalty.style.removeProperty("filter");
+  loyalty.querySelectorAll("*").forEach((n) => stripMotionFreeze(n));
+
+  for (const el of loyalty.querySelectorAll(
+    ".node__comboLogo--recharge, .node__comboLogo--loyaltyMain"
+  )) {
+    stripFreezePaintPins(el);
+  }
+
+  const isRerouted = dupViewport.classList.contains("viewport--slide4-rerouted");
+  /** @type {HTMLImageElement | null} */
+  const recharge =
+    loyalty.querySelector(".node__comboLogo--recharge") ?? null;
+  /** @type {HTMLElement | null} */
+  const main = loyalty.querySelector(".node__comboLogo--loyaltyMain") ?? null;
+  const hangerEl = loyalty.querySelector(".cardHanger");
+
+  // Replay the Slide 4 Loyalty glide if snapshot carried the moving state.
+  if (loyalty.classList.contains("node--slide4-moving")) {
+    const destLeft = loyalty.style.left;
+    const destTop = loyalty.style.top;
+    loyalty.classList.remove("node--slide4-moving");
+    void loyalty.offsetHeight;
+    loyalty.style.left = `${DUPLICATE_REPLAY_LOYALTY_ORIGIN.x}px`;
+    loyalty.style.top = `${DUPLICATE_REPLAY_LOYALTY_ORIGIN.y}px`;
+    void loyalty.offsetHeight;
+    loyalty.classList.add("node--slide4-moving");
+    requestAnimationFrame(() => {
+      if (destLeft) loyalty.style.left = destLeft;
+      if (destTop) loyalty.style.top = destTop;
+    });
+  }
+
+  const rechargePopWanted =
+    recharge instanceof HTMLImageElement && (!recharge.hidden || isRerouted);
+
+  if (isRerouted && main instanceof HTMLElement) {
+    main.style.removeProperty("display");
+    main.classList.remove("node__comboLogo--loyaltyMainExit");
+    if (hangerEl instanceof HTMLElement) hangerEl.style.setProperty("display", "none");
+    void main.offsetHeight;
+  }
+
+  if (rechargePopWanted && recharge instanceof HTMLImageElement) {
+    recharge.hidden = false;
+    recharge.removeAttribute("hidden");
+    recharge.setAttribute("aria-hidden", "false");
+    recharge.classList.remove("node__comboLogo--recharge--pop");
+    void recharge.offsetWidth;
+    recharge.classList.add("node__comboLogo--recharge--pop");
+    burstRechargeConfetti(recharge);
+  }
+
+  const triggerMainExit = () => {
+    if (!(main instanceof HTMLElement)) return;
+    main.classList.add("node__comboLogo--loyaltyMainExit");
+    const finishHide = () => {
+      main.style.display = "none";
+      if (hangerEl instanceof HTMLElement) hangerEl.style.removeProperty("display");
+    };
+    main.addEventListener("animationend", finishHide, { once: true });
+    window.setTimeout(finishHide, 900);
+  };
+
+  if (!(main instanceof HTMLElement) || !isRerouted) return;
+
+  if (recharge instanceof HTMLImageElement) {
+    const fallback = window.setTimeout(triggerMainExit, 1400);
+    recharge.addEventListener(
+      "animationend",
+      () => {
+        window.clearTimeout(fallback);
+        window.setTimeout(triggerMainExit, 200);
+      },
+      { once: true }
+    );
+  } else {
+    window.setTimeout(triggerMainExit, 200);
   }
 }
 
@@ -847,6 +1301,7 @@ function render(graph) {
 
   // Pan / zoom (also used for drag calculations)
   const transformRef = { current: { x: 0, y: 0, scale: 1 } };
+  getMerchantMapPrimaryTransform = () => ({ ...transformRef.current });
   const minScale = 0.55;
   const maxScale = 2.0;
 
@@ -2207,8 +2662,12 @@ function render(graph) {
     if (!(e.target instanceof Element)) return;
     if (e.target.closest(".node")) return;
 
-    // Slide 4 is a controlled demo state — empty-canvas clicks are no-ops there.
-    if (window.slideshowPagination?.index === 3) return;
+    // Slide 4 or duplicate recap slide: primary empty-canvas does not mutate the live storyboard.
+    if (
+      window.slideshowPagination?.index === 3 ||
+      window.slideshowPagination?.index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX
+    )
+      return;
 
     const hadSelection = state.selectedId != null;
     if (hadSelection) {
@@ -2446,8 +2905,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 8) {
-    console.error(`[slideshow] expected 8 slide sections, found ${slides.length}`);
+  if (slides.length < 9) {
+    console.error(`[slideshow] expected 9 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -2457,7 +2916,8 @@ function initSlideshow() {
   function goTo(index) {
     if (index < 0 || index >= count || index === current) return;
 
-    const leavingSlide4 = current === 3 && index !== 3;
+    const prevSlideIndex = current;
+    const leavingSlide4 = prevSlideIndex === 3 && index !== 3;
 
     if (index !== 1) {
       upsellMerchantSoloArmNextCanvas = false;
@@ -2471,7 +2931,16 @@ function initSlideshow() {
     const viewport = document.getElementById("viewport");
 
     // Slide 4 recap (index 3) renders the map in mount3; all other slides park the shared stage in mount1 (slide 2 shell).
-    if (index === 0 || index === 1 || index === 2 || index === 4 || index === 5 || index === 6 || index === 7) {
+    if (
+      index === 0 ||
+      index === 1 ||
+      index === 2 ||
+      index === 4 ||
+      index === 5 ||
+      index === 6 ||
+      index === 7 ||
+      index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX
+    ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
     } else if (index === 3) {
@@ -2479,10 +2948,23 @@ function initSlideshow() {
       if (mount3) mountMapStage(mount3);
     }
 
+    if (prevSlideIndex === 3 && index !== 3) {
+      captureMerchantMapDuplicateSnapshotFromDom();
+    }
+
+    // Opening the duplicate straight from Slide 7/8/etc. cannot reuse recap-by-leave snapshot.
+    if (prevSlideIndex !== 3 && index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+      merchantMapDuplicateSnapshot = null;
+    }
+
     if (leavingSlide4) slideshowLeaveSlide4Hook?.();
     if (index === 3) slideshowEnterSlide4Hook?.();
 
     current = index;
+
+    if (index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+      paintMerchantMapDuplicateSlide();
+    }
 
     for (let i = 0; i < slides.length; i++) {
       const on = i === index;
@@ -2498,14 +2980,19 @@ function initSlideshow() {
       else btn.removeAttribute("aria-current");
     });
 
-    if (index === 1 || index === 3) {
+    if (index === 1 || index === 3 || index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
       slideshowSlide2LayoutHook?.();
       requestAnimationFrame(() => {
         slideshowSlide2LayoutHook?.();
         window.setTimeout(() => slideshowSlide2LayoutHook?.(), 560);
       });
-      const stage = document.getElementById("stage");
-      if (stage instanceof HTMLElement) stage.focus({ preventScroll: true });
+      if (index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+        const iso = document.getElementById("stageMerchantMapDuplicate");
+        if (iso instanceof HTMLElement) iso.focus({ preventScroll: true });
+      } else {
+        const stage = document.getElementById("stage");
+        if (stage instanceof HTMLElement) stage.focus({ preventScroll: true });
+      }
     }
 
     document.dispatchEvent(
@@ -2558,6 +3045,7 @@ function initSlideshow() {
     slides[i].setAttribute("aria-hidden", i === 0 ? "false" : "true");
   }
 
+  wireMerchantMapDuplicatePanZoom();
   console.info(`[slideshow] ready — ${count} slides`);
 }
 
@@ -2622,10 +3110,13 @@ initSlideshow();
       return;
     }
 
-    if (idx === 1 || idx === 3) {
+    if (idx === 1 || idx === 3 || idx === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
       requestAnimationFrame(() => {
-        const nodes = document.getElementById("nodes");
-        kickImgLoading(nodes ?? undefined);
+        const imgRoot =
+          idx === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX
+            ? document.getElementById("nodesMerchantMapDuplicate")
+            : document.getElementById("nodes");
+        kickImgLoading(imgRoot ?? undefined);
       });
       return;
     }

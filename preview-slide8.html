@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slide 8 preview — Loyalty mindmap (isolated)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./spark.css?v=226" />
+  <link rel="stylesheet" href="./styles.css?v=150" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; background: var(--bg, #f4f4f6); overflow: hidden; }
+    #previewLabel {
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.6); color: #fff; font: 600 13px/1 system-ui, sans-serif;
+      padding: 6px 14px; border-radius: 20px; z-index: 100; pointer-events: none;
+      letter-spacing: 0.02em;
+    }
+    #hint {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.48); color: #fff; font: 500 12px/1.4 system-ui, sans-serif;
+      padding: 8px 16px; border-radius: 20px; z-index: 100; pointer-events: none;
+      text-align: center; transition: opacity 600ms ease;
+    }
+    #stage8 {
+      width: 100vw; height: 100vh;
+      position: relative; overflow: hidden;
+      cursor: default; outline: none;
+      touch-action: none;
+    }
+    #viewport8 {
+      position: absolute; top: 0; left: 0;
+      transform-origin: 0 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="previewLabel">Slide 8 preview — isolated (no changes made yet)</div>
+  <div id="hint">Click <strong>Loyalty</strong> to expand · Click <strong>"Current framework"</strong> to reroute</div>
+
+  <div id="stage8" tabindex="0" role="application" aria-roledescription="interactive diagram">
+    <div id="viewport8" class="viewport viewport--slide4">
+      <svg id="edges8" class="edges" aria-hidden="true" overflow="visible"></svg>
+      <div id="nodes8" class="nodes" aria-hidden="false"></div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  // ─── World data (mirrors data.json subset) ────────────────────────────────
+  const CANVAS = { width: 1280, height: 980 };
+
+  const NODES = [
+    { id: "merchant",      emoji: null,  emojiLabel: null,       pos: { x: 640, y: 405 }, type: "merchant" },
+    { id: "pre",           emoji: "🛒",  emojiLabel: "Pre‑Purchase",  pos: { x: 640, y: 600 }, type: "hub" },
+    { id: "repeat",        emoji: "🔁",  emojiLabel: "Repeat purchase", pos: { x: 380, y: 290 }, type: "hub" },
+    { id: "measure",       emoji: "📈",  emojiLabel: "Measure Performance", pos: { x: 900, y: 290 }, type: "hub" },
+    { id: "loyalty",       emoji: null,  emojiLabel: null,       pos: { x: 180, y: 685 }, type: "imageCard" },
+    { id: "subscriptions", emoji: null,  emojiLabel: null,       pos: { x: 425, y: 95  }, type: "imageCard" },
+  ];
+
+  const EDGES = [
+    ["merchant", "pre"],
+    ["merchant", "repeat"],
+    ["merchant", "measure"],
+    ["pre", "loyalty"],
+    ["repeat", "subscriptions"],
+  ];
+
+  const RECHARGE_SRC   = "./assets/cards/recharge.jpg?v=3";
+  const LOYALTY_SRC    = "./assets/cards/loyalty-default.png?v=5";
+
+  const RETENTION_OFFSET_Y = -160;
+  const LOYALTY_OFFSET_Y   = -320;
+  const FANOUT_RADIUS       = 380;
+
+  // ─── State ────────────────────────────────────────────────────────────────
+  const nodeEls   = new Map();   // id → button
+  const nodeById  = new Map();   // id → { id, pos: {x,y} }
+  let   rerouted  = false;
+  let   subsRevealed = false;
+  let   priorLoyaltyPos = null;
+  let   retentionCleanup = null;
+  const fanouts = {
+    challenges: { cleanup: null, collapse: null, collapsing: false },
+    benefits:   { cleanup: null, collapse: null, collapsing: false },
+  };
+  const transformRef = { current: { x: 0, y: 0, scale: 1 } };
+
+  // ─── Utility ─────────────────────────────────────────────────────────────
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const lerp  = (a, b, t) => a + (b - a) * t;
+  const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+
+  function applyTransform(el, t) {
+    el.style.transform = `translate(${t.x}px,${t.y}px) scale(${t.scale})`;
+  }
+  function animateTo(next, ms = 420) {
+    const start = { ...transformRef.current };
+    const t0 = performance.now();
+    const tick = now => {
+      const p = clamp((now - t0) / ms, 0, 1);
+      transformRef.current = {
+        x: lerp(start.x, next.x, easeOutCubic(p)),
+        y: lerp(start.y, next.y, easeOutCubic(p)),
+        scale: lerp(start.scale, next.scale, easeOutCubic(p)),
+      };
+      applyTransform(vp, transformRef.current);
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  function centerToTransform(targetWorld, scale) {
+    const r = stage.getBoundingClientRect();
+    return { x: r.width / 2 - targetWorld.x * scale, y: r.height / 2 - targetWorld.y * scale, scale };
+  }
+  function edgePath(a, b) {
+    const dx = b.x - a.x;
+    if (Math.abs(dx) < 1) return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+    const c1 = { x: a.x + dx * 0.45, y: a.y };
+    const c2 = { x: b.x - dx * 0.45, y: b.y };
+    return `M ${a.x} ${a.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${b.x} ${b.y}`;
+  }
+
+  // ─── DOM refs ─────────────────────────────────────────────────────────────
+  const stage  = document.getElementById("stage8");
+  const vp     = document.getElementById("viewport8");
+  const edges  = document.getElementById("edges8");
+  const nodes  = document.getElementById("nodes8");
+
+  // ─── Build graph ──────────────────────────────────────────────────────────
+  vp.style.width  = `${CANVAS.width}px`;
+  vp.style.height = `${CANVAS.height}px`;
+  edges.setAttribute("viewBox", `0 0 ${CANVAS.width} ${CANVAS.height}`);
+  edges.setAttribute("preserveAspectRatio", "xMinYMin meet");
+
+  for (const n of NODES) {
+    nodeById.set(n.id, { id: n.id, pos: { x: n.pos.x, y: n.pos.y } });
+  }
+
+  // Build edges
+  for (const [aId, bId] of EDGES) {
+    const a = nodeById.get(aId), b = nodeById.get(bId);
+    if (!a || !b) continue;
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("class", "edge");
+    p.dataset.a = aId; p.dataset.b = bId;
+    p.setAttribute("d", edgePath(a.pos, b.pos));
+    p.setAttribute("stroke", "rgba(0,0,0,0.2)");
+    p.setAttribute("stroke-width", "1");
+    p.setAttribute("fill", "none");
+    edges.appendChild(p);
+  }
+
+  // Build nodes
+  for (const n of NODES) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "node";
+    btn.dataset.id = n.id;
+    btn.dataset.muted    = "false";
+    btn.dataset.hidden   = n.id === "subscriptions" ? "true" : "false";
+    btn.dataset.selected = "false";
+    btn.style.left = `${n.pos.x}px`;
+    btn.style.top  = `${n.pos.y}px`;
+    btn.setAttribute("aria-label", `${n.id} node`);
+
+    if (n.type === "merchant") {
+      btn.classList.add("node--merchant");
+      btn.appendChild(Object.assign(document.createElement("div"), { className: "node__title", textContent: "Merchant" }));
+
+    } else if (n.type === "hub") {
+      btn.classList.add("node--hub");
+      btn.dataset.hub = "true";
+      const row = document.createElement("div"); row.className = "hubRow";
+      const em  = document.createElement("span"); em.className = "hubEmojiOnly"; em.textContent = n.emoji; em.setAttribute("aria-hidden","true");
+      const tx  = document.createElement("div");  tx.className = "hubText";      tx.textContent = n.emojiLabel;
+      row.appendChild(em); row.appendChild(tx); btn.appendChild(row);
+
+    } else if (n.id === "loyalty") {
+      btn.classList.add("node--imageCard");
+      btn.appendChild(Object.assign(document.createElement("div"), { className: "node__title", textContent: "Loyalty" }));
+      const stack = document.createElement("div"); stack.className = "node__imageStack";
+      const ri = document.createElement("img");
+      ri.className = "node__comboLogo node__comboLogo--recharge";
+      ri.src = RECHARGE_SRC; ri.alt = "Recharge"; ri.hidden = true; ri.setAttribute("aria-hidden","true");
+      const mi = document.createElement("img");
+      mi.className = "node__comboLogo node__comboLogo--loyaltyMain";
+      mi.src = LOYALTY_SRC; mi.alt = "Loyalty";
+      stack.appendChild(ri); stack.appendChild(mi); btn.appendChild(stack);
+      const hanger = document.createElement("div"); hanger.className = "cardHanger";
+      const label  = document.createElement("span"); label.className = "cardHanger__label"; label.textContent = "Current framework";
+      hanger.appendChild(label); btn.appendChild(hanger);
+
+    } else if (n.id === "subscriptions") {
+      btn.classList.add("node--imageCard");
+      btn.appendChild(Object.assign(document.createElement("div"), { className: "node__title", textContent: "Subscriptions" }));
+      const stack = document.createElement("div"); stack.className = "node__imageStack";
+      const ri = document.createElement("img");
+      ri.className = "node__comboLogo node__comboLogo--recharge";
+      ri.src = RECHARGE_SRC; ri.alt = "Recharge";
+      stack.appendChild(ri); btn.appendChild(stack);
+    }
+
+    nodes.appendChild(btn);
+    nodeEls.set(n.id, btn);
+  }
+
+  // ─── Filtering (mute/select) ───────────────────────────────────────────────
+  function getConnected(id) {
+    const set = new Set([id]);
+    for (const [a, b] of EDGES) {
+      if (a === id) set.add(b);
+      if (b === id) set.add(a);
+    }
+    set.add("merchant");
+    return set;
+  }
+
+  function applyFiltering(selectedId) {
+    const active = selectedId ? getConnected(selectedId) : null;
+    for (const [id, btn] of nodeEls) {
+      const hidden = btn.dataset.hidden === "true";
+      btn.dataset.selected = String(id === selectedId);
+      btn.dataset.muted    = (!hidden && active && !active.has(id)) ? "true" : "false";
+    }
+    for (const p of edges.querySelectorAll(".edge[data-a][data-b]")) {
+      const a = p.dataset.a, b = p.dataset.b;
+      const ha = nodeEls.get(a)?.dataset.hidden === "true";
+      const hb = nodeEls.get(b)?.dataset.hidden === "true";
+      const isActive = active && active.has(a) && active.has(b);
+      p.classList.toggle("edge--active", Boolean(isActive));
+      p.classList.toggle("edge--muted",  Boolean(active) && !isActive);
+      p.classList.toggle("edge--hidden", ha || hb);
+    }
+  }
+
+  // ─── Fanout ───────────────────────────────────────────────────────────────
+  function spawnFanout({ state, items, radius }) {
+    if (state.cleanup) return;
+    const loy = nodeById.get("loyalty");
+    if (!loy) return;
+    const origin = { x: loy.pos.x, y: loy.pos.y };
+    const snapTransform = { ...transformRef.current };
+
+    const createdNodes = [], createdEdges = [];
+    const targets = items.map(it => {
+      const rad = (it.angle * Math.PI) / 180;
+      return { x: origin.x + radius * Math.cos(rad), y: origin.y + radius * Math.sin(rad) };
+    });
+
+    items.forEach((c, i) => {
+      const { x, y } = targets[i];
+      nodeById.set(c.id, { id: c.id, pos: { x, y } });
+
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "node node--challenge";
+      btn.dataset.id = c.id; btn.dataset.muted = "false"; btn.dataset.hidden = "false";
+      btn.style.left = `${x}px`; btn.style.top = `${y}px`;
+      btn.setAttribute("aria-label", c.title);
+
+      const ns = "http://www.w3.org/2000/svg";
+      const outline = document.createElementNS(ns, "svg");
+      outline.setAttribute("class", "node__dotOutline"); outline.setAttribute("aria-hidden", "true");
+      outline.setAttribute("preserveAspectRatio", "none");
+      outline.appendChild(document.createElementNS(ns, "rect"));
+      btn.appendChild(outline);
+
+      const lbl = document.createElement("span");
+      lbl.className = "node__challengeLabel"; lbl.textContent = c.title;
+      btn.appendChild(lbl);
+
+      const dx = origin.x - x, dy = origin.y - y;
+      btn.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(0.4)`;
+      btn.style.opacity = "0";
+      nodes.appendChild(btn); createdNodes.push(btn);
+
+      setTimeout(() => {
+        btn.style.transform = "translate(-50%,-50%) scale(1)";
+        btn.style.opacity   = "1";
+      }, 80 + i * 90);
+
+      const p = document.createElementNS(ns, "path");
+      p.setAttribute("class", "edge edge--challenge");
+      p.dataset.a = "loyalty"; p.dataset.b = c.id;
+      p.setAttribute("d", edgePath(origin, { x, y }));
+      p.setAttribute("stroke", "rgba(0,0,0,0.34)");
+      p.setAttribute("stroke-width", "1");
+      p.setAttribute("stroke-dasharray", "0.1 5");
+      p.setAttribute("stroke-linecap", "round");
+      p.setAttribute("fill", "none");
+      p.style.opacity = "0"; p.style.transition = "opacity 320ms ease";
+      edges.appendChild(p); createdEdges.push(p);
+      setTimeout(() => { p.style.opacity = "1"; }, 80 + i * 90 + 200);
+    });
+
+    // Pan to show fan + Loyalty
+    const stageR = stage.getBoundingClientRect();
+    if (stageR.width > 0) {
+      const meanY = targets.reduce((s, p) => s + p.y, 0) / targets.length;
+      const panY  = (origin.y + meanY) / 2;
+      animateTo(centerToTransform({ x: origin.x, y: panY }, transformRef.current.scale), 700);
+    }
+
+    state.cleanup = () => {
+      createdNodes.forEach(n => n.remove());
+      createdEdges.forEach(e => e.remove());
+      items.forEach(c => nodeById.delete(c.id));
+      state.cleanup = state.collapse = null; state.collapsing = false;
+    };
+    state.collapse = () => {
+      if (state.collapsing || !state.cleanup) return;
+      state.collapsing = true;
+      items.forEach((_c, i) => {
+        const n = createdNodes[i]; if (!n) return;
+        const dx = origin.x - parseFloat(n.style.left);
+        const dy = origin.y - parseFloat(n.style.top);
+        n.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(0.4)`;
+        n.style.opacity = "0";
+      });
+      createdEdges.forEach(e => { e.style.opacity = "0"; });
+      animateTo(snapTransform, 700);
+      setTimeout(() => state.cleanup?.(), 720);
+    };
+  }
+
+  const spawnChallenges = () => spawnFanout({
+    state: fanouts.challenges, radius: FANOUT_RADIUS,
+    items: [
+      { id: "c-1", title: "One-time purchase focus",           angle: 150 },
+      { id: "c-2", title: "Lack of customization",             angle: 130 },
+      { id: "c-3", title: "No milestone-based journeys",       angle:  90 },
+      { id: "c-4", title: "Point hoarding",                    angle:  50 },
+      { id: "c-5", title: "Subscribers don’t feel engaged", angle: 30 },
+    ],
+  });
+
+  const spawnBenefits = () => spawnFanout({
+    state: fanouts.benefits, radius: FANOUT_RADIUS,
+    items: [
+      { id: "b-1", title: "Subscription based milestones",  angle: 202.5 },
+      { id: "b-2", title: "Customizable reward incentives", angle: 247.5 },
+      { id: "b-3", title: "Engagement tool",                angle: 292.5 },
+      { id: "b-4", title: "Relationship building",          angle: 337.5 },
+    ],
+  });
+
+  // ─── Reroute ──────────────────────────────────────────────────────────────
+  function rerouteToRetention() {
+    rerouted = true;
+    fanouts.challenges.cleanup?.();
+
+    const loyBtn = nodeEls.get("loyalty");
+    if (!loyBtn) return;
+    const lbl  = loyBtn.querySelector(".cardHanger__label");
+    const hang = loyBtn.querySelector(".cardHanger");
+    if (lbl)  lbl.textContent = "New framework";
+    if (hang instanceof HTMLElement) hang.style.display = "none";
+
+    const sub  = nodeById.get("subscriptions");
+    const subX = sub?.pos.x ?? 425, subY = sub?.pos.y ?? 95;
+    const RET_POS = { x: subX, y: subY + RETENTION_OFFSET_Y };
+    const LOY_POS = { x: subX, y: subY + LOYALTY_OFFSET_Y };
+
+    // Fade pre→loyalty edge via CSS class (viewport--slide4-rerouted already handles it)
+    vp.classList.add("viewport--slide4-rerouted");
+
+    // Slide loyalty card
+    loyBtn.classList.add("node--slide4-moving");
+    requestAnimationFrame(() => {
+      loyBtn.style.left = `${LOY_POS.x}px`;
+      loyBtn.style.top  = `${LOY_POS.y}px`;
+    });
+    const loyNode = nodeById.get("loyalty");
+    if (loyNode && priorLoyaltyPos === null) {
+      priorLoyaltyPos = { x: loyNode.pos.x, y: loyNode.pos.y };
+      loyNode.pos.x = LOY_POS.x; loyNode.pos.y = LOY_POS.y;
+    }
+
+    // Pan to retention area
+    const stageR = stage.getBoundingClientRect();
+    if (stageR.width > 0) {
+      animateTo(centerToTransform({ x: subX, y: subY + RETENTION_OFFSET_Y }, transformRef.current.scale), 700);
+    }
+
+    // Artwork swap after loyalty finishes sliding (~950ms)
+    setTimeout(() => {
+      const ri = loyBtn.querySelector(".node__comboLogo--recharge");
+      const mi = loyBtn.querySelector(".node__comboLogo--loyaltyMain");
+      if (mi instanceof HTMLElement) {
+        mi.classList.add("node__comboLogo--loyaltyMainExit");
+        setTimeout(() => { mi.style.display = "none"; }, 350);
+      }
+      if (ri instanceof HTMLImageElement) {
+        ri.hidden = false; ri.removeAttribute("aria-hidden");
+        ri.classList.add("node__comboLogo--recharge--pop");
+      }
+      if (hang instanceof HTMLElement) hang.style.removeProperty("display");
+    }, 950);
+
+    // Spawn retention hub + edges
+    setTimeout(() => {
+      nodeById.set("ret", { id: "ret", pos: { x: RET_POS.x, y: RET_POS.y } });
+      const retBtn = document.createElement("button");
+      retBtn.type = "button"; retBtn.className = "node node--hub node--retentionHub";
+      retBtn.dataset.id = "ret"; retBtn.dataset.hub = "true";
+      retBtn.dataset.muted = "false"; retBtn.dataset.hidden = "false";
+      retBtn.style.left = `${RET_POS.x}px`; retBtn.style.top = `${RET_POS.y}px`;
+      retBtn.setAttribute("aria-label", "Retention hub");
+      const row = document.createElement("div"); row.className = "hubRow";
+      const em  = document.createElement("span"); em.className = "hubEmojiOnly"; em.textContent = "🤑"; em.setAttribute("aria-hidden","true");
+      const tx  = document.createElement("div");  tx.className = "hubText"; tx.textContent = "Retention";
+      row.appendChild(em); row.appendChild(tx); retBtn.appendChild(row);
+      nodes.appendChild(retBtn); nodeEls.set("ret", retBtn);
+
+      const routeEdges = [
+        { aId: "subscriptions", bId: "ret" },
+        { aId: "ret",           bId: "loyalty" },
+      ];
+      const tempPaths = [];
+      for (const { aId, bId } of routeEdges) {
+        const a = nodeById.get(aId), b = nodeById.get(bId);
+        if (!a || !b) continue;
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("class", "edge edge--reroute");
+        p.dataset.a = aId; p.dataset.b = bId;
+        p.setAttribute("d", edgePath(a.pos, b.pos));
+        p.setAttribute("stroke", "rgba(0,0,0,0.34)");
+        p.setAttribute("stroke-width", "0.5");
+        p.setAttribute("fill", "none");
+        edges.appendChild(p);
+        const len = p.getTotalLength ? p.getTotalLength() : 500;
+        p.style.setProperty("--edge-len", `${Math.ceil(len) || 500}`);
+        tempPaths.push(p);
+      }
+      retentionCleanup = () => {
+        retBtn.remove(); tempPaths.forEach(p => p.remove());
+        nodeById.delete("ret"); nodeEls.delete("ret");
+        retentionCleanup = null;
+      };
+
+      // Reveal subscriptions
+      const subBtn = nodeEls.get("subscriptions");
+      if (subBtn) { subBtn.dataset.hidden = "false"; }
+    }, 950);
+  }
+
+  // ─── Reset ────────────────────────────────────────────────────────────────
+  function reset() {
+    const loyBtn = nodeEls.get("loyalty");
+    if (loyBtn) {
+      loyBtn.classList.remove("node--slide4-moving");
+      void loyBtn.offsetHeight;
+      const origPos = NODES.find(n => n.id === "loyalty")?.pos;
+      if (origPos) { loyBtn.style.left = `${origPos.x}px`; loyBtn.style.top = `${origPos.y}px`; }
+      const ri = loyBtn.querySelector(".node__comboLogo--recharge");
+      const mi = loyBtn.querySelector(".node__comboLogo--loyaltyMain");
+      if (ri instanceof HTMLImageElement) {
+        ri.classList.remove("node__comboLogo--recharge--pop"); ri.hidden = true; ri.setAttribute("aria-hidden","true");
+      }
+      if (mi instanceof HTMLElement) {
+        mi.classList.remove("node__comboLogo--loyaltyMainExit"); mi.style.removeProperty("display");
+      }
+      const lbl  = loyBtn.querySelector(".cardHanger__label");
+      const hang = loyBtn.querySelector(".cardHanger");
+      if (lbl)  lbl.textContent = "Current framework";
+      if (hang instanceof HTMLElement) hang.style.removeProperty("display");
+    }
+    if (priorLoyaltyPos !== null) {
+      const n = nodeById.get("loyalty");
+      if (n) { n.pos.x = priorLoyaltyPos.x; n.pos.y = priorLoyaltyPos.y; }
+      priorLoyaltyPos = null;
+    }
+    vp.classList.remove("viewport--slide4-rerouted");
+    retentionCleanup?.();
+    fanouts.challenges.cleanup?.();
+    fanouts.benefits.cleanup?.();
+    rerouted = false; subsRevealed = false;
+    const subBtn = nodeEls.get("subscriptions");
+    if (subBtn) subBtn.dataset.hidden = "true";
+  }
+
+  // ─── Click handler ────────────────────────────────────────────────────────
+  nodes.addEventListener("click", e => {
+    const t = e.target instanceof HTMLElement ? e.target : null;
+    if (t?.closest(".cardHanger")) {
+      if (!rerouted) rerouteToRetention();
+      return;
+    }
+    const btn = t?.closest(".node");
+    if (!(btn instanceof HTMLButtonElement)) return;
+    const id = btn.dataset.id;
+    if (!id || id.startsWith("c-") || id.startsWith("b-")) return;
+
+    if (id === "repeat" && !rerouted) {
+      subsRevealed = true;
+      const s = nodeEls.get("subscriptions");
+      if (s) s.dataset.hidden = "false";
+    }
+    if (id === "subscriptions" && subsRevealed && !rerouted) {
+      rerouteToRetention(); return;
+    }
+    if (id === "loyalty") {
+      const fan   = rerouted ? fanouts.benefits   : fanouts.challenges;
+      const spawn = rerouted ? spawnBenefits       : spawnChallenges;
+      if (!fan.collapsing) { if (fan.cleanup) fan.collapse?.(); else spawn(); }
+    }
+    applyFiltering(id);
+    dismissHint();
+  });
+
+  // ─── Pan & zoom ───────────────────────────────────────────────────────────
+  let isPanning = false, panStart = null, panTransformStart = null;
+  const MIN_SCALE = 0.4, MAX_SCALE = 2.5;
+
+  stage.addEventListener("pointerdown", e => {
+    if (e.target instanceof Element && e.target.closest(".node")) return;
+    isPanning = true;
+    panStart = { x: e.clientX, y: e.clientY };
+    panTransformStart = { x: transformRef.current.x, y: transformRef.current.y };
+    stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener("pointermove", e => {
+    if (!isPanning || !panStart || !panTransformStart) return;
+    const dx = e.clientX - panStart.x, dy = e.clientY - panStart.y;
+    transformRef.current = { ...transformRef.current, x: panTransformStart.x + dx, y: panTransformStart.y + dy };
+    applyTransform(vp, transformRef.current);
+  });
+  const endPan = () => { isPanning = false; panStart = panTransformStart = null; };
+  stage.addEventListener("pointerup",     endPan);
+  stage.addEventListener("pointercancel", endPan);
+  stage.addEventListener("lostpointercapture", endPan);
+
+  stage.addEventListener("wheel", e => {
+    e.preventDefault();
+    const dir = e.deltaY > 0 ? -1 : 1;
+    const factor = 1 + 0.11 * dir;
+    const prev = transformRef.current;
+    const nextScale = clamp(prev.scale * factor, MIN_SCALE, MAX_SCALE);
+    if (Math.abs(nextScale - prev.scale) < 1e-6) return;
+    const r  = stage.getBoundingClientRect();
+    const sx = e.clientX - r.left, sy = e.clientY - r.top;
+    const wx = (sx - prev.x) / prev.scale, wy = (sy - prev.y) / prev.scale;
+    transformRef.current = { x: sx - wx * nextScale, y: sy - wy * nextScale, scale: nextScale };
+    applyTransform(vp, transformRef.current);
+  }, { passive: false });
+
+  // ─── Hint dismiss ─────────────────────────────────────────────────────────
+  const hint = document.getElementById("hint");
+  function dismissHint() {
+    if (hint) { hint.style.opacity = "0"; setTimeout(() => hint.remove(), 650); }
+    dismissHint = () => {};
+  }
+
+  // ─── Initial state ────────────────────────────────────────────────────────
+  function init() {
+    reset();
+    applyFiltering("loyalty");
+    // Center between Pre-Purchase and Loyalty
+    const t = centerToTransform({ x: 410, y: 650 }, 1);
+    transformRef.current = t;
+    applyTransform(vp, t);
+  }
+
+  requestAnimationFrame(() => { init(); setTimeout(init, 80); });
+
+  // R key → reset
+  document.addEventListener("keydown", e => {
+    if (e.key === "r" || e.key === "R") init();
+  });
+})();
+</script>
+</body>
+</html>
