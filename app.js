@@ -2942,11 +2942,15 @@ function wireCaseFollowSlide7Canvas() {
     const scroll = thirdPhone.querySelector(".caseFollowPhone__scroll");
     const loader = document.getElementById("caseFollowThirdLoader");
     const dupScroll = dup.querySelector(".caseFollowPhone__scroll");
+    const primaryScroll = primaryPhone.querySelector(".caseFollowPhone__scroll");
     if (!(scroll instanceof HTMLElement) || !(loader instanceof HTMLElement)) return;
-    if (!(dupScroll instanceof HTMLElement)) return;
+    if (!(dupScroll instanceof HTMLElement) || !(primaryScroll instanceof HTMLElement)) return;
 
     const schedule = dupScroll.querySelector("section.caseFollowSheet--schedule");
-    if (!schedule) return;
+    const storeCredit = dupScroll.querySelector("div.caseFollowStoreCredit");
+    const checkoutStackRoot = primaryScroll.querySelector("div.caseFollowCheckoutStack");
+    const checkoutSheet = checkoutStackRoot?.querySelector("section.caseFollowSheet--checkout");
+    if (!schedule || !storeCredit || !checkoutSheet) return;
 
     removeThirdPostApplyClones();
 
@@ -2957,6 +2961,17 @@ function wireCaseFollowSlide7Canvas() {
     const scheduleC = /** @type {HTMLElement} */ (schedule.cloneNode(true));
     stripIdsForClone(scheduleC);
     wrap.appendChild(scheduleC);
+
+    const storeC = /** @type {HTMLElement} */ (storeCredit.cloneNode(true));
+    stripIdsForClone(storeC);
+    wrap.appendChild(storeC);
+
+    const checkoutWrap = document.createElement("div");
+    checkoutWrap.className = "caseFollowCheckoutStack";
+    const checkoutC = /** @type {HTMLElement} */ (checkoutSheet.cloneNode(true));
+    stripIdsForClone(checkoutC);
+    checkoutWrap.appendChild(checkoutC);
+    wrap.appendChild(checkoutWrap);
 
     scroll.appendChild(wrap);
     loader.hidden = true;
