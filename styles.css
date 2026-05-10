@@ -533,11 +533,11 @@ a:focus-visible {
 
 .slide--creditsData .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img,
 .slide--creditsData #slideCreditsDataImg {
-  /* Cap % + px so the asset actually scales down (intrinsic width can ignore a loose calc). */
-  width: min(52%, calc(100% - 156px));
+  /* Prior: 68% / 120px / 99vh; +15% → ~78%, ~104px trim, viewport-tall cap. */
+  width: min(78%, calc(100% - 104px));
   max-width: 100%;
   height: auto;
-  max-height: min(76vh, 100%);
+  max-height: min(100vh, 100%);
   min-width: 0;
   object-fit: contain;
   object-position: center;
