@@ -66,6 +66,8 @@ const MERCHANT_ADOPTION_STAT_SLIDE_INDEX = 9;
 const CREDITS_DATA_SLIDE_INDEX = 10;
 /** Slide after credits — merchant feedback image (`data-slide-index="11"`). */
 const MERCHANT_FEEDBACK_SLIDE_INDEX = 11;
+/** Slide after merchant feedback — merchants complaints image (`data-slide-index="12"`). */
+const MERCHANTS_COMPLAINTS_SLIDE_INDEX = 12;
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
@@ -3474,7 +3476,8 @@ function render(graph) {
       idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX &&
       idx !== MERCHANT_ADOPTION_STAT_SLIDE_INDEX &&
       idx !== CREDITS_DATA_SLIDE_INDEX &&
-      idx !== MERCHANT_FEEDBACK_SLIDE_INDEX
+      idx !== MERCHANT_FEEDBACK_SLIDE_INDEX &&
+      idx !== MERCHANTS_COMPLAINTS_SLIDE_INDEX
     ) {
       slideshowSlide2LayoutHook();
     }
@@ -3522,6 +3525,16 @@ function render(graph) {
           bubbles: true,
           composed: true,
           detail: { index: MERCHANT_FEEDBACK_SLIDE_INDEX, count: pag.count },
+        }),
+      );
+      return;
+    }
+    if (pag.index === MERCHANTS_COMPLAINTS_SLIDE_INDEX) {
+      document.dispatchEvent(
+        new CustomEvent("slideshow:change", {
+          bubbles: true,
+          composed: true,
+          detail: { index: MERCHANTS_COMPLAINTS_SLIDE_INDEX, count: pag.count },
         }),
       );
     }
@@ -3954,8 +3967,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 12) {
-    console.error(`[slideshow] expected 12 slide sections, found ${slides.length}`);
+  if (slides.length < 13) {
+    console.error(`[slideshow] expected 13 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -3992,7 +4005,8 @@ function initSlideshow() {
       index === 7 ||
       index === MERCHANT_ADOPTION_STAT_SLIDE_INDEX ||
       index === CREDITS_DATA_SLIDE_INDEX ||
-      index === MERCHANT_FEEDBACK_SLIDE_INDEX
+      index === MERCHANT_FEEDBACK_SLIDE_INDEX ||
+      index === MERCHANTS_COMPLAINTS_SLIDE_INDEX
     ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
@@ -4254,6 +4268,21 @@ initSlideshow();
     if (idx === MERCHANT_FEEDBACK_SLIDE_INDEX) {
       requestAnimationFrame(() => {
         const hero = document.getElementById("slideMerchantFeedbackImg");
+        if (hero instanceof HTMLImageElement) {
+          hero.loading = "eager";
+          const s = hero.getAttribute("src");
+          if (s && (!hero.complete || hero.naturalWidth === 0)) {
+            hero.removeAttribute("src");
+            hero.setAttribute("src", s);
+          }
+          void hero.decode?.().catch(() => {});
+        }
+      });
+    }
+
+    if (idx === MERCHANTS_COMPLAINTS_SLIDE_INDEX) {
+      requestAnimationFrame(() => {
+        const hero = document.getElementById("slideMerchantsComplaintsImg");
         if (hero instanceof HTMLImageElement) {
           hero.loading = "eager";
           const s = hero.getAttribute("src");

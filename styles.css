@@ -505,9 +505,10 @@ a:focus-visible {
   width: fit-content;
 }
 
-/* Slides 11–12 (credits data + merchant feedback): full-bleed images in dotted stage */
+/* Slides 11–13 (credits data + merchant feedback + merchants complaints): full-bleed images in dotted stage */
 .slide--creditsData .mapSlideMount > .stageWrap,
-.slide--merchantFeedback .mapSlideMount > .stageWrap {
+.slide--merchantFeedback .mapSlideMount > .stageWrap,
+.slide--merchantsComplaints .mapSlideMount > .stageWrap {
   display: flex;
   flex-direction: column;
   justify-content: stretch;
@@ -519,7 +520,8 @@ a:focus-visible {
 }
 
 .slide--creditsData .sparkFrameImageCanvas--fullBleed,
-.slide--merchantFeedback .sparkFrameImageCanvas--fullBleed {
+.slide--merchantFeedback .sparkFrameImageCanvas--fullBleed,
+.slide--merchantsComplaints .sparkFrameImageCanvas--fullBleed {
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -549,8 +551,24 @@ a:focus-visible {
   margin-inline: auto;
 }
 
+/* Last slide: same pattern as credits/feedback, scaled +30% then +30% again (1.3² vs base) */
+.slide--merchantsComplaints .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img,
+.slide--merchantsComplaints #slideMerchantsComplaintsImg {
+  width: min(calc(66% * 1.3 * 1.3), calc((100% - 104px) * 0.85 * 1.3 * 1.3));
+  max-width: 100%;
+  height: auto;
+  max-height: min(calc(85vh * 1.3 * 1.3), calc(130% * 1.3));
+  min-width: 0;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  margin-inline: auto;
+}
+
 .slide--merchantFeedback #slideMerchantFeedbackImg,
-.slide--merchantFeedback .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img {
+.slide--merchantFeedback .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img,
+.slide--merchantsComplaints #slideMerchantsComplaintsImg,
+.slide--merchantsComplaints .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img {
   /* Same depth token as nodes / secondary surfaces (`--shadow2`); drop-shadow follows PNG alpha */
   filter: drop-shadow(var(--shadow2));
 }
