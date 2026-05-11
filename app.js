@@ -70,9 +70,9 @@ const MERCHANT_FEEDBACK_SLIDE_INDEX = 11;
 const MERCHANTS_COMPLAINTS_SLIDE_INDEX = 12;
 /** Checkout upsell swap quick-activation prototype — iframe into playground (`data-slide-index="13"`). */
 const CHECKOUT_UPSELL_SWAP_SLIDE_INDEX = 13;
-/** Animated bar chart slides — dotted `stageWrap` like other map canvases (`data-slide-index="14"` … `"15"`). */
-const ANIMATED_CHART_1_SLIDE_INDEX = 14;
-const ANIMATED_CHART_2_SLIDE_INDEX = 15;
+/** Animated bar chart slides — dotted `stageWrap` (`data-slide-index="14"` time-to-convert chart, `"15"` conversion slide). */
+const ANIMATED_CHART_1_SLIDE_INDEX = 15;
+const ANIMATED_CHART_2_SLIDE_INDEX = 14;
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
@@ -4001,11 +4001,12 @@ function initSlideshow() {
     const viewport = document.getElementById("viewport");
 
     // Slide 4 recap (index 3) renders the map in mount3; all other slides park the shared stage in mount1 (slide 2 shell).
-    // Slide 8 has its own isolated DOM — it does not use the shared stage.
+    // Duplicate recap slide has its own isolated DOM — it does not use the shared stage.
     if (
       index === 0 ||
       index === 1 ||
       index === 2 ||
+      index === ANIMATED_CHART_2_SLIDE_INDEX ||
       index === 4 ||
       index === 5 ||
       index === 6 ||
@@ -4014,8 +4015,7 @@ function initSlideshow() {
       index === CREDITS_DATA_SLIDE_INDEX ||
       index === MERCHANT_FEEDBACK_SLIDE_INDEX ||
       index === MERCHANTS_COMPLAINTS_SLIDE_INDEX ||
-      index === ANIMATED_CHART_1_SLIDE_INDEX ||
-      index === ANIMATED_CHART_2_SLIDE_INDEX
+      index === ANIMATED_CHART_1_SLIDE_INDEX
     ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
@@ -7469,7 +7469,7 @@ wireCaseFollowSlide7Canvas();
     );
   }
 
-  /** Slide 5 is data-slide-index="4" — leaving it closes panels */
+  /** Flow trigger/outro slide (`data-slide-index="4"`). Leaving it closes panels */
   const FLOW_SLIDE_INDEX = 4;
 
   document.addEventListener("slideshow:change", (e) => {

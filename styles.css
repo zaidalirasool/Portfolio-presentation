@@ -520,10 +520,30 @@ a:focus-visible {
   width: 100%;
 }
 
+.slide--animatedChart .portfolioChartHeaderObject {
+  overflow: visible;
+  pointer-events: none;
+  padding-left: 212px;
+  padding-top: 28px;
+}
+
+.slide--animatedChart .portfolioChartPageHeader {
+  margin: 0;
+  color: #191d48;
+  font-family: inherit;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .slide--creditsData .sparkFrameImageCanvas--fullBleed,
 .slide--merchantFeedback .sparkFrameImageCanvas--fullBleed,
 .slide--merchantsComplaints .sparkFrameImageCanvas--fullBleed,
 .slide--animatedChart .portfolioChartCanvas {
+  position: relative;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -3618,7 +3638,8 @@ a:focus-visible {
   max-height: 100%;
   height: auto;
   overflow: visible;
-  font-family: Avenir, Inter, sans-serif;
+  font-family: "Greycliff CF";
+  font-weight: 600;
 }
 
 .portfolioChartSvg--chart1 {
