@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./spark.css?v=226" />
-    <link rel="stylesheet" href="./styles.css?v=155" />
+    <link rel="stylesheet" href="./styles.css?v=169" />
   </head>
   <body>
     <div class="app">
@@ -3944,23 +3944,26 @@
         </section>
 
         <section
-          class="slide slide--animatedChart slide--animatedChart1"
+          class="slide slide--map slide--animatedChart slide--animatedChart1"
           data-slide-index="14"
           aria-label="Animated bar chart"
           aria-hidden="true"
         >
-          <main class="main main--animatedChart">
-            <section class="portfolioChartCanvas" aria-label="Animated conversion lift bar chart">
-              <svg class="portfolioChartSvg portfolioChartSvg--chart1" viewBox="0 0 2004 654.64" role="img" aria-labelledby="animatedChart1Title">
+          <main class="main">
+            <div class="mapSlideMount">
+              <section class="stageWrap" aria-label="Animated conversion lift bar chart canvas">
+                <section class="portfolioChartCanvas">
+                  <svg class="portfolioChartSvg portfolioChartSvg--chart1" viewBox="0 0 2004 654.64" role="img" aria-labelledby="animatedChart1Title">
                 <title id="animatedChart1Title">Guided wizard and Canvas builder conversion lift chart</title>
                 <defs>
                   <filter id="portfolioChartShadow1" x="-4%" y="-8%" width="108%" height="116%" color-interpolation-filters="sRGB">
                     <feDropShadow dx="0" dy="1.842" stdDeviation="3.684" flood-color="#191D48" flood-opacity="0.2" />
                   </filter>
                 </defs>
-                <rect class="portfolioChartCard" x="16" y="16" width="1972" height="622.64" rx="8" filter="url(#portfolioChartShadow1)" />
+                <g transform="translate(1002 322) scale(0.8) translate(-1002 -322)">
+                <rect class="portfolioChartCard" x="16" y="16" width="1972" height="612" rx="8" filter="url(#portfolioChartShadow1)" />
 
-                <g class="portfolioChartLegend" transform="translate(1396 52)">
+                <g class="portfolioChartLegend" transform="translate(1536 52)">
                   <g>
                     <circle cx="11" cy="11" r="11" fill="#3901F1" />
                     <text x="30" y="11">Guided wizard</text>
@@ -3987,19 +3990,19 @@
                 </g>
 
                 <g class="portfolioChartBars">
-                  <rect class="portfolioChartBar portfolioChartBar--guided" x="172" y="472" width="156" height="73" rx="8" style="--delay: 220ms" />
+                  <path class="portfolioChartBar portfolioChartBar--guided" d="M172 545 L328 545 L328 480 C328 475.582 324.418 472 320 472 L180 472 C175.582 472 172 475.582 172 480 Z" style="--delay: 220ms" />
                   <text class="portfolioChartMetric" x="250" y="468" style="--delay: 220ms; --drop: 77px">≈9%</text>
-                  <rect class="portfolioChartBar portfolioChartBar--canvas" x="344" y="212" width="156" height="333" rx="8" style="--delay: 330ms" />
+                  <path class="portfolioChartBar portfolioChartBar--canvas" d="M344 545 L500 545 L500 220 C500 215.582 496.418 212 492 212 L352 212 C347.582 212 344 215.582 344 220 Z" style="--delay: 330ms" />
                   <text class="portfolioChartMetric" x="422" y="208" style="--delay: 330ms; --drop: 337px">≈38%</text>
 
-                  <rect class="portfolioChartBar portfolioChartBar--guided" x="823" y="345" width="156" height="200" rx="8" style="--delay: 420ms" />
+                  <path class="portfolioChartBar portfolioChartBar--guided" d="M823 545 L979 545 L979 353 C979 348.582 975.418 345 971 345 L831 345 C826.582 345 823 348.582 823 353 Z" style="--delay: 420ms" />
                   <text class="portfolioChartMetric" x="901" y="341" style="--delay: 420ms; --drop: 204px">≈22%</text>
-                  <rect class="portfolioChartBar portfolioChartBar--canvas" x="995" y="134" width="156" height="411" rx="8" style="--delay: 530ms" />
+                  <path class="portfolioChartBar portfolioChartBar--canvas" d="M995 545 L1151 545 L1151 142 C1151 137.582 1147.418 134 1143 134 L1003 134 C998.582 134 995 137.582 995 142 Z" style="--delay: 530ms" />
                   <text class="portfolioChartMetric" x="1073" y="130" style="--delay: 530ms; --drop: 415px">≈47%</text>
 
-                  <rect class="portfolioChartBar portfolioChartBar--guided" x="1474" y="434" width="156" height="111" rx="8" style="--delay: 620ms" />
+                  <path class="portfolioChartBar portfolioChartBar--guided" d="M1474 545 L1630 545 L1630 442 C1630 437.582 1626.418 434 1622 434 L1482 434 C1477.582 434 1474 437.582 1474 442 Z" style="--delay: 620ms" />
                   <text class="portfolioChartMetric" x="1552" y="430" style="--delay: 620ms; --drop: 115px">≈11.7%</text>
-                  <rect class="portfolioChartBar portfolioChartBar--canvas" x="1646" y="434" width="156" height="111" rx="8" style="--delay: 730ms" />
+                  <path class="portfolioChartBar portfolioChartBar--canvas" d="M1646 545 L1802 545 L1802 442 C1802 437.582 1798.418 434 1794 434 L1654 434 C1649.582 434 1646 437.582 1646 442 Z" style="--delay: 730ms" />
                   <text class="portfolioChartMetric" x="1724" y="430" style="--delay: 730ms; --drop: 115px">≈11.7%</text>
                 </g>
 
@@ -4009,43 +4012,50 @@
                   <text x="1638" y="561">Subscription Widget</text>
                 </g>
                 <g class="portfolioChartStickers">
-                  <text x="336" y="595">4.2x sticker</text>
-                  <text x="987" y="595">2.2x sticker</text>
-                  <text x="1638" y="595">No change</text>
+                  <text x="336" y="593">4.2x sticker</text>
+                  <text x="987" y="593">2.2x sticker</text>
+                  <text x="1638" y="593">No change</text>
+                </g>
                 </g>
               </svg>
-            </section>
+                </section>
+              </section>
+            </div>
           </main>
         </section>
 
         <section
-          class="slide slide--animatedChart slide--animatedChart2"
+          class="slide slide--map slide--animatedChart slide--animatedChart2"
           data-slide-index="15"
           aria-label="AnimatedBarChart 2"
           aria-hidden="true"
         >
-          <main class="main main--animatedChart">
-            <section class="portfolioChartCanvas" aria-label="Animated time comparison bar chart">
-              <svg class="portfolioChartSvg portfolioChartSvg--chart2" viewBox="0 0 2004 621.2" role="img" aria-labelledby="animatedChart2Title">
+          <main class="main">
+            <div class="mapSlideMount">
+              <section class="stageWrap" aria-label="Animated time comparison bar chart canvas">
+                <section class="portfolioChartCanvas">
+                  <svg class="portfolioChartSvg portfolioChartSvg--chart2" viewBox="0 0 2004 654.64" role="img" aria-labelledby="animatedChart2Title">
                 <title id="animatedChart2Title">Guided wizard and Canvas builder time comparison chart</title>
                 <defs>
                   <filter id="portfolioChartShadow2" x="-4%" y="-8%" width="108%" height="116%" color-interpolation-filters="sRGB">
                     <feDropShadow dx="0" dy="1.842" stdDeviation="3.684" flood-color="#191D48" flood-opacity="0.2" />
                   </filter>
                 </defs>
-                <rect class="portfolioChartCard" x="16" y="16" width="1972" height="589.2" rx="8" filter="url(#portfolioChartShadow2)" />
+                <g transform="translate(1002 322) scale(0.8) translate(-1002 -322)">
+                <rect class="portfolioChartCard" x="16" y="16" width="1972" height="612" rx="8" filter="url(#portfolioChartShadow2)" />
 
-                <g class="portfolioChartLegend" transform="translate(1396 52)">
+                <g class="portfolioChartLegend" transform="translate(1536 52)">
                   <g>
-                    <circle cx="12" cy="12" r="12" fill="#3901F1" />
-                    <text x="32" y="12">Guided wizard</text>
+                    <circle cx="11" cy="11" r="11" fill="#3901F1" />
+                    <text x="30" y="11">Guided wizard</text>
                   </g>
                   <g transform="translate(204 0)">
-                    <circle cx="12" cy="12" r="12" fill="#9C80F8" />
-                    <text x="32" y="12">Canvas builder</text>
+                    <circle cx="11" cy="11" r="11" fill="#9C80F8" />
+                    <text x="30" y="11">Canvas builder</text>
                   </g>
                 </g>
 
+                <g transform="translate(0 6)">
                 <g class="portfolioChartLines">
                   <text x="101" y="84" class="portfolioChartAxis portfolioChartAxis--tight">5m</text>
                   <line x1="116" x2="1937" y1="84" y2="84" />
@@ -4062,19 +4072,19 @@
                 </g>
 
                 <g class="portfolioChartBars">
-                  <rect class="portfolioChartBar portfolioChartBar--guided" x="172" y="162" width="156" height="377" rx="8" style="--delay: 220ms" />
+                  <path class="portfolioChartBar portfolioChartBar--guided" d="M172 539 L328 539 L328 170 C328 165.582 324.418 162 320 162 L180 162 C175.582 162 172 165.582 172 170 Z" style="--delay: 220ms" />
                   <text class="portfolioChartMetric portfolioChartMetric--time" x="250" y="158" style="--delay: 220ms; --drop: 381px">4m 14s</text>
-                  <rect class="portfolioChartBar portfolioChartBar--canvas" x="344" y="346" width="156" height="193" rx="8" style="--delay: 330ms" />
+                  <path class="portfolioChartBar portfolioChartBar--canvas" d="M344 539 L500 539 L500 354 C500 349.582 496.418 346 492 346 L352 346 C347.582 346 344 349.582 344 354 Z" style="--delay: 330ms" />
                   <text class="portfolioChartMetric portfolioChartMetric--time" x="422" y="342" style="--delay: 330ms; --drop: 197px">2m 14s</text>
 
-                  <rect class="portfolioChartBar portfolioChartBar--guided" x="823" y="204" width="156" height="335" rx="8" style="--delay: 420ms" />
+                  <path class="portfolioChartBar portfolioChartBar--guided" d="M823 539 L979 539 L979 212 C979 207.582 975.418 204 971 204 L831 204 C826.582 204 823 207.582 823 212 Z" style="--delay: 420ms" />
                   <text class="portfolioChartMetric portfolioChartMetric--time" x="901" y="200" style="--delay: 420ms; --drop: 339px">3m 43s</text>
-                  <rect class="portfolioChartBar portfolioChartBar--canvas" x="995" y="302" width="156" height="237" rx="8" style="--delay: 530ms" />
+                  <path class="portfolioChartBar portfolioChartBar--canvas" d="M995 539 L1151 539 L1151 310 C1151 305.582 1147.418 302 1143 302 L1003 302 C998.582 302 995 305.582 995 310 Z" style="--delay: 530ms" />
                   <text class="portfolioChartMetric portfolioChartMetric--time" x="1073" y="298" style="--delay: 530ms; --drop: 241px">2m 40s</text>
 
-                  <rect class="portfolioChartBar portfolioChartBar--guided" x="1474" y="174" width="156" height="365" rx="8" style="--delay: 620ms" />
+                  <path class="portfolioChartBar portfolioChartBar--guided" d="M1474 539 L1630 539 L1630 182 C1630 177.582 1626.418 174 1622 174 L1482 174 C1477.582 174 1474 177.582 1474 182 Z" style="--delay: 620ms" />
                   <text class="portfolioChartMetric portfolioChartMetric--time" x="1552" y="170" style="--delay: 620ms; --drop: 369px">4m 09s</text>
-                  <rect class="portfolioChartBar portfolioChartBar--canvas" x="1646" y="254" width="156" height="285" rx="8" style="--delay: 730ms" />
+                  <path class="portfolioChartBar portfolioChartBar--canvas" d="M1646 539 L1802 539 L1802 262 C1802 257.582 1798.418 254 1794 254 L1654 254 C1649.582 254 1646 257.582 1646 262 Z" style="--delay: 730ms" />
                   <text class="portfolioChartMetric portfolioChartMetric--time" x="1724" y="250" style="--delay: 730ms; --drop: 289px">3m 26s</text>
                 </g>
 
@@ -4083,8 +4093,12 @@
                   <text x="987" y="555">Cross-Sell</text>
                   <text x="1638" y="555">Subscription Widget</text>
                 </g>
+                </g>
+                </g>
               </svg>
-            </section>
+                </section>
+              </section>
+            </div>
           </main>
         </section>
 

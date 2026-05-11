@@ -70,6 +70,9 @@ const MERCHANT_FEEDBACK_SLIDE_INDEX = 11;
 const MERCHANTS_COMPLAINTS_SLIDE_INDEX = 12;
 /** Checkout upsell swap quick-activation prototype — iframe into playground (`data-slide-index="13"`). */
 const CHECKOUT_UPSELL_SWAP_SLIDE_INDEX = 13;
+/** Animated bar chart slides — dotted `stageWrap` like other map canvases (`data-slide-index="14"` … `"15"`). */
+const ANIMATED_CHART_1_SLIDE_INDEX = 14;
+const ANIMATED_CHART_2_SLIDE_INDEX = 15;
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
@@ -3479,7 +3482,9 @@ function render(graph) {
       idx !== MERCHANT_ADOPTION_STAT_SLIDE_INDEX &&
       idx !== CREDITS_DATA_SLIDE_INDEX &&
       idx !== MERCHANT_FEEDBACK_SLIDE_INDEX &&
-      idx !== MERCHANTS_COMPLAINTS_SLIDE_INDEX
+      idx !== MERCHANTS_COMPLAINTS_SLIDE_INDEX &&
+      idx !== ANIMATED_CHART_1_SLIDE_INDEX &&
+      idx !== ANIMATED_CHART_2_SLIDE_INDEX
     ) {
       slideshowSlide2LayoutHook();
     }
@@ -4008,7 +4013,9 @@ function initSlideshow() {
       index === MERCHANT_ADOPTION_STAT_SLIDE_INDEX ||
       index === CREDITS_DATA_SLIDE_INDEX ||
       index === MERCHANT_FEEDBACK_SLIDE_INDEX ||
-      index === MERCHANTS_COMPLAINTS_SLIDE_INDEX
+      index === MERCHANTS_COMPLAINTS_SLIDE_INDEX ||
+      index === ANIMATED_CHART_1_SLIDE_INDEX ||
+      index === ANIMATED_CHART_2_SLIDE_INDEX
     ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
