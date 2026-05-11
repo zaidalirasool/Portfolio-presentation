@@ -505,8 +505,9 @@ a:focus-visible {
   width: fit-content;
 }
 
-/* Slide 11 (data-slide-index="10"): credits data — image fills dotted stage frame edge-to-edge inner */
-.slide--creditsData .mapSlideMount > .stageWrap {
+/* Slides 11–12 (credits data + merchant feedback): full-bleed images in dotted stage */
+.slide--creditsData .mapSlideMount > .stageWrap,
+.slide--merchantFeedback .mapSlideMount > .stageWrap {
   display: flex;
   flex-direction: column;
   justify-content: stretch;
@@ -517,7 +518,8 @@ a:focus-visible {
   width: 100%;
 }
 
-.slide--creditsData .sparkFrameImageCanvas--fullBleed {
+.slide--creditsData .sparkFrameImageCanvas--fullBleed,
+.slide--merchantFeedback .sparkFrameImageCanvas--fullBleed {
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -532,17 +534,25 @@ a:focus-visible {
 }
 
 .slide--creditsData .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img,
-.slide--creditsData #slideCreditsDataImg {
-  /* Prior: 68% / 120px / 99vh; +15% → ~78%, ~104px trim, viewport-tall cap. */
-  width: min(78%, calc(100% - 104px));
+.slide--creditsData #slideCreditsDataImg,
+.slide--merchantFeedback .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img,
+.slide--merchantFeedback #slideMerchantFeedbackImg {
+  /* ~15% smaller than 78% / 104px cap */
+  width: min(66%, calc((100% - 104px) * 0.85));
   max-width: 100%;
   height: auto;
-  max-height: min(100vh, 100%);
+  max-height: min(85vh, 100%);
   min-width: 0;
   object-fit: contain;
   object-position: center;
   display: block;
   margin-inline: auto;
+}
+
+.slide--merchantFeedback #slideMerchantFeedbackImg,
+.slide--merchantFeedback .sparkFrameImageCanvas--fullBleed .sparkFrameImageCanvas__img {
+  /* Same depth token as nodes / secondary surfaces (`--shadow2`); drop-shadow follows PNG alpha */
+  filter: drop-shadow(var(--shadow2));
 }
 
 .viewport .edges {
@@ -2027,7 +2037,7 @@ a:focus-visible {
   padding-right: 12px;
   color: rgba(70, 124, 153, 1);
   background-color: #1e3030;
-  background-image: url("./assets/case-follow-app-head-bg.png?v=4");
+  background-image: url("./assets/case-follow-app-head-bg.png?v=5");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

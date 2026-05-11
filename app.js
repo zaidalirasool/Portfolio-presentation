@@ -64,6 +64,8 @@ const MERCHANT_MAP_DUPLICATE_SLIDE_INDEX = 8;
 const MERCHANT_ADOPTION_STAT_SLIDE_INDEX = 9;
 /** Slide after merchant adoption — full-bleed credits data image (`data-slide-index="10"`). */
 const CREDITS_DATA_SLIDE_INDEX = 10;
+/** Slide after credits — merchant feedback image (`data-slide-index="11"`). */
+const MERCHANT_FEEDBACK_SLIDE_INDEX = 11;
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
@@ -413,7 +415,7 @@ function wireMerchantMapDuplicatePanZoom() {
 document.getElementById("stageHint")?.remove();
 
 const MERCHANT_LOGO_KEY = "merchantLogoDataUrl";
-const MERCHANT_DEFAULT_LOGO_SRC = "./assets/merchant-logo.svg?v=6";
+const MERCHANT_DEFAULT_LOGO_SRC = "./assets/merchant-logo.svg?v=7";
 const NODE_CARD_IMAGE_KEY = "nodeCardImageDataUrlById";
 const NODE_CARD_IMAGE_CLEANED_KEY = "nodeCardImageCleanedById";
 const NODE_POSITIONS_KEY = "nodePositionsById";
@@ -424,21 +426,21 @@ const GRAPH_LAYOUT_VERSION = "mindmap-v14";
 const LEGACY_PERSONALIZATION_IMAGE_KEY = "personalizationCardImageDataUrl";
 const LEGACY_PERSONALIZATION_IMAGE_CLEANED_KEY = "personalizationCardImageCleaned";
 const DEFAULT_CARD_IMAGE_BY_NODE_ID = {
-  personalization: "./assets/cards/personalization.png?v=4",
-  ab: "./assets/cards/ab-testing-default.png?v=6",
-  loyalty: "./assets/cards/loyalty-default.png?v=8",
-  referral: "./assets/cards/referral.png?v=4",
-  mail: "./assets/cards/mailing-sms.png?v=4",
-  chat: "./assets/cards/customer-chat.png?v=4",
-  ads: "./assets/cards/advertising.png?v=4",
-  affiliates: "./assets/cards/affiliates.png?v=4",
-  data: "./assets/cards/customer-data.png?v=4",
-  quant: "./assets/cards/quant-analytics.png?v=4",
-  qual: "./assets/cards/qual-analytics.png?v=4",
-  crm: "./assets/cards/crm.png?v=4",
-  subscriptions: "./assets/cards/recharge.jpg?v=6",
-  reorder: "./assets/cards/upsell-cross-sell-default.png?v=5",
-  upsell: "./assets/cards/post-purchase-default.png?v=5"
+  personalization: "./assets/cards/personalization.png?v=5",
+  ab: "./assets/cards/ab-testing-default.png?v=7",
+  loyalty: "./assets/cards/loyalty-default.png?v=9",
+  referral: "./assets/cards/referral.png?v=5",
+  mail: "./assets/cards/mailing-sms.png?v=5",
+  chat: "./assets/cards/customer-chat.png?v=5",
+  ads: "./assets/cards/advertising.png?v=5",
+  affiliates: "./assets/cards/affiliates.png?v=5",
+  data: "./assets/cards/customer-data.png?v=5",
+  quant: "./assets/cards/quant-analytics.png?v=5",
+  qual: "./assets/cards/qual-analytics.png?v=5",
+  crm: "./assets/cards/crm.png?v=5",
+  subscriptions: "./assets/cards/recharge.jpg?v=7",
+  reorder: "./assets/cards/upsell-cross-sell-default.png?v=6",
+  upsell: "./assets/cards/post-purchase-default.png?v=6"
 };
 
 function getSavedNodePositions() {
@@ -3471,7 +3473,8 @@ function render(graph) {
       idx >= 1 &&
       idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX &&
       idx !== MERCHANT_ADOPTION_STAT_SLIDE_INDEX &&
-      idx !== CREDITS_DATA_SLIDE_INDEX
+      idx !== CREDITS_DATA_SLIDE_INDEX &&
+      idx !== MERCHANT_FEEDBACK_SLIDE_INDEX
     ) {
       slideshowSlide2LayoutHook();
     }
@@ -3509,6 +3512,16 @@ function render(graph) {
           bubbles: true,
           composed: true,
           detail: { index: CREDITS_DATA_SLIDE_INDEX, count: pag.count },
+        }),
+      );
+      return;
+    }
+    if (pag.index === MERCHANT_FEEDBACK_SLIDE_INDEX) {
+      document.dispatchEvent(
+        new CustomEvent("slideshow:change", {
+          bubbles: true,
+          composed: true,
+          detail: { index: MERCHANT_FEEDBACK_SLIDE_INDEX, count: pag.count },
         }),
       );
     }
@@ -3649,9 +3662,9 @@ function render(graph) {
    * slides up and outward to its resting spot.
    */
   const MERCHANT_LOGO_CARDS = [
-    { src: "./assets/logos/tiege.png?v=6",  label: "Tiège Hanley", logo: "tiege", wx: -215, wy: -195, delay: 0   },
-    { src: "./assets/logos/arrae.png?v=6",  label: "Arrae",         logo: "arrae", wx:    0, wy: -230, delay: 75  },
-    { src: "./assets/logos/kollo.png?v=6",  label: "Kollo Health",  logo: "kollo", wx:  215, wy: -195, delay: 150 },
+    { src: "./assets/logos/tiege.png?v=7",  label: "Tiège Hanley", logo: "tiege", wx: -215, wy: -195, delay: 0   },
+    { src: "./assets/logos/arrae.png?v=7",  label: "Arrae",         logo: "arrae", wx:    0, wy: -230, delay: 75  },
+    { src: "./assets/logos/kollo.png?v=7",  label: "Kollo Health",  logo: "kollo", wx:  215, wy: -195, delay: 150 },
   ];
 
   function spawnMerchantClones() {
@@ -3941,8 +3954,8 @@ function initSlideshow() {
       .sort((a, b) => Number(a.dataset.slideIndex) - Number(b.dataset.slideIndex))
   );
 
-  if (slides.length < 11) {
-    console.error(`[slideshow] expected 11 slide sections, found ${slides.length}`);
+  if (slides.length < 12) {
+    console.error(`[slideshow] expected 12 slide sections, found ${slides.length}`);
     return;
   }
 
@@ -3978,7 +3991,8 @@ function initSlideshow() {
       index === 6 ||
       index === 7 ||
       index === MERCHANT_ADOPTION_STAT_SLIDE_INDEX ||
-      index === CREDITS_DATA_SLIDE_INDEX
+      index === CREDITS_DATA_SLIDE_INDEX ||
+      index === MERCHANT_FEEDBACK_SLIDE_INDEX
     ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
@@ -4119,10 +4133,10 @@ initSlideshow();
 /** Case-follow slide uses large PNGs; `loading="lazy"` + `display:none` slides can defer or skip fetches. */
 (function setupCaseFollowImagePrefetch() {
   const urls = [
-    "./assets/case-follow-products-promo.png?v=5",
-    "./assets/case-follow-product-bundle.png?v=5",
-    "./assets/case-follow-product-algae-mask.png?v=6",
-    "./assets/case-follow-app-head-bg.png?v=4",
+    "./assets/case-follow-products-promo.png?v=6",
+    "./assets/case-follow-product-bundle.png?v=6",
+    "./assets/case-follow-product-algae-mask.png?v=7",
+    "./assets/case-follow-app-head-bg.png?v=5",
   ];
   let ran = false;
   function warm() {
@@ -4161,7 +4175,7 @@ initSlideshow();
       requestAnimationFrame(() => {
         kickImgLoading(document.getElementById("merchantAdoptionStage"));
         const im = new Image();
-        im.src = "./assets/launched-merchants.png?v=9";
+        im.src = "./assets/launched-merchants.png?v=10";
       });
     }
 
@@ -4225,6 +4239,21 @@ initSlideshow();
     if (idx === CREDITS_DATA_SLIDE_INDEX) {
       requestAnimationFrame(() => {
         const hero = document.getElementById("slideCreditsDataImg");
+        if (hero instanceof HTMLImageElement) {
+          hero.loading = "eager";
+          const s = hero.getAttribute("src");
+          if (s && (!hero.complete || hero.naturalWidth === 0)) {
+            hero.removeAttribute("src");
+            hero.setAttribute("src", s);
+          }
+          void hero.decode?.().catch(() => {});
+        }
+      });
+    }
+
+    if (idx === MERCHANT_FEEDBACK_SLIDE_INDEX) {
+      requestAnimationFrame(() => {
+        const hero = document.getElementById("slideMerchantFeedbackImg");
         if (hero instanceof HTMLImageElement) {
           hero.loading = "eager";
           const s = hero.getAttribute("src");
@@ -4307,12 +4336,12 @@ function wireCaseFollowSlide7Canvas() {
   if (!(thirdPhone instanceof HTMLElement)) return;
 
   const starStamp = {
-    src: "./assets/affinity/Star-1.svg?v=4",
+    src: "./assets/affinity/Star-1.svg?v=5",
     width: 21,
     height: 20,
   };
   const giftStamp = {
-    src: "./assets/affinity/Gift-white-stroke.svg?v=4",
+    src: "./assets/affinity/Gift-white-stroke.svg?v=5",
     width: 32,
     height: 32,
     className: "caseFollowGiftImg",
