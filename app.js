@@ -68,6 +68,8 @@ const CREDITS_DATA_SLIDE_INDEX = 10;
 const MERCHANT_FEEDBACK_SLIDE_INDEX = 11;
 /** Slide after merchant feedback — merchants complaints image (`data-slide-index="12"`). */
 const MERCHANTS_COMPLAINTS_SLIDE_INDEX = 12;
+/** Checkout upsell swap quick-activation prototype — iframe into playground (`data-slide-index="13"`). */
+const CHECKOUT_UPSELL_SWAP_SLIDE_INDEX = 13;
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
