@@ -108,6 +108,19 @@ a:focus-visible {
 
 .slide.is-active {
   display: flex;
+  /* Re-fires on every is-active toggle because the rule isn't applied until the class lands. */
+  animation: slideEnter 320ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes slideEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide.is-active {
+    animation: none;
+  }
 }
 
 .stageWrap--intro {
@@ -511,7 +524,9 @@ a:focus-visible {
   background-image: none;
 }
 
-/* Slide 3: same outer frame as the map (mapSlideMount → stageWrap), image padded inside */
+/* Slide 3: same outer frame as the map (mapSlideMount → stageWrap), image padded inside.
+   Background omitted on purpose so the dotted Spark surface from `.stageWrap` shows
+   through the 56px padding around the contained image. */
 .stageWrap.stageWrap--imageSlide {
   display: flex;
   flex-direction: column;
@@ -519,8 +534,6 @@ a:focus-visible {
   min-height: 0;
   min-width: 0;
   width: 100%;
-  background: var(--bg);
-  box-shadow: var(--shadow);
 }
 
 .imageSlideCanvas {

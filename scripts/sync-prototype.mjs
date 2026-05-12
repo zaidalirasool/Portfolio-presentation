@@ -101,20 +101,38 @@ const redirectScript =
 const patched = before.replace(remixContextMarker, redirectScript + remixContextMarker);
 writeFileSync(indexPath, patched, "utf8");
 
-step(4, `bumping deck app.js cache-buster`);
-const deck = readFileSync(DECK_INDEX, "utf8");
-const cacheRe = /(\.\/app\.js\?v=slideshow-)(\d+)/;
-const match = deck.match(cacheRe);
-if (!match) fail(`could not find ./app.js?v=slideshow-### in ${DECK_INDEX}`);
-const next = Number(match[2]) + 1;
-const bumped = deck.replace(cacheRe, `$1${next}`);
-writeFileSync(DECK_INDEX, bumped, "utf8");
+step(4, `bumping cache-busters in deck (app.js + iframe src)`);
+let deck = readFileSync(DECK_INDEX, "utf8");
+
+// Bump app.js?v=slideshow-### so the slideshow JS reloads fresh.
+const appJsRe = /(\.\/app\.js\?v=slideshow-)(\d+)/;
+const appMatch = deck.match(appJsRe);
+if (!appMatch) fail(`could not find ./app.js?v=slideshow-### in ${DECK_INDEX}`);
+const nextApp = Number(appMatch[2]) + 1;
+deck = deck.replace(appJsRe, `$1${nextApp}`);
+
+// Bump the iframe's prototype index.html?v=### so the browser re-fetches the
+// shell (which references hashed JS chunks). Without this, a cached old
+// index.html keeps pointing at chunks the new build no longer ships.
+const iframeRe = /(src="\.\/assets\/prototype-checkout-upsell\/index\.html\?v=)(\d+)(")/;
+const iframeMatch = deck.match(iframeRe);
+if (!iframeMatch) {
+  fail(
+    `could not find iframe src with ?v=### in ${DECK_INDEX}. ` +
+      `Expected: src="./assets/prototype-checkout-upsell/index.html?v=N"`
+  );
+}
+const nextIframe = Number(iframeMatch[2]) + 1;
+deck = deck.replace(iframeRe, `$1${nextIframe}$3`);
+
+writeFileSync(DECK_INDEX, deck, "utf8");
 
 console.log(
   `\n[sync-prototype] done\n` +
     `  • playground built from: ${PLAYGROUND_ROOT}\n` +
     `  • snapshot copied to:    ${TARGET_DIR}\n` +
     `  • deep-link route:       ${ROUTE}\n` +
-    `  • deck cache-buster:     slideshow-${next}\n` +
+    `  • app.js cache-buster:   slideshow-${nextApp}\n` +
+    `  • iframe cache-buster:   v=${nextIframe}\n` +
     `\nHard-reload the deck (Cmd+Shift+R), navigate to slide 17, and verify.\n`
 );

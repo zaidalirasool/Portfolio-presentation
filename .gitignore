@@ -26,3 +26,7 @@ package-lock.json
 # Local repository backups (bundles are large; keep out of commits)
 backups/
 
+# Interview-mode watchdog runtime files
+*.pid
+.interview-server.log
+
