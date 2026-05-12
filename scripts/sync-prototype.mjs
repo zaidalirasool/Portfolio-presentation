@@ -91,14 +91,45 @@ if (!before.includes(remixContextMarker)) {
       `did the build's basename change? VITE_PAGES_PREFIX may have been ignored.`
   );
 }
+// Compute the basename at runtime from location.pathname so the same build
+// works whether the deck is served at root (local `npm run preview`) or under
+// a subpath (e.g. GitHub Pages at /Portfolio-presentation/). The build bakes
+// in `VITE_PAGES_PREFIX` as a static basename, but that only matches one of
+// those environments; the override below makes both work.
+// The <base href> injection below is critical: relative module specifiers
+// in the bundled <script type="module"> (e.g. ./assets/manifest-***.js) are
+// resolved against document.baseURI when the module graph is instantiated.
+// Our history.replaceState below moves the URL to the deep route, which
+// would otherwise shift baseURI to that route's directory and turn every
+// ./assets/* import into a 404. Pinning <base> to the prototype directory
+// keeps relative resolution correct regardless of the rewritten URL.
 const redirectScript =
-  `<script>(function(){var base=${JSON.stringify(PREFIX)};` +
+  `<script>(function(){var path=location.pathname;` +
+  `var marker=${JSON.stringify(PREFIX)};` +
+  `var idx=path.indexOf(marker);` +
+  `var base=idx>=0?path.slice(0,idx+marker.length):marker;` +
+  `window.__playgroundBase=base;` +
+  `var b=document.createElement("base");b.href=base+"/";` +
+  `var h=document.head||document.getElementsByTagName("head")[0]||document.documentElement;` +
+  `h.insertBefore(b,h.firstChild);` +
   `var deep=base+${JSON.stringify(ROUTE)};` +
-  `var p=location.pathname;` +
-  `if(p===base||p===base+"/"||p===base+"/index.html"){` +
+  `if(path===base||path===base+"/"||path===base+"/index.html"){` +
   `history.replaceState(null,"",deep+location.search+location.hash);` +
   `}})();</script>`;
-const patched = before.replace(remixContextMarker, redirectScript + remixContextMarker);
+let patched = before.replace(remixContextMarker, redirectScript + remixContextMarker);
+
+const remixContextEnd = `,"errors":null}};</script>`;
+if (!patched.includes(remixContextEnd)) {
+  fail(
+    `couldn't find end of __remixContext assignment ("${remixContextEnd}") in built index.html — ` +
+      `Remix output shape may have changed.`
+  );
+}
+patched = patched.replace(
+  remixContextEnd,
+  `,"errors":null}};window.__remixContext.basename=window.__playgroundBase;</script>`
+);
+
 writeFileSync(indexPath, patched, "utf8");
 
 step(4, `bumping cache-busters in deck (app.js + iframe src)`);
