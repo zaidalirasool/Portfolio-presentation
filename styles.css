@@ -14,7 +14,7 @@
   /** Hairline via box-shadow avoids `border: 0.5px` snapping to a full CSS pixel (looked heavier than connectors). */
   --node-stroke-ring: 0 0 0 0.5px var(--graph-stroke);
   --node-stroke-ring-selected: 0 0 0 0.5px var(--graph-stroke-strong);
-  --text: rgba(0, 0, 0, 0.90);
+  --text: rgba(28, 28, 28, 0.9);
   --muted: rgba(0, 0, 0, 0.62);
   --muted2: rgba(0, 0, 0, 0.48);
   --shadow: 0 18px 60px rgba(0, 0, 0, 0.12);
@@ -681,7 +681,7 @@ a:focus-visible {
 
 .slide--animatedChart .portfolioChartPageHeader {
   margin: 0;
-  color: #191d48;
+  color: rgba(28, 28, 28, 1);
   font-family: inherit;
   font-size: 32px;
   font-weight: 700;
