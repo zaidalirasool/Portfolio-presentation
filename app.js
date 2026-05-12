@@ -2052,6 +2052,18 @@ function render(graph) {
     // clicks should not change selection.
     if (id?.startsWith("challenge-") || id?.startsWith("benefit-")) return;
     if (id === "merchant") {
+      // Merchant-stack solo state: once the storyboard has armed the logo fan-out
+      // (after upsell → first empty-canvas tap), clicking the Merchant node fans the
+      // Tiège / Arrae / Kollo cards just like an empty-canvas tap would. Avoids the
+      // user "missing" empty canvas in solo view and re-firing reveal/setSelected,
+      // which was breaking the slide-up animation.
+      if (
+        merchantClonesArmed &&
+        window.slideshowPagination?.index === MERCHANT_STACK_SLIDE_INDEX
+      ) {
+        spawnMerchantClones();
+        return;
+      }
       reveal(["repeat", "pre", "measure"]);
     } else if (id && HUB_IDS.has(id)) {
       const onSlide4 = window.slideshowPagination?.index === MERCHANT_RECAP_SLIDE_INDEX;
@@ -2581,6 +2593,14 @@ function render(graph) {
     // Snapshot shared graph state before slide 4 modifies it — restored on leave so slide 2 is unaffected.
     slide4VisibleIdsSnapshot = new Set(visibleIds);
     slide4SelectedIdSnapshot = state.selectedId;
+
+    // Slide 4 owns its own controlled visibility set. Resetting to just `merchant`
+    // before the reveal prevents any nodes revealed on slide 2 (e.g. Subscriptions
+    // after clicking Repeat there) from bleeding into the recap and pre-empting
+    // the click-by-click animation sequence. Slide 2's state is preserved by the
+    // snapshot above and restored in `slideshowLeaveSlide4Hook`.
+    visibleIds.clear();
+    visibleIds.add("merchant");
 
     els.viewport.classList.add("viewport--slide4");
     reveal(["pre", "loyalty", "repeat", "measure"]);
