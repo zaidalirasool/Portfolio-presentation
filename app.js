@@ -4186,6 +4186,9 @@ function initSlideshow() {
       if (iso instanceof HTMLElement) iso.focus({ preventScroll: true });
     }
 
+    // Persist current position in the URL hash so a refresh lands on the same slide.
+    history.replaceState(null, "", `#${index}`);
+
     document.dispatchEvent(
       new CustomEvent("slideshow:change", {
         bubbles: true,
@@ -4230,15 +4233,39 @@ function initSlideshow() {
     get count() { return count; }
   };
 
-  // Sync the initial state — default deck entry is the final recap slide (slide 9 follows via pagination).
+  // Restore from URL hash on refresh (e.g. #5 → start on slide 5).
+  // Falls back to INITIAL_SLIDE_INDEX if the hash is absent or out of range.
+  const hashIndex = parseInt(location.hash.slice(1), 10);
+  const startIndex = Number.isFinite(hashIndex) && hashIndex >= 0 && hashIndex < count
+    ? hashIndex
+    : INITIAL_SLIDE_INDEX;
+  current = startIndex;
+
+  // Write the canonical hash for this position immediately so that any later
+  // replaceState calls (e.g. from requestAnimationFrame hooks in graph init)
+  // don't overwrite it with a stale #INITIAL_SLIDE_INDEX value.
+  history.replaceState(null, "", `#${startIndex}`);
+
   for (let i = 0; i < slides.length; i++) {
-    const on = i === INITIAL_SLIDE_INDEX;
+    const on = i === startIndex;
     slides[i].classList.toggle("is-active", on);
     slides[i].setAttribute("aria-hidden", on ? "false" : "true");
   }
 
+  // Update dots to match restored position.
+  const initialDots = list.querySelectorAll("button.slideshowPagination__dot");
+  initialDots.forEach((btn, i) => {
+    const on = i === startIndex;
+    btn.classList.toggle("is-active", on);
+    if (on) btn.setAttribute("aria-current", "true");
+    else btn.removeAttribute("aria-current");
+  });
+
+  // Fire enter-hooks needed for the restored slide.
+  if (startIndex === MERCHANT_RECAP_SLIDE_INDEX) slideshowEnterSlide4Hook?.();
+
   wireMerchantMapDuplicatePanZoom();
-  console.info(`[slideshow] ready — ${count} slides`);
+  console.info(`[slideshow] ready — ${count} slides, starting on ${startIndex}`);
 }
 
 migrateSubscriptionsCardToBundledAsset();
