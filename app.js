@@ -59,20 +59,20 @@ let merchantMapDuplicatePanZoomWired = false;
  * Last deck slide (#viewportMerchantMapDuplicate): copy-pastes Slide 4 recap SVG + node markup only.
  * Isolated camera + inactive nodes; recap capture uses enter/leave hooks off-screen when needed — never binds to Slide 4.
  */
-const MERCHANT_MAP_DUPLICATE_SLIDE_INDEX = 8;
-/** Slide after recap map — stat / typography only (`data-slide-index="9"`). */
-const MERCHANT_ADOPTION_STAT_SLIDE_INDEX = 9;
-/** Slide after merchant adoption — full-bleed credits data image (`data-slide-index="10"`). */
-const CREDITS_DATA_SLIDE_INDEX = 10;
-/** Slide after credits — merchant feedback image (`data-slide-index="11"`). */
-const MERCHANT_FEEDBACK_SLIDE_INDEX = 11;
-/** Slide after merchant feedback — merchants complaints image (`data-slide-index="12"`). */
-const MERCHANTS_COMPLAINTS_SLIDE_INDEX = 12;
-/** Checkout upsell swap quick-activation prototype — iframe into playground (`data-slide-index="13"`). */
-const CHECKOUT_UPSELL_SWAP_SLIDE_INDEX = 13;
-/** Animated bar chart slides — dotted `stageWrap` (`data-slide-index="14"` time-to-convert chart, `"15"` conversion slide). */
-const ANIMATED_CHART_1_SLIDE_INDEX = 15;
-const ANIMATED_CHART_2_SLIDE_INDEX = 14;
+const MERCHANT_MAP_DUPLICATE_SLIDE_INDEX = 9;
+/** Slide after recap map — stat / typography only (`data-slide-index="10"`). */
+const MERCHANT_ADOPTION_STAT_SLIDE_INDEX = 10;
+/** Slide after merchant adoption — full-bleed credits data image (`data-slide-index="11"`). */
+const CREDITS_DATA_SLIDE_INDEX = 11;
+/** Slide after credits — merchant feedback image (`data-slide-index="12"`). */
+const MERCHANT_FEEDBACK_SLIDE_INDEX = 12;
+/** Slide after merchant feedback — merchants complaints image (`data-slide-index="13"`). */
+const MERCHANTS_COMPLAINTS_SLIDE_INDEX = 13;
+/** Checkout upsell swap quick-activation prototype — iframe into playground (`data-slide-index="14"`). */
+const CHECKOUT_UPSELL_SWAP_SLIDE_INDEX = 14;
+/** Animated bar chart slides — dotted `stageWrap` (`data-slide-index="15"` time-to-convert chart, `"16"` conversion slide). */
+const ANIMATED_CHART_1_SLIDE_INDEX = 16;
+const ANIMATED_CHART_2_SLIDE_INDEX = 15;
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
@@ -2004,7 +2004,7 @@ function render(graph) {
     if (id === "merchant") {
       reveal(["repeat", "pre", "measure"]);
     } else if (id && HUB_IDS.has(id)) {
-      const onSlide4 = window.slideshowPagination?.index === 3;
+      const onSlide4 = window.slideshowPagination?.index === 4;
       if (id === "repeat" && onSlide4) {
         // Slide 4 demo: clicking Repeat purchase reveals only Subscriptions.
         reveal(["subscriptions"]);
@@ -2022,13 +2022,13 @@ function render(graph) {
     }
     setSelected(id);
     // Slide 4: clicking Subscriptions (after it has been revealed) triggers the Loyalty reroute.
-    if (id === "subscriptions" && window.slideshowPagination?.index === 3 &&
+    if (id === "subscriptions" && window.slideshowPagination?.index === 4 &&
         slide4SubscriptionsRevealed && !slide4LoyaltyRerouted) {
       rerouteLoyaltyToRetention();
     }
     // Slide 4 Loyalty toggle: pre-reroute fans out 5 "challenges", post-reroute fans
     // out 4 "benefits". A second click on Loyalty collapses whichever set is showing.
-    if (id === "loyalty" && window.slideshowPagination?.index === 3) {
+    if (id === "loyalty" && window.slideshowPagination?.index === 4) {
       const fan = slide4LoyaltyRerouted ? slide4Fanouts.benefits : slide4Fanouts.challenges;
       const spawn = slide4LoyaltyRerouted ? spawnLoyaltyBenefits : spawnLoyaltyChallenges;
       if (!fan.collapsing) {
@@ -3477,7 +3477,7 @@ function render(graph) {
   if (window.slideshowPagination) {
     const idx = window.slideshowPagination.index;
     if (
-      idx >= 1 &&
+      idx >= 2 &&
       idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX &&
       idx !== MERCHANT_ADOPTION_STAT_SLIDE_INDEX &&
       idx !== CREDITS_DATA_SLIDE_INDEX &&
@@ -3488,10 +3488,10 @@ function render(graph) {
     ) {
       slideshowSlide2LayoutHook();
     }
-    if (idx === 3) slideshowEnterSlide4Hook?.();
+    if (idx === 4) slideshowEnterSlide4Hook?.();
   }
 
-  // Deck default may be recap (8) or follow-on stat (9); fire enter hook / initial event for whichever is active.
+  // Deck default may be the recap duplicate or a follow-on stat slide; fire the initial event for whichever is active.
   requestAnimationFrame(() => {
     const pag = window.slideshowPagination;
     if (!pag) return;
@@ -3733,7 +3733,7 @@ function render(graph) {
 
     // Slide 4 or duplicate recap slide: primary empty-canvas does not mutate the live storyboard.
     if (
-      window.slideshowPagination?.index === 3 ||
+      window.slideshowPagination?.index === 4 ||
       window.slideshowPagination?.index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX
     )
       return;
@@ -3746,7 +3746,7 @@ function render(graph) {
 
     if (
       merchantClonesArmed &&
-      window.slideshowPagination?.index === 1
+      window.slideshowPagination?.index === 2
     ) {
       spawnMerchantClones();
       return;
@@ -3754,7 +3754,7 @@ function render(graph) {
 
     if (
       upsellMerchantSoloArmNextCanvas &&
-      window.slideshowPagination?.index === 1 &&
+      window.slideshowPagination?.index === 2 &&
       els.viewport instanceof HTMLElement
     ) {
       els.viewport.classList.add("viewport--merchantSolo");
@@ -3987,9 +3987,9 @@ function initSlideshow() {
     if (index < 0 || index >= count || index === current) return;
 
     const prevSlideIndex = current;
-    const leavingSlide4 = prevSlideIndex === 3 && index !== 3;
+    const leavingSlide4 = prevSlideIndex === 4 && index !== 4;
 
-    if (index !== 1) {
+    if (index !== 2) {
       upsellMerchantSoloArmNextCanvas = false;
       merchantClonesArmed = false;
       merchantCloneCleanup?.();
@@ -4000,17 +4000,18 @@ function initSlideshow() {
     const mount3 = document.getElementById("mapSlideMount3");
     const viewport = document.getElementById("viewport");
 
-    // Slide 4 recap (index 3) renders the map in mount3; all other slides park the shared stage in mount1 (slide 2 shell).
+    // Slide 4 recap (index 4) renders the map in mount3; all other slides park the shared stage in the main map shell.
     // Duplicate recap slide has its own isolated DOM — it does not use the shared stage.
     if (
       index === 0 ||
       index === 1 ||
       index === 2 ||
+      index === 3 ||
       index === ANIMATED_CHART_2_SLIDE_INDEX ||
-      index === 4 ||
       index === 5 ||
       index === 6 ||
       index === 7 ||
+      index === 8 ||
       index === MERCHANT_ADOPTION_STAT_SLIDE_INDEX ||
       index === CREDITS_DATA_SLIDE_INDEX ||
       index === MERCHANT_FEEDBACK_SLIDE_INDEX ||
@@ -4019,7 +4020,7 @@ function initSlideshow() {
     ) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount1) mountMapStage(mount1);
-    } else if (index === 3) {
+    } else if (index === 4) {
       viewport?.classList.remove("viewport--merchantSolo");
       if (mount3) mountMapStage(mount3);
     }
@@ -4028,7 +4029,7 @@ function initSlideshow() {
     if (prevSlideIndex === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX && index !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
       slide8LeaveHook?.();
     }
-    if (index === 3) slideshowEnterSlide4Hook?.();
+    if (index === 4) slideshowEnterSlide4Hook?.();
 
     current = index;
 
@@ -4050,7 +4051,7 @@ function initSlideshow() {
       else btn.removeAttribute("aria-current");
     });
 
-    if (index === 1 || index === 3) {
+    if (index === 2 || index === 4) {
       slideshowSlide2LayoutHook?.();
       requestAnimationFrame(() => {
         slideshowSlide2LayoutHook?.();
@@ -4192,7 +4193,7 @@ initSlideshow();
   document.addEventListener("slideshow:change", (e) => {
     if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
     const idx = e.detail.index;
-    if (idx >= 5) warm();
+    if (idx >= 6) warm();
 
     if (idx === MERCHANT_ADOPTION_STAT_SLIDE_INDEX) {
       requestAnimationFrame(() => {
@@ -4202,7 +4203,7 @@ initSlideshow();
       });
     }
 
-    if (idx === 6) {
+    if (idx === 7) {
       warm();
       requestAnimationFrame(() => {
         const caseRoot = document.getElementById("caseFollowCanvas");
@@ -4218,7 +4219,7 @@ initSlideshow();
       return;
     }
 
-    if (idx === 1 || idx === 3 || idx === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
+    if (idx === 2 || idx === 4 || idx === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
       requestAnimationFrame(() => {
         const imgRoot =
           idx === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX
@@ -4229,7 +4230,7 @@ initSlideshow();
       return;
     }
 
-    if (idx === 2) {
+    if (idx === 3) {
       requestAnimationFrame(() => {
         const hero = document.querySelector(".imageSlideCanvas__img");
         if (hero instanceof HTMLImageElement) {
@@ -4244,7 +4245,7 @@ initSlideshow();
       });
     }
 
-    if (idx === 7) {
+    if (idx === 8) {
       requestAnimationFrame(() => {
         const hero = document.getElementById("slideRewardsPerformanceImg");
         if (hero instanceof HTMLImageElement) {
@@ -7469,8 +7470,8 @@ wireCaseFollowSlide7Canvas();
     );
   }
 
-  /** Flow trigger/outro slide (`data-slide-index="4"`). Leaving it closes panels */
-  const FLOW_SLIDE_INDEX = 4;
+  /** Flow trigger/outro slide (`data-slide-index="5"`). Leaving it closes panels */
+  const FLOW_SLIDE_INDEX = 5;
 
   document.addEventListener("slideshow:change", (e) => {
     if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
