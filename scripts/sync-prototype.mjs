@@ -96,13 +96,24 @@ if (!before.includes(remixContextMarker)) {
 // a subpath (e.g. GitHub Pages at /Portfolio-presentation/). The build bakes
 // in `VITE_PAGES_PREFIX` as a static basename, but that only matches one of
 // those environments; the override below makes both work.
-// The <base href> injection below is critical: relative module specifiers
-// in the bundled <script type="module"> (e.g. ./assets/manifest-***.js) are
-// resolved against document.baseURI when the module graph is instantiated.
-// Our history.replaceState below moves the URL to the deep route, which
-// would otherwise shift baseURI to that route's directory and turn every
-// ./assets/* import into a 404. Pinning <base> to the prototype directory
-// keeps relative resolution correct regardless of the rewritten URL.
+// Two URL-resolution problems get solved here, both rooted in the same
+// underlying issue: history.replaceState below shifts document.baseURI
+// from the prototype's directory to the deep route's directory, which
+// turns every relative URL in the page into a 404.
+//
+// 1) <base href={base}/> pinned as the first <head> child fixes module
+//    specifier resolution for the bundled <script type="module"> block
+//    (e.g. ./assets/manifest-***.js). Modules instantiate against
+//    document.baseURI, so the base tag must be live BEFORE replaceState.
+//
+// 2) The <base> tag is short-lived: React's hydration cleans it up
+//    because it isn't in Remix's virtual DOM. Relative url(./assets/...)
+//    references inside SSR'd <style data-emotion> blocks (notably the
+//    @font-face declarations) are resolved lazily — by the time the
+//    browser actually needs Greycliff/Avenir, <base> is gone and URLs
+//    resolve against the deep route, 404, then get negative-cached.
+//    To survive that, we rewrite ./assets/ to ${base}/assets/ inline,
+//    in every <style> block, BEFORE React or Emotion touches them.
 const redirectScript =
   `<script>(function(){var path=location.pathname;` +
   `var marker=${JSON.stringify(PREFIX)};` +
@@ -112,6 +123,11 @@ const redirectScript =
   `var b=document.createElement("base");b.href=base+"/";` +
   `var h=document.head||document.getElementsByTagName("head")[0]||document.documentElement;` +
   `h.insertBefore(b,h.firstChild);` +
+  `var styles=document.querySelectorAll("style");` +
+  `for(var i=0;i<styles.length;i++){var s=styles[i];` +
+  `if(s.textContent&&s.textContent.indexOf("./assets/")!==-1){` +
+  `s.textContent=s.textContent.replace(/url\\(\\s*(['"]?)\\.\\/assets\\//g,"url($1"+base+"/assets/");` +
+  `}}` +
   `var deep=base+${JSON.stringify(ROUTE)};` +
   `if(path===base||path===base+"/"||path===base+"/index.html"){` +
   `history.replaceState(null,"",deep+location.search+location.hash);` +
