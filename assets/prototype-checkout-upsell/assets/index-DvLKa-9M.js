@@ -1,0 +1,1 @@
+import{r as e}from"./responses-DWwlBRPf.js";import"./router-B5iohslS.js";const s=async()=>e("/merchant/cross-sell-upsell/checkout-upsell-swap-setup");function t(){return null}export{s as clientLoader,t as default};

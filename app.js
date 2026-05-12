@@ -4245,6 +4245,25 @@ migrateSubscriptionsCardToBundledAsset();
 
 initSlideshow();
 
+/** Hidden slides use `display:none`; some browsers defer iframe loads. Flex % heights also collapse without `min-height:0`. */
+(function wireCheckoutPrototypeIframe() {
+  const frame = document.getElementById("checkoutUpsellSwapFrame");
+  if (!(frame instanceof HTMLIFrameElement)) return;
+  const urlAttr = frame.getAttribute("src");
+  if (!urlAttr?.trim()) return;
+  function navigate() {
+    requestAnimationFrame(() => {
+      frame.src = urlAttr;
+    });
+  }
+  document.addEventListener("slideshow:change", (e) => {
+    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
+    if (e.detail.index !== CHECKOUT_UPSELL_SWAP_SLIDE_INDEX) return;
+    navigate();
+  });
+  if (window.slideshowPagination?.index === CHECKOUT_UPSELL_SWAP_SLIDE_INDEX) navigate();
+})();
+
 (function initMerchantAdoptionLaunchedStrip() {
   const stage = document.getElementById("merchantAdoptionStage");
   const slide = document.querySelector(".slide.slide--merchantAdoptionStat");

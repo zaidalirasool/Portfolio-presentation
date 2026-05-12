@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./spark.css?v=226" />
-    <link rel="stylesheet" href="./styles.css?v=177" />
+    <link rel="stylesheet" href="./styles.css?v=178" />
   </head>
   <body>
     <div class="app">
@@ -3999,12 +3999,16 @@
           aria-hidden="true"
         >
           <main class="main main--prototype">
+            <!-- Self-contained Remix SPA build (see assets/prototype-checkout-upsell). The redirect script
+                 inside that index.html lands on /merchant/cross-sell-upsell/checkout-upsell-swap-setup
+                 once Remix mounts, so the iframe needs no server beyond the deck's own http.server. -->
             <iframe
               id="checkoutUpsellSwapFrame"
-              src="http://localhost:3000/merchant/cross-sell-upsell/checkout-upsell-swap-setup"
+              src="./assets/prototype-checkout-upsell/index.html"
               title="Checkout Upsell Swap — Quick Activation prototype"
               class="prototypeFrame"
-              allow="same-origin"
+              loading="eager"
+              allow="fullscreen"
             ></iframe>
           </main>
         </section>
@@ -4436,6 +4440,6 @@
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 
-    <script type="module" src="./app.js?v=slideshow-168"></script>
+    <script type="module" src="./app.js?v=slideshow-171"></script>
   </body>
 </html>

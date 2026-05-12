@@ -1,0 +1,1 @@
+var c=(e=>(e.Shopify="shopify",e.BigCommerce="big_commerce",e.Headless="headless",e.Magento="magento",e))(c||{}),i=(e=>(e.All="all",e.SpecificPlanTypes="specific_plan_types",e.SpecificRechargeCollections="specific_recharge_collections",e))(i||{});export{i as C,c as P};

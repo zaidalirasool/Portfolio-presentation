@@ -1,0 +1,1 @@
+import{c as r}from"./vanilla-DsuHaqMa.js";import{P as o}from"./admin-DYsjKyl4.js";const i=r(s=>({user:{isAdmin:!1,permissions:[],betaFlags:[],generalAttributes:{},storeId:0,isPro:!1,isTestStore:!1,platform:o.Shopify,userId:void 0,email:void 0,staffUserEmail:void 0},setUser:e=>s({user:e})}));export{i as s};
