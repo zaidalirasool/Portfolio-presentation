@@ -1239,6 +1239,15 @@ function render(graph) {
   let slide4VisibleIdsSnapshot = null;
   /** @type {string | null | undefined} */
   let slide4SelectedIdSnapshot = undefined;
+  // Slide 2's emoji-rain → Loyalty click runs `exitLoyaltyMainArtwork()`, which
+  // PERMANENTLY removes the `.node__comboLogo--loyaltyMain` element from the
+  // shared Loyalty node. Slide 4 needs that element back so its pre-reroute
+  // state can show the default brand stack, and so the reroute animation has
+  // something to fade out (the `if (main instanceof HTMLElement)` branch in
+  // `rerouteLoyaltyToRetention` is also what reveals the hanger again after
+  // the main exit completes). We snapshot the slide-2 state on enter and
+  // restore it on leave so slide 2 isn't disrupted by re-visiting slide 4.
+  let slide4MainWasStripped = false;
 
   for (const n of graph.nodes) {
     const cat = categoryById.get(n.category);
@@ -2586,9 +2595,49 @@ function render(graph) {
     if (hangerElReset) hangerElReset.style.removeProperty("display");
   };
 
+  /**
+   * Recreate the `.node__comboLogo--loyaltyMain` image inside the Loyalty card
+   * if a prior slide (slide 2 emoji-rain → Loyalty click) had stripped it. The
+   * recreated element matches the initial `render()` setup so `resetLoyaltyReroute`,
+   * `rerouteLoyaltyToRetention`, and the CSS exit animation all keep working.
+   */
+  function ensureLoyaltyMainPresent() {
+    const loyaltyBtn = nodeEls.get("loyalty");
+    if (!loyaltyBtn) return;
+    if (loyaltyBtn.querySelector(".node__comboLogo--loyaltyMain")) {
+      loyaltyMainStripped = false;
+      return;
+    }
+    const stack = loyaltyBtn.querySelector(".node__imageStack");
+    if (!(stack instanceof HTMLElement)) return;
+    const mainImg = /** @type {HTMLImageElement} */ (document.createElement("img"));
+    mainImg.className = "node__comboLogo node__comboLogo--loyaltyMain";
+    mainImg.src = DEFAULT_CARD_IMAGE_BY_NODE_ID.loyalty ?? "";
+    mainImg.alt = "Yotpo, Smile.io, and LoyaltyLion";
+    mainImg.loading = "lazy";
+    mainImg.decoding = "async";
+    stack.appendChild(mainImg);
+    loyaltyMainStripped = false;
+  }
+
   slideshowEnterSlide4Hook = () => {
+    // Snapshot slide-2 state BEFORE any mutation: if the main brand-stack image
+    // had been permanently stripped on slide 2, we'll re-strip it on leave so
+    // slide 2's persisted "Recharge-only" state is preserved.
+    slide4MainWasStripped = loyaltyMainStripped;
+
     // Reset any reroute leftovers from a previous visit
     resetLoyaltyReroute();
+
+    // Restore the default Loyalty brand-stack image so the pre-reroute state
+    // renders correctly and the reroute animation has something to fade out.
+    ensureLoyaltyMainPresent();
+
+    // Take over the Recharge display for the entire slide 4 visit. Without this,
+    // `applyFiltering()` → `syncLoyaltyRechargeStack()` (fired by `setSelected`
+    // and by Loyalty-fanout clicks) would re-show Recharge while the pre-reroute
+    // state should show only the default brand stack.
+    slide4RechargeSwapActive = true;
 
     // Snapshot shared graph state before slide 4 modifies it — restored on leave so slide 2 is unaffected.
     slide4VisibleIdsSnapshot = new Set(visibleIds);
@@ -2609,6 +2658,17 @@ function render(graph) {
   slideshowLeaveSlide4Hook = () => {
     els.viewport.classList.remove("viewport--slide4");
     resetLoyaltyReroute();
+
+    // Restore the slide-2 "main was stripped" state: re-remove the brand-stack
+    // image we recreated on enter so slide 2's Recharge-only persisted view stays
+    // intact when the user navigates back.
+    if (slide4MainWasStripped) {
+      const loyaltyBtn = nodeEls.get("loyalty");
+      const main = loyaltyBtn?.querySelector(".node__comboLogo--loyaltyMain");
+      if (main) main.remove();
+      loyaltyMainStripped = true;
+      slide4MainWasStripped = false;
+    }
 
     // Restore the graph's reveal + selection state to what it was before slide 4
     if (slide4VisibleIdsSnapshot !== null) {
