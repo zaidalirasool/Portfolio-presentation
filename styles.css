@@ -778,7 +778,65 @@ a:focus-visible {
 .viewport.viewport--merchantSolo .nodes .node[data-id="merchant"] {
   opacity: 1;
   filter: none;
+  z-index: 10;
 }
+
+/* Merchant brand orbit (click 3 on stack slide): ring centered on Merchant + Design + PM */
+.merchantLogoOrbit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.merchantLogoOrbit--spin {
+  transform: translate(-50%, -50%);
+  animation-name: merchantLogoOrbitRotate;
+  animation-duration: var(--merchant-orbit-duration, 90s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: var(--merchant-orbit-intro-delay, 760ms);
+  animation-fill-mode: backwards;
+}
+
+@keyframes merchantLogoOrbitRotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Inverse spin on wrapper so cards revolve paths but chip + logos stay upright (vs tangential tilt). */
+.merchantLogoSlot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  animation-name: merchantLogoSlotStayUpright;
+  animation-duration: var(--merchant-orbit-duration, 90s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: var(--merchant-orbit-intro-delay, 760ms);
+  transform-origin: center center;
+  animation-fill-mode: backwards;
+}
+
+@keyframes merchantLogoSlotStayUpright {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-360deg);
+  }
+}
+
 
 /* Merchant logo cards slide up from the Merchant node */
 @keyframes merchantLogoSlideUp {
@@ -825,6 +883,29 @@ a:focus-visible {
   .viewport .edges,
   .viewport .nodes .node {
     transition-duration: 0.01ms;
+  }
+
+  .node.node--merchant .node__title.node__title--popReveal {
+    animation: none;
+    filter: none;
+    transform: none;
+  }
+
+  .node.node--merchant.node--merchantPopReveal {
+    animation: none;
+    transform: translate(-50%, -50%);
+    filter: none;
+    box-shadow: var(--node-stroke-ring), var(--shadow2);
+  }
+
+  .merchantLogoOrbit--spin {
+    animation: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .merchantLogoSlot {
+    animation: none;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -1338,7 +1419,7 @@ a:focus-visible {
 
 /* Merchant node: circle; same frosted surface as other nodes (no gradient) */
 .node.node--merchant {
-  --sphere-size: 96px;
+  --sphere-size: 104px;
   width: var(--sphere-size);
   height: var(--sphere-size);
   min-width: var(--sphere-size);
@@ -1381,6 +1462,73 @@ a:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Click 3: whole merchant circle pulses with the title swap */
+@keyframes merchantNodePop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.94);
+    filter: brightness(0.96);
+    box-shadow: var(--node-stroke-ring), 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+  38% {
+    transform: translate(-50%, -50%) scale(1.1);
+    filter: brightness(1.06);
+    box-shadow: var(--node-stroke-ring-selected), var(--shadow2), 0 12px 28px rgba(0, 0, 0, 0.12);
+  }
+  62% {
+    transform: translate(-50%, -50%) scale(0.97);
+    filter: brightness(1);
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    filter: none;
+    box-shadow: var(--node-stroke-ring), var(--shadow2);
+  }
+}
+
+.node.node--merchant.node--merchantPopReveal {
+  /* Let keyframes own transform — avoid fighting the base .node transform transition */
+  transition-property: opacity, filter, box-shadow;
+  animation: merchantNodePop 0.62s cubic-bezier(0.22, 1.24, 0.36, 1) both;
+}
+
+@keyframes merchantTitlePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+    filter: blur(1.5px);
+  }
+  48% {
+    opacity: 1;
+    transform: scale(1.14);
+    filter: blur(0);
+  }
+  72% {
+    transform: scale(0.95);
+  }
+  88% {
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Click 3: label swap on merchant node — oversized bounce on the word mark */
+.node.node--merchant .node__title.node__title--popReveal {
+  display: inline-block;
+  max-width: 118px;
+  vertical-align: top;
+  transform-origin: center center;
+  overflow: visible;
+  text-overflow: clip;
+  animation: merchantTitlePop 0.62s cubic-bezier(0.22, 1.24, 0.36, 1) both;
 }
 
 .node__avatarImg {
