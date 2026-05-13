@@ -268,16 +268,41 @@ a:focus-visible {
 
 .merchantAdoptionStrip {
   position: absolute;
-  inset: 78px;
+  left: 78px;
+  right: 78px;
+  top: 50%;
+  bottom: auto;
+  height: 1020px;
   z-index: 0;
   overflow: hidden;
+  /* Soft vertical fades so marquee clips read as vignette, not hard cuts */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
   pointer-events: none;
   opacity: 0;
   filter: blur(10px);
-  /* Hidden: dissolve starts lower on the canvas (~62% rail per design). Base lift 16%
-     plus ~12cqh (~12% of stage height below centerband) + resting nudge.
-     Fallback: viewport-based when cq units unavailable. */
-  transform: translate3d(0, calc(16% + clamp(12px, 2.6vw, 32px) + min(12vh, 200px)), 0);
+  /* Hidden: starts below band center; resting stripOn aligns vertical center between top/bottom guide lines */
+  transform: translate3d(
+    0,
+    calc(-50% + 16% + clamp(12px, 2.6vw, 32px) + min(12vh, 200px)),
+    0
+  );
   transition:
     opacity 2.72s cubic-bezier(0.42, 0, 0.2, 1),
     transform 2.62s cubic-bezier(0.28, 0.85, 0.36, 1),
@@ -286,7 +311,11 @@ a:focus-visible {
 
 @supports (height: 1cqh) {
   .slide--merchantAdoptionStat .merchantAdoptionStrip {
-    transform: translate3d(0, calc(16% + clamp(12px, 2.6vw, 32px) + 12cqh), 0);
+    transform: translate3d(
+      0,
+      calc(-50% + 16% + clamp(12px, 2.6vw, 32px) + 12cqh),
+      0
+    );
   }
 }
 
@@ -309,7 +338,7 @@ a:focus-visible {
 
 .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip {
   opacity: 1;
-  transform: translate3d(0, clamp(12px, 2.6vw, 32px), 0);
+  transform: translate3d(0, -50%, 0);
   filter: blur(0);
 }
 
@@ -340,7 +369,7 @@ a:focus-visible {
 
   .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip {
     filter: none;
-    transform: translate3d(0, clamp(12px, 2.6vw, 32px), 0);
+    transform: translate3d(0, -50%, 0);
   }
 
   .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip__track {
@@ -531,8 +560,64 @@ a:focus-visible {
 
 /* Solid white inside frame — dot grid from `.stageWrap` is for map / flow canvases only */
 .stageWrap.stageWrap--intro {
-  background: var(--bg);
-  background-image: none;
+  --intro-guide-inset: 56px;
+  --intro-guide-dash-horizontal: 7.5px; /* dash segment length on top/bottom guides */
+  --intro-guide-gap: 8px;
+  --intro-guide-period-horizontal: calc(var(--intro-guide-dash-horizontal) + var(--intro-guide-gap));
+  --intro-guide-color: rgba(0, 0, 0, 0.18);
+  /* Horizontal rails are full 1px tall (no scaleY); tune alpha ~ vertical hairline (~scaleX 0.3) */
+  --intro-guide-color-horizontal: rgba(0, 0, 0, 0.054); /* ~ same perceived grey as vertical after scaleX(0.3) */
+
+  background-color: var(--bg);
+  /* Top + bottom dashed rails — full width of stage (cross vertical guides); same dash rhythm */
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--intro-guide-color-horizontal) 0,
+      var(--intro-guide-color-horizontal) var(--intro-guide-dash-horizontal),
+      transparent var(--intro-guide-dash-horizontal),
+      transparent var(--intro-guide-period-horizontal)
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--intro-guide-color-horizontal) 0,
+      var(--intro-guide-color-horizontal) var(--intro-guide-dash-horizontal),
+      transparent var(--intro-guide-dash-horizontal),
+      transparent var(--intro-guide-period-horizontal)
+    );
+  background-size:
+    100% 1px,
+    100% 1px;
+  background-position:
+    0 var(--intro-guide-inset),
+    0 calc(100% - var(--intro-guide-inset) - 1px);
+  background-repeat: no-repeat;
+}
+
+/* Vertical guides — inset from sides; horizontal rails span edge-to-edge above/below */
+.stageWrap.stageWrap--intro::before,
+.stageWrap.stageWrap--intro::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  pointer-events: none;
+  z-index: 0;
+  border: none;
+  transform: scaleX(0.3);
+  background: var(--intro-guide-color);
+}
+
+.stageWrap.stageWrap--intro::before {
+  left: var(--intro-guide-inset);
+  transform-origin: left center;
+}
+
+.stageWrap.stageWrap--intro::after {
+  right: var(--intro-guide-inset);
+  left: auto;
+  transform-origin: right center;
 }
 
 /* Slide 3: same outer frame as the map (mapSlideMount → stageWrap), image padded inside.
@@ -781,7 +866,7 @@ a:focus-visible {
   z-index: 10;
 }
 
-/* Merchant brand orbit (click 3 on stack slide): ring centered on Merchant + Design + PM */
+/* Merchant brand orbit (click 3 on stack slide): ring centered on Merchant + Discovery */
 .merchantLogoOrbit {
   position: absolute;
   left: 0;

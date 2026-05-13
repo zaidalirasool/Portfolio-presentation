@@ -3802,7 +3802,7 @@ function render(graph) {
   // Empty-canvas click flow:
   //   Click 1 (selection active) → clear selection so the full map is visible at full opacity.
   //   Click 2 (selection already null, arm set) → fade everything except Merchant.
-  //   Click 3 (merchantClonesArmed) → brand logo orbit + “Design + PM”.
+  //   Click 3 (merchantClonesArmed) → brand logo orbit + “Discovery”.
   const MERCHANT_LOGO_ORBIT_RADIUS = 205;
   const MERCHANT_ORBIT_SPIN_S = 90;
   /** Evenly spaced orbit slots; orbit ring is centered on the merchant node world position. */
@@ -3901,7 +3901,7 @@ function render(graph) {
     if (merchantDomNode) {
       merchantDomNode.classList.remove("node__title--popReveal");
       void merchantDomNode.offsetWidth;
-      merchantDomNode.textContent = "Design + PM";
+      merchantDomNode.textContent = "Discovery";
       merchantDomNode.classList.add("node__title--popReveal");
     }
 

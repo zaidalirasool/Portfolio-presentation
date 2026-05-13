@@ -15,24 +15,26 @@ The user counts slides starting from WELCOME as Slide 1. The deck is sorted by `
 | 4  | 1.5  | Welcome gallery — reviews |
 | 5  | 2    | Merchant stack map |
 | 6  | 3    | Research collage |
-| 7  | 4    | Merchant recap (map duplicate) |
-| 8  | 4.5  | "Designing the solution" section title |
-| 9  | 5    | Flow trigger canvas |
-| 10 | 6    | Rewards video |
-| 11 | 7    | Case Follow (app case study) |
-| 12 | 8    | Rewards performance dashboard |
-| 13 | 9    | Merchant map duplicate recap |
-| 14 | 10   | Merchant adoption stat |
-| 15 | 11   | Credits data |
-| 16 | 12   | Merchant feedback |
-| 17 | 13   | Merchants complaints |
-| 18 | 14   | Checkout upsell swap (prototype iframe) |
-| 19 | 15   | Animated chart 2 |
-| 20 | 16   | Animated chart 1 |
-| 21 | 16.5 | Loyalty tiers |
-| 22 | 17   | Final gallery / closing slide |
+| 7  | 3.5  | "Defining the vision" section title |
+| 8  | 4    | Merchant recap (map duplicate) |
+| 9  | 4.5  | "Designing the solution" section title |
+| 10 | 5    | Flow trigger canvas |
+| 11 | 6    | Rewards video |
+| 12 | 7    | Case Follow (app case study) |
+| 13 | 8    | Rewards performance dashboard |
+| 14 | 8.5  | "What was delivered" section title |
+| 15 | 9    | Merchant map duplicate recap |
+| 16 | 10   | Merchant adoption stat |
+| 17 | 11   | Credits data |
+| 18 | 12   | Merchant feedback |
+| 19 | 13   | Merchants complaints |
+| 20 | 14   | Checkout upsell swap (prototype iframe) |
+| 21 | 15   | Animated chart 2 |
+| 22 | 16   | Animated chart 1 |
+| 23 | 16.5 | Loyalty tiers |
+| 24 | 17   | Final gallery / closing slide |
 
-Total slides: **22** — `data-slide-count="22"` on the `nav.slideshowPagination` in `index.html`.
+Total slides: **24** — `data-slide-count="24"` on the `nav.slideshowPagination` in `index.html`.
 
 ## Safe insertion rules (summary)
 
