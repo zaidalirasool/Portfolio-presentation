@@ -8,6 +8,9 @@ const els = {
 /** Set by render() when the map is ready; slide 2 uses this for a one-shot layout refresh. */
 let slideshowSlide2LayoutHook = /** @type {null | (() => void)} */ (null);
 
+/** Merchant stack slide (`data-slide-index="2"`): reset to Merchant-only baseline each time we land on it. */
+let slideshowEnterMerchantStackHook = /** @type {null | (() => void)} */ (null);
+
 /** Set by initSlideshow(); exposes the goTo function for any code that needs to drive the deck. */
 let applySlideDeck = /** @type {null | ((index: number) => void)} */ (null);
 
@@ -2681,6 +2684,21 @@ function render(graph) {
     applyFiltering();
   };
 
+  slideshowEnterMerchantStackHook = () => {
+    els.viewport?.classList.remove("viewport--slide4", "viewport--merchantSolo");
+    stopEmojiRain();
+    rainDismissed = false;
+    emojiRainEndedForLoyalty = false;
+    loyaltyRechargeRevealUnlocked = false;
+    abRechargeRevealUnlocked = false;
+    reorderRechargeRevealUnlocked = false;
+    upsellRechargeRevealUnlocked = false;
+    ensureLoyaltyMainPresent();
+    visibleIds.clear();
+    visibleIds.add("merchant");
+    setSelected(null);
+  };
+
   // ─── Slide 8: isolated recap — Loyalty anchored to Retention/Subscriptions (Slide 4 reroute layout);
   // Pre ↔ Loyalty edge omitted. Repeat / Pre / hubs. ─
   // All state is scoped to #viewportMerchantMapDuplicate — no shared variables
@@ -3606,6 +3624,9 @@ function render(graph) {
   // If a map slide is already active when the graph finishes loading, trigger the layout hook now.
   if (window.slideshowPagination) {
     const idx = window.slideshowPagination.index;
+    if (idx === MERCHANT_STACK_SLIDE_INDEX) {
+      slideshowEnterMerchantStackHook?.();
+    }
     if (
       idx >= MERCHANT_STACK_SLIDE_INDEX &&
       idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX &&
@@ -4215,6 +4236,14 @@ function initSlideshow() {
 
     if (index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
       slide8EnterHook?.();
+    }
+
+    if (index === MERCHANT_STACK_SLIDE_INDEX) {
+      upsellMerchantSoloArmNextCanvas = false;
+      merchantClonesArmed = false;
+      merchantCloneCleanup?.();
+      merchantCloneCleanup = null;
+      slideshowEnterMerchantStackHook?.();
     }
 
     for (let i = 0; i < slides.length; i++) {
