@@ -4190,7 +4190,7 @@ function initSlideshow() {
   }
 
   const count = slides.length;
-  const INITIAL_SLIDE_INDEX = MERCHANT_MAP_DUPLICATE_SLIDE_INDEX;
+  const INITIAL_SLIDE_INDEX = OPENING_TITLE_SLIDE_INDEX;
   let current = INITIAL_SLIDE_INDEX;
 
   function goTo(index) {
@@ -4321,10 +4321,13 @@ function initSlideshow() {
     get count() { return count; }
   };
 
-  // Restore from URL hash on refresh (e.g. #5 → start on slide 5).
-  // Falls back to INITIAL_SLIDE_INDEX if the hash is absent or out of range.
+  // Restore from URL hash only on a same-session refresh (not a cold open).
+  // A cold open (new tab, bookmark, direct nav) always starts at slide 1.
+  const isRefresh = performance.navigation
+    ? performance.navigation.type === 1
+    : (performance.getEntriesByType("navigation")[0] || {}).type === "reload";
   const hashIndex = parseInt(location.hash.slice(1), 10);
-  const startIndex = Number.isFinite(hashIndex) && hashIndex >= 0 && hashIndex < count
+  const startIndex = isRefresh && Number.isFinite(hashIndex) && hashIndex >= 0 && hashIndex < count
     ? hashIndex
     : INITIAL_SLIDE_INDEX;
   current = startIndex;

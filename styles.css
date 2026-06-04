@@ -2315,7 +2315,10 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  /* overflow:visible lets the flex centering place the compose at its true center
+     (possibly negative top offset). The parent .stageWrap already has overflow:hidden
+     and a defined height, so it clips symmetrically — equal top and bottom. */
+  overflow: visible;
 }
 
 .caseFollowCompose {
@@ -2325,7 +2328,11 @@ a:focus-visible {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  margin: auto;
+  /* margin-inline: auto keeps horizontal centering via cross-axis.
+     margin-block must NOT be auto — auto would absorb vertical free space and
+     override justify-content: center on the canvas, pinning the compose to the
+     top when it's taller than the container. */
+  margin: 0 auto;
 }
 
 @media (max-height: 900px) {
