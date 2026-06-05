@@ -149,9 +149,9 @@ a:focus-visible {
 }
 
 .stageWrap--welcomeGallery {
-  align-items: stretch;
-  justify-content: stretch;
-  padding: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
 }
 
 /* Reviews-only: centered grid, no top padding, fixed gallery width in source */
@@ -173,9 +173,10 @@ a:focus-visible {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 24px;
-  width: 100%;
-  height: 100%;
+  gap: 16px;
+  width: 1440px;
+  max-width: 100%;
+  height: 860px;
 }
 
 .welcomeGallery--reviews {
@@ -268,16 +269,41 @@ a:focus-visible {
 
 .merchantAdoptionStrip {
   position: absolute;
-  inset: 78px;
+  left: 78px;
+  right: 78px;
+  top: 50%;
+  bottom: auto;
+  height: 1020px;
   z-index: 0;
   overflow: hidden;
+  /* Soft vertical fades so marquee clips read as vignette, not hard cuts */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
   pointer-events: none;
   opacity: 0;
   filter: blur(10px);
-  /* Hidden: dissolve starts lower on the canvas (~62% rail per design). Base lift 16%
-     plus ~12cqh (~12% of stage height below centerband) + resting nudge.
-     Fallback: viewport-based when cq units unavailable. */
-  transform: translate3d(0, calc(16% + clamp(12px, 2.6vw, 32px) + min(12vh, 200px)), 0);
+  /* Hidden: starts below band center; resting stripOn aligns vertical center between top/bottom guide lines */
+  transform: translate3d(
+    0,
+    calc(-50% + 16% + clamp(12px, 2.6vw, 32px) + min(12vh, 200px)),
+    0
+  );
   transition:
     opacity 2.72s cubic-bezier(0.42, 0, 0.2, 1),
     transform 2.62s cubic-bezier(0.28, 0.85, 0.36, 1),
@@ -286,7 +312,11 @@ a:focus-visible {
 
 @supports (height: 1cqh) {
   .slide--merchantAdoptionStat .merchantAdoptionStrip {
-    transform: translate3d(0, calc(16% + clamp(12px, 2.6vw, 32px) + 12cqh), 0);
+    transform: translate3d(
+      0,
+      calc(-50% + 16% + clamp(12px, 2.6vw, 32px) + 12cqh),
+      0
+    );
   }
 }
 
@@ -309,7 +339,7 @@ a:focus-visible {
 
 .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip {
   opacity: 1;
-  transform: translate3d(0, clamp(12px, 2.6vw, 32px), 0);
+  transform: translate3d(0, -50%, 0);
   filter: blur(0);
 }
 
@@ -340,7 +370,7 @@ a:focus-visible {
 
   .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip {
     filter: none;
-    transform: translate3d(0, clamp(12px, 2.6vw, 32px), 0);
+    transform: translate3d(0, -50%, 0);
   }
 
   .slide--merchantAdoptionStat.merchantAdoptionStat--stripOn .merchantAdoptionStrip__track {
@@ -531,8 +561,64 @@ a:focus-visible {
 
 /* Solid white inside frame — dot grid from `.stageWrap` is for map / flow canvases only */
 .stageWrap.stageWrap--intro {
-  background: var(--bg);
-  background-image: none;
+  --intro-guide-inset: 56px;
+  --intro-guide-dash-horizontal: 7.5px; /* dash segment length on top/bottom guides */
+  --intro-guide-gap: 8px;
+  --intro-guide-period-horizontal: calc(var(--intro-guide-dash-horizontal) + var(--intro-guide-gap));
+  --intro-guide-color: rgba(0, 0, 0, 0.18);
+  /* Horizontal rails are full 1px tall (no scaleY); tune alpha ~ vertical hairline (~scaleX 0.3) */
+  --intro-guide-color-horizontal: rgba(0, 0, 0, 0.054); /* ~ same perceived grey as vertical after scaleX(0.3) */
+
+  background-color: var(--bg);
+  /* Top + bottom dashed rails — full width of stage (cross vertical guides); same dash rhythm */
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      var(--intro-guide-color-horizontal) 0,
+      var(--intro-guide-color-horizontal) var(--intro-guide-dash-horizontal),
+      transparent var(--intro-guide-dash-horizontal),
+      transparent var(--intro-guide-period-horizontal)
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--intro-guide-color-horizontal) 0,
+      var(--intro-guide-color-horizontal) var(--intro-guide-dash-horizontal),
+      transparent var(--intro-guide-dash-horizontal),
+      transparent var(--intro-guide-period-horizontal)
+    );
+  background-size:
+    100% 1px,
+    100% 1px;
+  background-position:
+    0 var(--intro-guide-inset),
+    0 calc(100% - var(--intro-guide-inset) - 1px);
+  background-repeat: no-repeat;
+}
+
+/* Vertical guides — inset from sides; horizontal rails span edge-to-edge above/below */
+.stageWrap.stageWrap--intro::before,
+.stageWrap.stageWrap--intro::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  pointer-events: none;
+  z-index: 0;
+  border: none;
+  transform: scaleX(0.3);
+  background: var(--intro-guide-color);
+}
+
+.stageWrap.stageWrap--intro::before {
+  left: var(--intro-guide-inset);
+  transform-origin: left center;
+}
+
+.stageWrap.stageWrap--intro::after {
+  right: var(--intro-guide-inset);
+  left: auto;
+  transform-origin: right center;
 }
 
 /* Slide 3: same outer frame as the map (mapSlideMount → stageWrap), image padded inside.
@@ -778,7 +864,65 @@ a:focus-visible {
 .viewport.viewport--merchantSolo .nodes .node[data-id="merchant"] {
   opacity: 1;
   filter: none;
+  z-index: 10;
 }
+
+/* Merchant brand orbit (click 3 on stack slide): ring centered on Merchant + Discovery */
+.merchantLogoOrbit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.merchantLogoOrbit--spin {
+  transform: translate(-50%, -50%);
+  animation-name: merchantLogoOrbitRotate;
+  animation-duration: var(--merchant-orbit-duration, 90s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: var(--merchant-orbit-intro-delay, 760ms);
+  animation-fill-mode: backwards;
+}
+
+@keyframes merchantLogoOrbitRotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Inverse spin on wrapper so cards revolve paths but chip + logos stay upright (vs tangential tilt). */
+.merchantLogoSlot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  animation-name: merchantLogoSlotStayUpright;
+  animation-duration: var(--merchant-orbit-duration, 90s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: var(--merchant-orbit-intro-delay, 760ms);
+  transform-origin: center center;
+  animation-fill-mode: backwards;
+}
+
+@keyframes merchantLogoSlotStayUpright {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-360deg);
+  }
+}
+
 
 /* Merchant logo cards slide up from the Merchant node */
 @keyframes merchantLogoSlideUp {
@@ -825,6 +969,29 @@ a:focus-visible {
   .viewport .edges,
   .viewport .nodes .node {
     transition-duration: 0.01ms;
+  }
+
+  .node.node--merchant .node__title.node__title--popReveal {
+    animation: none;
+    filter: none;
+    transform: none;
+  }
+
+  .node.node--merchant.node--merchantPopReveal {
+    animation: none;
+    transform: translate(-50%, -50%);
+    filter: none;
+    box-shadow: var(--node-stroke-ring), var(--shadow2);
+  }
+
+  .merchantLogoOrbit--spin {
+    animation: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .merchantLogoSlot {
+    animation: none;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -1338,7 +1505,7 @@ a:focus-visible {
 
 /* Merchant node: circle; same frosted surface as other nodes (no gradient) */
 .node.node--merchant {
-  --sphere-size: 96px;
+  --sphere-size: 104px;
   width: var(--sphere-size);
   height: var(--sphere-size);
   min-width: var(--sphere-size);
@@ -1381,6 +1548,73 @@ a:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Click 3: whole merchant circle pulses with the title swap */
+@keyframes merchantNodePop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.94);
+    filter: brightness(0.96);
+    box-shadow: var(--node-stroke-ring), 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+  38% {
+    transform: translate(-50%, -50%) scale(1.1);
+    filter: brightness(1.06);
+    box-shadow: var(--node-stroke-ring-selected), var(--shadow2), 0 12px 28px rgba(0, 0, 0, 0.12);
+  }
+  62% {
+    transform: translate(-50%, -50%) scale(0.97);
+    filter: brightness(1);
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    filter: none;
+    box-shadow: var(--node-stroke-ring), var(--shadow2);
+  }
+}
+
+.node.node--merchant.node--merchantPopReveal {
+  /* Let keyframes own transform — avoid fighting the base .node transform transition */
+  transition-property: opacity, filter, box-shadow;
+  animation: merchantNodePop 0.62s cubic-bezier(0.22, 1.24, 0.36, 1) both;
+}
+
+@keyframes merchantTitlePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+    filter: blur(1.5px);
+  }
+  48% {
+    opacity: 1;
+    transform: scale(1.14);
+    filter: blur(0);
+  }
+  72% {
+    transform: scale(0.95);
+  }
+  88% {
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Click 3: label swap on merchant node — oversized bounce on the word mark */
+.node.node--merchant .node__title.node__title--popReveal {
+  display: inline-block;
+  max-width: 118px;
+  vertical-align: top;
+  transform-origin: center center;
+  overflow: visible;
+  text-overflow: clip;
+  animation: merchantTitlePop 0.62s cubic-bezier(0.22, 1.24, 0.36, 1) both;
 }
 
 .node__avatarImg {
@@ -2081,7 +2315,10 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  /* overflow:visible lets the flex centering place the compose at its true center
+     (possibly negative top offset). The parent .stageWrap already has overflow:hidden
+     and a defined height, so it clips symmetrically — equal top and bottom. */
+  overflow: visible;
 }
 
 .caseFollowCompose {
@@ -2091,7 +2328,11 @@ a:focus-visible {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  margin: auto;
+  /* margin-inline: auto keeps horizontal centering via cross-axis.
+     margin-block must NOT be auto — auto would absorb vertical free space and
+     override justify-content: center on the canvas, pinning the compose to the
+     top when it's taller than the container. */
+  margin: 0 auto;
 }
 
 @media (max-height: 900px) {

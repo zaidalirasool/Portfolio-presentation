@@ -1,0 +1,44 @@
+---
+description: Current slide deck sequence — update this whenever slides are added or reordered
+alwaysApply: true
+---
+
+# Slide Deck Sequence
+
+The user counts slides starting from WELCOME as Slide 1. The deck is sorted by `data-slide-index` numerically (fractions sort between integers). Update this table whenever a slide is added or removed.
+
+| User's # | data-slide-index | Content / Label |
+|----------|-----------------|-----------------|
+| 1  | 0    | WELCOME (opening title) |
+| 2  | 1    | Welcome gallery — personal photos |
+| 3  | 1.25 | Welcome gallery — variant |
+| 4  | 1.5  | Welcome gallery — reviews |
+| 5  | 2    | Merchant stack map |
+| 6  | 3    | Research collage |
+| 7  | 3.5  | "Defining the vision" section title |
+| 8  | 4    | Merchant recap (map duplicate) |
+| 9  | 4.5  | "Designing the solution" section title |
+| 10 | 5    | Flow trigger canvas |
+| 11 | 6    | Rewards video |
+| 12 | 7    | Case Follow (app case study) |
+| 13 | 8    | Rewards performance dashboard |
+| 14 | 8.5  | "Delivery" section title |
+| 15 | 9    | Merchant map duplicate recap |
+| 16 | 10   | Merchant adoption stat |
+| 17 | 11   | Credits data |
+| 18 | 12   | Merchant feedback |
+| 19 | 13   | Merchants complaints |
+| 20 | 14   | Checkout upsell swap (prototype iframe) |
+| 21 | 15   | Animated chart 2 |
+| 22 | 16   | Animated chart 1 |
+| 23 | 16.5 | Loyalty tiers |
+| 24 | 17   | Final gallery / closing slide |
+
+Total slides: **24** — `data-slide-count="24"` on the `nav.slideshowPagination` in `index.html`.
+
+## Safe insertion rules (summary)
+
+- Always use a **fractional** `data-slide-index` between two neighbors (e.g. between 4 and 5 → use 4.5).
+- After inserting, **increment `data-slide-count`** on the nav and **update this table**.
+- No JS changes needed for static/gallery/CSS-animated slides.
+- For slides needing JS enter/leave hooks: add a `const X_SLIDE_INDEX = slideIdxByData("4.5")` constant in `app.js` near line 92, then add logic to the `slideshow:change` listener (~line 4363).

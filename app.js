@@ -8,6 +8,9 @@ const els = {
 /** Set by render() when the map is ready; slide 2 uses this for a one-shot layout refresh. */
 let slideshowSlide2LayoutHook = /** @type {null | (() => void)} */ (null);
 
+/** Merchant stack slide (`data-slide-index="2"`): reset to Merchant-only baseline each time we land on it. */
+let slideshowEnterMerchantStackHook = /** @type {null | (() => void)} */ (null);
+
 /** Set by initSlideshow(); exposes the goTo function for any code that needs to drive the deck. */
 let applySlideDeck = /** @type {null | ((index: number) => void)} */ (null);
 
@@ -900,7 +903,7 @@ function edgePath(a, b) {
 
 function approxNodeSize(nodeId) {
   // Must stay in sync with CSS sizes.
-  if (nodeId === "merchant") return { w: 96, h: 96 };
+  if (nodeId === "merchant") return { w: 104, h: 104 };
   if (nodeId === "pre" || nodeId === "repeat" || nodeId === "measure") return { w: 220, h: 56 };
   if (nodeId === "chat") return { w: 162, h: 146 };
   // Any node with a custom card image becomes an "image card" size.
@@ -1156,7 +1159,7 @@ function render(graph) {
     const merchant = nodeById.get("merchant");
     const pre = nodeById.get("pre");
     if (merchant && pre) {
-      const merchantR = 48;
+      const merchantR = 52;
       const hubHalfH = 28;
       const gapBelowMerchant = 52;
       const minPreY = merchant.pos.y + merchantR + gapBelowMerchant + hubHalfH;
@@ -2681,6 +2684,21 @@ function render(graph) {
     applyFiltering();
   };
 
+  slideshowEnterMerchantStackHook = () => {
+    els.viewport?.classList.remove("viewport--slide4", "viewport--merchantSolo");
+    stopEmojiRain();
+    rainDismissed = false;
+    emojiRainEndedForLoyalty = false;
+    loyaltyRechargeRevealUnlocked = false;
+    abRechargeRevealUnlocked = false;
+    reorderRechargeRevealUnlocked = false;
+    upsellRechargeRevealUnlocked = false;
+    ensureLoyaltyMainPresent();
+    visibleIds.clear();
+    visibleIds.add("merchant");
+    setSelected(null);
+  };
+
   // ─── Slide 8: isolated recap — Loyalty anchored to Retention/Subscriptions (Slide 4 reroute layout);
   // Pre ↔ Loyalty edge omitted. Repeat / Pre / hubs. ─
   // All state is scoped to #viewportMerchantMapDuplicate — no shared variables
@@ -3606,6 +3624,9 @@ function render(graph) {
   // If a map slide is already active when the graph finishes loading, trigger the layout hook now.
   if (window.slideshowPagination) {
     const idx = window.slideshowPagination.index;
+    if (idx === MERCHANT_STACK_SLIDE_INDEX) {
+      slideshowEnterMerchantStackHook?.();
+    }
     if (
       idx >= MERCHANT_STACK_SLIDE_INDEX &&
       idx !== MERCHANT_MAP_DUPLICATE_SLIDE_INDEX &&
@@ -3802,20 +3823,41 @@ function render(graph) {
   // Empty-canvas click flow:
   //   Click 1 (selection active) → clear selection so the full map is visible at full opacity.
   //   Click 2 (selection already null, arm set) → fade everything except Merchant.
-  //   Click 3 (merchantClonesArmed) → slide two merchant clone nodes in from the right.
-  // This matches the rest of the storyboard where the user gets to see the full map before it collapses.
-
-  /**
-   * Three merchant brand logos that fan upward from the Merchant node on click 3.
-   * Each entry: [imgSrc, finalWorldX, finalWorldY, animDelay]
-   * The animation starts from the merchant node's world position so each card
-   * slides up and outward to its resting spot.
-   */
+  //   Click 3 (merchantClonesArmed) → brand logo orbit + “Discovery”.
+  const MERCHANT_LOGO_ORBIT_RADIUS = 205;
+  const MERCHANT_ORBIT_SPIN_S = 90;
+  /** Evenly spaced orbit slots; orbit ring is centered on the merchant node world position. */
   const MERCHANT_LOGO_CARDS = [
-    { src: "./assets/logos/tiege.png?v=7",  label: "Tiège Hanley", logo: "tiege", wx: -215, wy: -195, delay: 0   },
-    { src: "./assets/logos/arrae.png?v=7",  label: "Arrae",         logo: "arrae", wx:    0, wy: -230, delay: 75  },
-    { src: "./assets/logos/kollo.png?v=7",  label: "Kollo Health",  logo: "kollo", wx:  215, wy: -195, delay: 150 },
+    {
+      src: "./assets/logos/tiege.png?v=7",
+      label: "Tiège Hanley",
+      logo: "tiege",
+      delayMs: 0,
+      angleDeg: -85,
+    },
+    {
+      src: "./assets/logos/arrae.png?v=7",
+      label: "Arrae",
+      logo: "arrae",
+      delayMs: 90,
+      angleDeg: 5,
+    },
+    {
+      src: "./assets/logos/kollo.png?v=7",
+      label: "Kollo Health",
+      logo: "kollo",
+      delayMs: 180,
+      angleDeg: 95,
+    },
+    {
+      src: "./assets/logos/openfarm.png?v=1",
+      label: "Open Farm",
+      logo: "openfarm",
+      delayMs: 270,
+      angleDeg: 185,
+    },
   ];
+
 
   function spawnMerchantClones() {
     const merchantNode = graph.nodes.find((n) => n.id === "merchant");
@@ -3823,10 +3865,21 @@ function render(graph) {
 
     merchantCloneCleanup?.();
 
-    /** @type {HTMLElement[]} */
-    const cards = [];
+    const orbitWrap = document.createElement("div");
+    orbitWrap.classList.add("merchantLogoOrbit", "merchantLogoOrbit--spin");
+    orbitWrap.dataset.merchantOrbitWrap = "true";
+    orbitWrap.style.left = `${merchantNode.pos.x}px`;
+    orbitWrap.style.top = `${merchantNode.pos.y}px`;
+    orbitWrap.style.setProperty("--merchant-orbit-duration", `${MERCHANT_ORBIT_SPIN_S}s`);
+    orbitWrap.style.setProperty("--merchant-orbit-intro-delay", "760ms");
+
+    els.nodes.appendChild(orbitWrap);
 
     for (const card of MERCHANT_LOGO_CARDS) {
+      const rad = (card.angleDeg * Math.PI) / 180;
+      const wx = MERCHANT_LOGO_ORBIT_RADIUS * Math.cos(rad);
+      const wy = MERCHANT_LOGO_ORBIT_RADIUS * Math.sin(rad);
+
       const btn = /** @type {HTMLButtonElement} */ (document.createElement("button"));
       btn.type = "button";
       btn.classList.add("node", "node--merchantLogoCard");
@@ -3836,12 +3889,11 @@ function render(graph) {
       btn.dataset.muted = "false";
       btn.dataset.selected = "false";
       btn.setAttribute("aria-label", card.label);
-      btn.style.left = `${merchantNode.pos.x + card.wx}px`;
-      btn.style.top  = `${merchantNode.pos.y + card.wy}px`;
-      // Offset from this card's final position back to merchant position for the slide origin
-      btn.style.setProperty("--from-x", `${-card.wx}px`);
-      btn.style.setProperty("--from-y", `${-card.wy}px`);
-      btn.style.animationDelay = `${card.delay}ms`;
+      btn.style.left = "0";
+      btn.style.top = "0";
+      btn.style.setProperty("--from-x", `${-wx}px`);
+      btn.style.setProperty("--from-y", `${-wy}px`);
+      btn.style.animationDelay = `${card.delayMs}ms`;
 
       const img = document.createElement("img");
       img.src = card.src;
@@ -3849,11 +3901,39 @@ function render(graph) {
       img.draggable = false;
       btn.appendChild(img);
 
-      els.nodes.appendChild(btn);
-      cards.push(btn);
+      const slot = document.createElement("div");
+      slot.className = "merchantLogoSlot";
+      slot.style.left = `${wx}px`;
+      slot.style.top = `${wy}px`;
+      slot.appendChild(btn);
+
+      orbitWrap.appendChild(slot);
     }
 
-    merchantCloneCleanup = () => { for (const c of cards) c.remove(); };
+    const merchantBtn = els.nodes.querySelector('.node[data-id="merchant"]');
+    const merchantDomNode = merchantBtn?.querySelector(".node__title") ?? null;
+    const originalTitle = merchantDomNode?.textContent ?? null;
+
+    if (merchantBtn) {
+      merchantBtn.classList.remove("node--merchantPopReveal");
+      void merchantBtn.offsetWidth;
+      merchantBtn.classList.add("node--merchantPopReveal");
+    }
+    if (merchantDomNode) {
+      merchantDomNode.classList.remove("node__title--popReveal");
+      void merchantDomNode.offsetWidth;
+      merchantDomNode.textContent = "Discovery";
+      merchantDomNode.classList.add("node__title--popReveal");
+    }
+
+    merchantCloneCleanup = () => {
+      orbitWrap.remove();
+      merchantBtn?.classList.remove("node--merchantPopReveal");
+      if (merchantDomNode && originalTitle !== null) {
+        merchantDomNode.classList.remove("node__title--popReveal");
+        merchantDomNode.textContent = originalTitle;
+      }
+    };
     merchantClonesArmed = false;
   }
 
@@ -4110,7 +4190,7 @@ function initSlideshow() {
   }
 
   const count = slides.length;
-  const INITIAL_SLIDE_INDEX = MERCHANT_MAP_DUPLICATE_SLIDE_INDEX;
+  const INITIAL_SLIDE_INDEX = OPENING_TITLE_SLIDE_INDEX;
   let current = INITIAL_SLIDE_INDEX;
 
   function goTo(index) {
@@ -4156,6 +4236,14 @@ function initSlideshow() {
 
     if (index === MERCHANT_MAP_DUPLICATE_SLIDE_INDEX) {
       slide8EnterHook?.();
+    }
+
+    if (index === MERCHANT_STACK_SLIDE_INDEX) {
+      upsellMerchantSoloArmNextCanvas = false;
+      merchantClonesArmed = false;
+      merchantCloneCleanup?.();
+      merchantCloneCleanup = null;
+      slideshowEnterMerchantStackHook?.();
     }
 
     for (let i = 0; i < slides.length; i++) {
@@ -4233,10 +4321,13 @@ function initSlideshow() {
     get count() { return count; }
   };
 
-  // Restore from URL hash on refresh (e.g. #5 → start on slide 5).
-  // Falls back to INITIAL_SLIDE_INDEX if the hash is absent or out of range.
+  // Restore from URL hash only on a same-session refresh (not a cold open).
+  // A cold open (new tab, bookmark, direct nav) always starts at slide 1.
+  const isRefresh = performance.navigation
+    ? performance.navigation.type === 1
+    : (performance.getEntriesByType("navigation")[0] || {}).type === "reload";
   const hashIndex = parseInt(location.hash.slice(1), 10);
-  const startIndex = Number.isFinite(hashIndex) && hashIndex >= 0 && hashIndex < count
+  const startIndex = isRefresh && Number.isFinite(hashIndex) && hashIndex >= 0 && hashIndex < count
     ? hashIndex
     : INITIAL_SLIDE_INDEX;
   current = startIndex;
