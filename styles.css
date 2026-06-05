@@ -370,9 +370,10 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   width: 220px;
   pointer-events: none;
+  color: var(--muted);
 }
 
 .designingCanvas__bridge[hidden] {
@@ -380,36 +381,26 @@ a:focus-visible {
 }
 
 .designingCanvas__bridgeLabel {
-  font-family: var(--spark-font-display);
-  font-size: 13px;
-  font-weight: 500;
+  font-family: "Greycliff CF";
+  font-size: 12px;
+  font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text);
+  color: #888888;
   white-space: nowrap;
   user-select: none;
 }
 
 .designingCanvas__bridgeArrow {
   display: block;
-  color: var(--graph-stroke-strong);
+  color: rgba(136, 136, 136, 1);
   overflow: visible;
 }
 
-/* Dotted connector line — matches the deck's dotted edge rhythm */
 .designingCanvas__bridgeArrowLine {
   stroke: currentColor;
   stroke-width: 1.5;
   stroke-linecap: round;
-  stroke-dasharray: 0.1 5;
-}
-
-.designingCanvas__bridgeArrowHead {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 /* Entrance animations */
@@ -848,30 +839,137 @@ a:focus-visible {
 /* Final gallery slide: 2×2 grid, images at natural height, centered on the dotted canvas */
 .slide--finalGallery .mapSlideMount > .stageWrap {
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
   overflow-y: auto;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .finalGallery {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: auto auto;
-  gap: 24px;
-  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
   width: 100%;
   box-sizing: border-box;
-  align-items: start;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.finalGallery > * + * {
+  margin-top: 24px;
+}
+
+.finalGallery__stack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.finalGallery__header + .finalGallery__crop,
+.finalGallery__header + .finalGallery__img {
+  margin-top: 16px;
+}
+
+.finalGallery__header {
+  width: 100%;
+  margin: 0;
+  color: rgba(28, 28, 28, 1);
+  font-family: "Greycliff CF";
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-align: left;
 }
 
 .finalGallery__img {
-  width: 100%;
-  height: fit-content;
+  width: fit-content;
+  max-width: 100%;
+  height: auto;
   min-width: 0;
   object-fit: contain;
   object-position: center top;
   display: block;
-  border-radius: 8px;
+  border-radius: 6px;
+  border: 0.5px solid #E5E7EB;
+}
+
+/* Crop wrapper — clips the image while keeping the card border/radius intact */
+.finalGallery__crop {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 0.5px solid #E5E7EB;
+  display: flex;
+}
+
+.finalGallery__crop .finalGallery__img {
+  border: 0;
+  border-radius: 0;
+}
+
+.finalGallery__crop--top56 .finalGallery__img {
+  margin-top: -92px;
+  width: calc(100% + 36px);
+  max-width: none;
+  margin-right: -36px;
+}
+
+.finalGallery__crop--left124 .finalGallery__img {
+  width: calc(100% + 196px);
+  max-width: none;
+  margin-left: -196px;
+}
+
+.finalGallery__crop--left164right24 .finalGallery__img {
+  width: calc(100% + 188px);
+  max-width: none;
+  margin-left: -164px;
+  margin-right: -24px;
+}
+
+/* Conclusion slide — card centered on the dotted Spark canvas (dots from base .stageWrap) */
+.slide--conclusion .mapSlideMount > .stageWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.conclusionCanvas {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: clamp(28px, 5vw, 124px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.conclusionCard {
+  background: var(--bg);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  box-shadow: none;
+  padding: clamp(40px, 6vw, 96px) clamp(48px, 8vw, 128px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
+}
+
+.conclusionCard__title {
+  margin: 0;
+  font-family: var(--spark-font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--text);
 }
 
 /* Image slide on default dotted spark canvas (stageWrap keeps --spark-deck-surface) */
@@ -1529,6 +1627,49 @@ a:focus-visible {
   stroke-linecap: round;
   /* 0.1px dash + ~5px gap with round caps renders as evenly-spaced circular dots. */
   stroke-dasharray: 0.1 5;
+}
+
+/* Conclusion slide: interactive recap clone. The cloned map inherits
+   .viewport--merchantMapDuplicate (pointer-events:none); re-enable the Recap node so
+   it can toggle the challenge fan-out. Challenges start hidden and reveal on click.
+   ID-scoped selectors beat the .viewport--slide4 !important challenge-edge rule above. */
+#viewportConclusionMap .node[data-id="merchant"] {
+  pointer-events: auto;
+  cursor: pointer;
+  opacity: 1 !important;
+  filter: none !important;
+  visibility: visible !important;
+  /* Grow the sphere to fit the longer "Crafting Loyalty that delivers" copy. */
+  --sphere-size: 188px;
+  padding: 22px;
+}
+
+#viewportConclusionMap .node[data-id="merchant"] .node__title {
+  max-width: 144px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.22em;
+  text-transform: uppercase;
+}
+#viewportConclusionMap .node--challenge {
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+  transition:
+    transform 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 480ms ease;
+}
+#viewportConclusionMap.is-challengesRevealed .node--challenge {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+#viewportConclusionMap .edges .edge.edge--challenge {
+  opacity: 0 !important;
+  transition: opacity 420ms ease;
+}
+#viewportConclusionMap.is-challengesRevealed .edges .edge.edge--challenge {
+  opacity: 1 !important;
 }
 
 /* Card hanger: blue footer tab on the Loyalty card, visible on slide 4 only. */

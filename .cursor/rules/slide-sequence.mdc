@@ -31,10 +31,11 @@ The user counts slides starting from WELCOME as Slide 1. The deck is sorted by `
 | 20 | 14   | Checkout upsell swap (prototype iframe) |
 | 21 | 15   | Animated chart 2 |
 | 22 | 16   | Animated chart 1 |
-| 23 | 16.5 | Loyalty tiers |
-| 24 | 17   | Final gallery / closing slide |
+| 23 | 16.25 | Conclusion (card on dotted canvas) |
+| 24 | 16.5 | Final gallery — "Behind the scenes" |
+| 25 | 17   | THANK YOU (closing title) |
 
-Total slides: **24** — `data-slide-count="24"` on the `nav.slideshowPagination` in `index.html`.
+Total slides: **25** — `data-slide-count="25"` on the `nav.slideshowPagination` in `index.html`.
 
 ## Safe insertion rules (summary)
 

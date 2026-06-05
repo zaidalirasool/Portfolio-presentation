@@ -182,20 +182,27 @@
                       fill="none"
                       aria-hidden="true"
                     >
-                      <path
-                        class="designingCanvas__bridgeArrowHead"
-                        d="M9 3 L3 7 L9 11"
-                      />
+                      <defs>
+                        <marker
+                          id="designingArrowHead"
+                          markerWidth="7"
+                          markerHeight="7"
+                          refX="5.5"
+                          refY="3.5"
+                          orient="auto-start-reverse"
+                          markerUnits="userSpaceOnUse"
+                        >
+                          <path d="M0 0 L6 3.5 L0 7 Z" fill="currentColor" />
+                        </marker>
+                      </defs>
                       <line
                         class="designingCanvas__bridgeArrowLine"
-                        x1="6"
+                        x1="11"
                         y1="7"
-                        x2="194"
+                        x2="189"
                         y2="7"
-                      />
-                      <path
-                        class="designingCanvas__bridgeArrowHead"
-                        d="M191 3 L197 7 L191 11"
+                        marker-start="url(#designingArrowHead)"
+                        marker-end="url(#designingArrowHead)"
                       />
                     </svg>
                   </div>
@@ -4105,7 +4112,7 @@
                   </filter>
                 </defs>
                 <g transform="translate(1002 322) scale(0.8) translate(-1002 -322)">
-                <rect class="portfolioChartCard" x="16" y="16" width="1972" height="612" rx="8" filter="url(#portfolioChartShadow1)" />
+                <rect class="portfolioChartCard" x="16" y="16" width="1972" height="612" rx="8" stroke="#E5E7EB" stroke-width="1" />
 
                 <g class="portfolioChartLegend" transform="translate(1536 52)">
                   <g>
@@ -4189,7 +4196,7 @@
                   </filter>
                 </defs>
                 <g transform="translate(1002 322) scale(0.8) translate(-1002 -322)">
-                <rect class="portfolioChartCard" x="16" y="16" width="1972" height="612" rx="8" filter="url(#portfolioChartShadow2)" />
+                <rect class="portfolioChartCard" x="16" y="16" width="1972" height="612" rx="8" stroke="#E5E7EB" stroke-width="1" />
 
                 <g class="portfolioChartLegend" transform="translate(1536 52)">
                   <g>
@@ -4259,10 +4266,46 @@
             <div class="mapSlideMount">
               <section class="stageWrap" aria-label="Final image gallery">
                 <div class="finalGallery">
-                  <img src="./assets/final-slide-img-1.png" alt="Finish setup: reviewing and customizing experience" class="finalGallery__img" draggable="false" decoding="async" />
-                  <img src="./assets/final-slide-img-2.png" alt="Preview experience in WinBack and Customer portal" class="finalGallery__img" draggable="false" decoding="async" />
-                  <img src="./assets/final-slide-img-3.png" alt="PostCSS build error in playground" class="finalGallery__img" draggable="false" decoding="async" />
+                  <div class="finalGallery__stack">
+                    <h2 class="finalGallery__header">Behind the scenes</h2>
+                    <div class="finalGallery__crop">
+                      <img src="./assets/behind-the-scenes-1.png" alt="Finish setup: reviewing and customizing experience" class="finalGallery__img" draggable="false" decoding="async" />
+                    </div>
+                  </div>
+                  <div class="finalGallery__crop">
+                    <img src="./assets/behind-the-scenes-2.png" alt="Preview experience in WinBack and Customer portal" class="finalGallery__img" draggable="false" decoding="async" />
+                  </div>
+                  <div class="finalGallery__crop">
+                    <img src="./assets/behind-the-scenes-3.png" alt="Behind the scenes" class="finalGallery__img" draggable="false" decoding="async" />
+                  </div>
+                  <img src="./assets/final-slide-img-3.png" alt="PostCSS build error in playground" class="finalGallery__img" draggable="false" decoding="async" style="display: none" />
                   <img src="./assets/final-slide-img-4.png" alt="Cursor Pro Plus plan usage at 100%" class="finalGallery__img" draggable="false" decoding="async" />
+                </div>
+              </section>
+            </div>
+          </main>
+        </section>
+
+        <section
+          class="slide slide--map slide--conclusion"
+          data-slide-index="16.25"
+          aria-label="Conclusion"
+          aria-hidden="true"
+        >
+          <main class="main">
+            <div class="mapSlideMount">
+              <section class="stageWrap" aria-label="Conclusion merchant stack map">
+                <div
+                  id="stageConclusionMap"
+                  class="stage stage--merchantMapDuplicate"
+                  tabindex="0"
+                  role="application"
+                  aria-roledescription="diagram"
+                >
+                  <div id="viewportConclusionMap" class="viewport" aria-hidden="false">
+                    <svg id="edgesConclusionMap" class="edges" aria-hidden="true"></svg>
+                    <div id="nodesConclusionMap" class="nodes" aria-hidden="false"></div>
+                  </div>
                 </div>
               </section>
             </div>
@@ -4542,7 +4585,7 @@
       </div>
     </div>
 
-    <nav class="slideshowPagination" aria-label="Slide pagination" data-slide-count="24">
+    <nav class="slideshowPagination" aria-label="Slide pagination" data-slide-count="25">
       <ol class="slideshowPagination__dots" id="slideshowDots"></ol>
     </nav>
 

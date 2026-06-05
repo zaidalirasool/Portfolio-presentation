@@ -128,6 +128,160 @@ const CHECKOUT_UPSELL_SWAP_SLIDE_INDEX = slideIdxByData("14");
 /** Animated bar chart slides — dotted `stageWrap` (`data-slide-index="15"` time-to-convert chart, `"16"` conversion slide). */
 const ANIMATED_CHART_2_SLIDE_INDEX = slideIdxByData("15");
 const ANIMATED_CHART_1_SLIDE_INDEX = slideIdxByData("16");
+/** Conclusion slide — static clone of the merchant map recap view (`data-slide-index="16.25"`). */
+const CONCLUSION_SLIDE_INDEX = slideIdxByData("16.25");
+
+/** "Current framework" challenge labels fanned out from the Recap node on click (conclusion slide). */
+const CONCLUSION_CHALLENGES = [
+  { id: "challenge-1", title: "Understanding and building empathy with the user" },
+  { id: "challenge-2", title: "Building domain and competitive expertise" },
+  { id: "challenge-3", title: "Strategically redefining loyalty" },
+  { id: "challenge-4", title: "Aligning leadership and cross-team collaboration" },
+  { id: "challenge-5", title: "Designing the merchant and customer\u2019s experience" },
+  { id: "challenge-6", title: "Launching and delivering results" },
+  { id: "challenge-7", title: "Challenges and lessons learned" },
+  { id: "challenge-8", title: "Adapting based on learning" },
+];
+
+/**
+ * Post-paint pass over the conclusion clone: drops the three section hubs, renames
+ * Merchant → Recap, and builds a hidden challenge fan-out that the Recap node toggles.
+ * Runs on every paint against fresh innerHTML, so listeners never accumulate.
+ */
+function decorateConclusionMap() {
+  const vp = document.getElementById("viewportConclusionMap");
+  const nodes = document.getElementById("nodesConclusionMap");
+  const edges = document.getElementById("edgesConclusionMap");
+  if (!(vp instanceof HTMLElement) || !nodes || !edges) return;
+
+  // Remove the Pre-purchase / Repeat purchase / Measure performance hubs + Loyalty and their edges.
+  const removeIds = new Set(["pre", "repeat", "measure", "loyalty"]);
+  for (const id of removeIds) {
+    nodes.querySelectorAll(`.node[data-id="${id}"]`).forEach((n) => n.remove());
+  }
+  edges.querySelectorAll("path").forEach((p) => {
+    if (removeIds.has(p.getAttribute("data-a") ?? "") || removeIds.has(p.getAttribute("data-b") ?? "")) {
+      p.remove();
+    }
+  });
+
+  // Rename Merchant → Recap (the title text sits inside the sphere node).
+  const recap = nodes.querySelector('.node[data-id="merchant"]');
+  if (!(recap instanceof HTMLElement)) return;
+  const title = recap.querySelector(".node__title");
+  if (title) title.textContent = "Crafting Loyalty that delivers";
+  recap.setAttribute("aria-label", "Crafting Loyalty that delivers node");
+
+  // Build the challenge ring surrounding the Recap node (hidden via CSS until revealed).
+  const ox = parseFloat(recap.style.left) || 0;
+  const oy = parseFloat(recap.style.top) || 0;
+  const radius = 320;
+  CONCLUSION_CHALLENGES.forEach((c, i) => {
+    // Evenly distribute the labels in a full circle, starting at the top.
+    const angleDeg = -90 + i * (360 / CONCLUSION_CHALLENGES.length);
+    const rad = (angleDeg * Math.PI) / 180;
+    const x = ox + radius * Math.cos(rad);
+    const y = oy + radius * Math.sin(rad);
+
+    const btn = /** @type {HTMLButtonElement} */ (el("button", "node node--challenge"));
+    btn.type = "button";
+    btn.dataset.id = c.id;
+    btn.dataset.muted = "false";
+    btn.dataset.hidden = "false";
+    btn.style.left = `${x}px`;
+    btn.style.top = `${y}px`;
+    btn.setAttribute("aria-label", c.title);
+
+    const outline = svgEl("svg");
+    outline.setAttribute("class", "node__dotOutline");
+    outline.setAttribute("aria-hidden", "true");
+    outline.setAttribute("preserveAspectRatio", "none");
+    outline.appendChild(svgEl("rect"));
+    btn.appendChild(outline);
+    btn.appendChild(el("span", "node__challengeLabel", c.title));
+    nodes.appendChild(btn);
+
+    const p = svgEl("path");
+    p.setAttribute("class", "edge edge--challenge");
+    p.dataset.a = "merchant";
+    p.dataset.b = c.id;
+    p.setAttribute("d", edgePath({ x: ox, y: oy }, { x, y }));
+    p.setAttribute("fill", "none");
+    edges.appendChild(p);
+  });
+
+  // Re-center the view on the Recap node so the full ring is visible (the recap snapshot
+  // places Merchant near the top of the canvas, which would clip the upper labels).
+  const stage = document.getElementById("stageConclusionMap");
+  if (stage instanceof HTMLElement) {
+    const stageRect = stage.getBoundingClientRect();
+    if (stageRect.width > 0 && stageRect.height > 0) {
+      const extentX = radius + 100;
+      const extentY = radius + 44;
+      const pad = 48;
+      const scale = clamp(
+        Math.min(
+          (stageRect.width / 2 - pad) / extentX,
+          (stageRect.height / 2 - pad) / extentY,
+        ),
+        0.2,
+        1.2,
+      );
+      applyTransform(
+        vp,
+        centerToTransform({ canvas: {}, stageRect, targetWorld: { x: ox, y: oy }, scale }),
+      );
+    }
+  }
+
+  vp.classList.remove("is-challengesRevealed");
+  recap.addEventListener("click", () => {
+    vp.classList.toggle("is-challengesRevealed");
+  });
+}
+
+/**
+ * Paints the merchant map *recap* view (slide-4 appearance, the same snapshot used by the
+ * slide-9 duplicate) into the conclusion slide's own static stage, so the single live `#stage`
+ * is never moved. Reuses {@link merchantMapDuplicateSnapshot} via
+ * {@link ensureMerchantMapDuplicateSnapshot} and fits the whole map to the conclusion stage.
+ */
+function paintConclusionMapSlide() {
+  ensureMerchantMapDuplicateSnapshot();
+  const snap = merchantMapDuplicateSnapshot;
+  const stage = document.getElementById("stageConclusionMap");
+  const vp = document.getElementById("viewportConclusionMap");
+  const edges = document.getElementById("edgesConclusionMap");
+  const nodes = document.getElementById("nodesConclusionMap");
+  if (!snap || !stage || !vp || !edges || !nodes) return;
+
+  edges.innerHTML = snap.edgesHtml;
+  if (snap.viewBox) edges.setAttribute("viewBox", snap.viewBox);
+  edges.setAttribute("preserveAspectRatio", "xMinYMin meet");
+  edges.setAttribute("overflow", "visible");
+  nodes.innerHTML = snap.nodesHtml;
+
+  vp.style.width = snap.vw;
+  vp.style.height = snap.vh;
+  let cls = "viewport viewport--slide4 viewport--merchantMapDuplicate";
+  if (snap.slide4Rerouted) cls += " viewport--slide4-rerouted";
+  vp.className = cls;
+
+  // Fit the whole map into the conclusion stage (uniform scale, centered).
+  const canvasW = parseFloat(snap.vw) || stage.clientWidth || 1;
+  const canvasH = parseFloat(snap.vh) || stage.clientHeight || 1;
+  const stageRect = stage.getBoundingClientRect();
+  const pad = 32;
+  const scale = Math.min(
+    (stageRect.width - 2 * pad) / canvasW,
+    (stageRect.height - 2 * pad) / canvasH,
+  );
+  const x = stageRect.width / 2 - (canvasW / 2) * scale;
+  const y = stageRect.height / 2 - (canvasH / 2) * scale;
+  applyTransform(vp, { x, y, scale });
+
+  decorateConclusionMap();
+}
 
 /**
  * Default camera for `#viewportMerchantMapDuplicate` — last slide recap only (`slide8EnterHook`).
@@ -4486,6 +4640,14 @@ initSlideshow();
             ? document.getElementById("nodesMerchantMapDuplicate")
             : document.getElementById("nodes");
         kickImgLoading(imgRoot ?? undefined);
+      });
+      return;
+    }
+
+    if (idx === CONCLUSION_SLIDE_INDEX) {
+      requestAnimationFrame(() => {
+        paintConclusionMapSlide();
+        kickImgLoading(document.getElementById("nodesConclusionMap") ?? undefined);
       });
       return;
     }
