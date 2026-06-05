@@ -157,7 +157,7 @@
         </section>
 
         <section
-          class="slide slide--intro slide--sectionTitle"
+          class="slide slide--intro slide--sectionTitle slide--designingSolution"
           data-slide-index="4.5"
           aria-labelledby="designing-solution-title"
           aria-hidden="true"
@@ -166,6 +166,43 @@
             <section class="stageWrap stageWrap--intro" aria-label="Designing the solution">
               <div class="introSlide">
                 <h1 class="introSlide__title" id="designing-solution-title">Designing the solution</h1>
+              </div>
+              <div class="designingCanvas" id="designingCanvas" aria-hidden="true">
+                <div class="designingCanvas__spheres">
+                  <div class="designingSphere designingSphere--rewards" hidden>
+                    <span class="designingSphere__label">Loyalty Team</span>
+                  </div>
+                  <div class="designingCanvas__bridge" hidden>
+                    <span class="designingCanvas__bridgeLabel">Designer</span>
+                    <svg
+                      class="designingCanvas__bridgeArrow"
+                      width="200"
+                      height="14"
+                      viewBox="0 0 200 14"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        class="designingCanvas__bridgeArrowHead"
+                        d="M9 3 L3 7 L9 11"
+                      />
+                      <line
+                        class="designingCanvas__bridgeArrowLine"
+                        x1="6"
+                        y1="7"
+                        x2="194"
+                        y2="7"
+                      />
+                      <path
+                        class="designingCanvas__bridgeArrowHead"
+                        d="M191 3 L197 7 L191 11"
+                      />
+                    </svg>
+                  </div>
+                  <div class="designingSphere designingSphere--flows" hidden>
+                    <span class="designingSphere__label">Flows<br />Team</span>
+                  </div>
+                </div>
               </div>
             </section>
           </main>

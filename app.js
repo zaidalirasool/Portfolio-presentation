@@ -121,6 +121,8 @@ const CREDITS_DATA_SLIDE_INDEX = slideIdxByData("11");
 const MERCHANT_FEEDBACK_SLIDE_INDEX = slideIdxByData("12");
 /** Slide after merchant feedback — merchants complaints image (`data-slide-index="13"`). */
 const MERCHANTS_COMPLAINTS_SLIDE_INDEX = slideIdxByData("13");
+/** Designing the solution section title — 3-click canvas reveal (`data-slide-index="4.5"`). */
+const DESIGNING_SOLUTION_SLIDE_INDEX = slideIdxByData("4.5");
 /** Checkout upsell swap quick-activation prototype — iframe into playground (`data-slide-index="14"`). */
 const CHECKOUT_UPSELL_SWAP_SLIDE_INDEX = slideIdxByData("14");
 /** Animated bar chart slides — dotted `stageWrap` (`data-slide-index="15"` time-to-convert chart, `"16"` conversion slide). */
@@ -5197,6 +5199,61 @@ function wireCaseFollowSlide7Canvas() {
 }
 
 wireCaseFollowSlide7Canvas();
+
+
+(function initDesigningSolutionCanvas() {
+  const slide = document.querySelector('.slide--designingSolution');
+  const stageWrap = slide?.querySelector('.stageWrap--intro');
+  const canvas = document.getElementById('designingCanvas');
+  if (!slide || !stageWrap || !canvas) return;
+
+  const rewardsSphere = canvas.querySelector('.designingSphere--rewards');
+  const flowsSphere   = canvas.querySelector('.designingSphere--flows');
+  const bridge        = canvas.querySelector('.designingCanvas__bridge');
+  if (!(rewardsSphere instanceof HTMLElement) || !(flowsSphere instanceof HTMLElement) || !(bridge instanceof HTMLElement)) return;
+
+  let step = 0;
+
+  function triggerEnter(el, animClass) {
+    el.hidden = false;
+    el.classList.remove(animClass);
+    void el.offsetWidth;
+    el.classList.add(animClass);
+  }
+
+  function resetCanvas() {
+    step = 0;
+    rewardsSphere.hidden = true;
+    rewardsSphere.classList.remove('designingSphere--enter');
+    flowsSphere.hidden = true;
+    flowsSphere.classList.remove('designingSphere--enter');
+    bridge.hidden = true;
+    bridge.classList.remove('designingBridge--enter');
+    slide.classList.remove('designingSolution--step1', 'designingSolution--step2', 'designingSolution--step3');
+  }
+
+  stageWrap.addEventListener('click', () => {
+    if (!slide.classList.contains('is-active')) return;
+    if (step === 0) {
+      step = 1;
+      slide.classList.add('designingSolution--step1');
+      triggerEnter(rewardsSphere, 'designingSphere--enter');
+    } else if (step === 1) {
+      step = 2;
+      slide.classList.add('designingSolution--step2');
+      triggerEnter(flowsSphere, 'designingSphere--enter');
+    } else if (step === 2) {
+      step = 3;
+      slide.classList.add('designingSolution--step3');
+      triggerEnter(bridge, 'designingBridge--enter');
+    }
+  });
+
+  document.addEventListener('slideshow:change', (e) => {
+    if (!(e instanceof CustomEvent) || typeof e.detail?.index !== 'number') return;
+    if (e.detail.index !== DESIGNING_SOLUTION_SLIDE_INDEX) resetCanvas();
+  });
+})();
 
 
 (function initLoyaltyModal() {

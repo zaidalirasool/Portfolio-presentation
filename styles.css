@@ -134,6 +134,7 @@ a:focus-visible {
   max-width: min(1100px, 92vw);
   text-align: center;
   padding: 48px 32px;
+  transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .introSlide__title {
@@ -257,6 +258,193 @@ a:focus-visible {
 
 .welcomeGallery--reviews .welcomeGallery__img:nth-child(6) {
   margin-top: 17px;
+}
+
+/* ── Designing the solution slide: 3-click canvas reveal ──────────────────── */
+
+.slide--designingSolution .stageWrap--intro {
+  cursor: pointer;
+  position: relative;
+  /* Animate background-color when swapping to dotted canvas; bg-image swaps instantly */
+  transition: background-color 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Guide rail pseudo-elements: set up transition on base rule so it fires on step change */
+.slide--designingSolution .stageWrap--intro::before,
+.slide--designingSolution .stageWrap--intro::after {
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Step 1+: switch stageWrap to the dotted Spark canvas and fade guide rails */
+.slide--designingSolution.designingSolution--step1 .stageWrap--intro,
+.slide--designingSolution.designingSolution--step2 .stageWrap--intro,
+.slide--designingSolution.designingSolution--step3 .stageWrap--intro {
+  background-color: var(--spark-deck-surface-color);
+  background-image: var(--spark-deck-surface-image);
+  background-size: var(--spark-deck-surface-size);
+  background-position: var(--spark-deck-surface-position);
+}
+
+.slide--designingSolution.designingSolution--step1 .stageWrap--intro::before,
+.slide--designingSolution.designingSolution--step1 .stageWrap--intro::after,
+.slide--designingSolution.designingSolution--step2 .stageWrap--intro::before,
+.slide--designingSolution.designingSolution--step2 .stageWrap--intro::after,
+.slide--designingSolution.designingSolution--step3 .stageWrap--intro::before,
+.slide--designingSolution.designingSolution--step3 .stageWrap--intro::after {
+  opacity: 0;
+}
+
+/* Fade title out once step 1+ is active */
+.slide--designingSolution.designingSolution--step1 .introSlide,
+.slide--designingSolution.designingSolution--step2 .introSlide,
+.slide--designingSolution.designingSolution--step3 .introSlide {
+  opacity: 0;
+}
+
+/* Overlay canvas — fills the stageWrap, centers spheres + label */
+.designingCanvas {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  pointer-events: none;
+}
+
+.designingCanvas__spheres {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  transition: gap 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Step 3: spheres spread apart to open room for the Designer bridge */
+.slide--designingSolution.designingSolution--step3 .designingCanvas__spheres {
+  gap: 248px;
+}
+
+/* Individual sphere — matches .node.node--merchant visual */
+.designingSphere {
+  --sphere-size: 104px;
+  width: var(--sphere-size);
+  height: var(--sphere-size);
+  border-radius: 50%;
+  background: var(--node-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--node-stroke-ring), var(--shadow2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Class `display` beats the UA [hidden] rule — restore hide behavior explicitly */
+.designingSphere[hidden],
+.designingCanvas__roleLabel[hidden] {
+  display: none;
+}
+
+.designingSphere__label {
+  font-family: var(--spark-font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+  color: var(--text);
+  user-select: none;
+  max-width: 80px;
+  display: block;
+}
+
+/* Designer bridge — absolutely centered between the two spheres */
+.designingCanvas__bridge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 220px;
+  pointer-events: none;
+}
+
+.designingCanvas__bridge[hidden] {
+  display: none;
+}
+
+.designingCanvas__bridgeLabel {
+  font-family: var(--spark-font-display);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.designingCanvas__bridgeArrow {
+  display: block;
+  color: var(--graph-stroke-strong);
+  overflow: visible;
+}
+
+/* Dotted connector line — matches the deck's dotted edge rhythm */
+.designingCanvas__bridgeArrowLine {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 5;
+}
+
+.designingCanvas__bridgeArrowHead {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Entrance animations */
+.designingSphere.designingSphere--enter {
+  animation: designingSphereIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes designingSphereIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.86);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Bridge fades in after the spheres have finished sliding apart */
+.designingCanvas__bridge.designingBridge--enter {
+  animation: designingBridgeIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) 0.32s both;
+}
+
+@keyframes designingBridgeIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .designingSphere.designingSphere--enter,
+  .designingCanvas__bridge.designingBridge--enter {
+    animation: none;
+  }
 }
 
 .slide--merchantAdoptionStat .stageWrap.stageWrap--intro {
