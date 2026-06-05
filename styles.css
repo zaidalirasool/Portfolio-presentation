@@ -869,7 +869,7 @@ a:focus-visible {
 
 .finalGallery__header + .finalGallery__crop,
 .finalGallery__header + .finalGallery__img {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .finalGallery__header {
@@ -886,7 +886,7 @@ a:focus-visible {
 }
 
 .finalGallery__img {
-  width: fit-content;
+  width: 100%;
   max-width: 100%;
   height: auto;
   min-width: 0;
@@ -907,6 +907,7 @@ a:focus-visible {
 }
 
 .finalGallery__crop .finalGallery__img {
+  width: 100%;
   border: 0;
   border-radius: 0;
 }
