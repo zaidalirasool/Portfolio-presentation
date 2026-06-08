@@ -2639,7 +2639,9 @@ a:focus-visible {
   flex: 1;
   min-height: 0;
   width: 100%;
-  padding: clamp(28px, 5vw, 124px);
+  /* Vertical reserve is viewport-height based so the JS fit always leaves an even
+     top/bottom margin; horizontal stays generous for the dotted Spark surface. */
+  padding: clamp(20px, 3.2vh, 48px) clamp(28px, 5vw, 124px);
   box-sizing: border-box;
   background: transparent;
   display: flex;
@@ -2652,8 +2654,13 @@ a:focus-visible {
 }
 
 .caseFollowCompose {
-  /* Primary + twin (+ spawned): fixed bezel height; body scrolls inside `.caseFollowPhone__scroll` */
+  /* The phone is laid out at its native design size (453 × 980). To keep the whole
+     mock — frame AND content — looking natural on short screens, JS measures the
+     available stage and applies a single uniform `zoom` via `--case-follow-scale`,
+     so everything (fonts, padding, the loyalty grid) scales together rather than the
+     frame shrinking while the content stays full size. Defaults to 1 before JS runs. */
   --case-follow-phone-bezel-height: 980px;
+  zoom: var(--case-follow-scale, 1);
   flex: 0 0 auto;
   display: flex;
   justify-content: center;
@@ -2663,12 +2670,6 @@ a:focus-visible {
      override justify-content: center on the canvas, pinning the compose to the
      top when it's taller than the container. */
   margin: 0 auto;
-}
-
-@media (max-height: 900px) {
-  .caseFollowCompose {
-    --case-follow-phone-bezel-height: min(980px, calc(100dvh - 168px));
-  }
 }
 
 .caseFollowCompose__pair {
