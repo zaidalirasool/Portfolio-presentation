@@ -5505,7 +5505,12 @@ html.flowFreeGiftCustomizeSheetOpen {
 }
 
 .flowFreeGiftCustomizeSheet__main {
-  flex: 0 0 auto;
+  /* 993px is the preferred (max) editor height, but the row must be allowed to
+     shrink so it never exceeds the surface — which is capped to the viewport and
+     clips with overflow:hidden. Without flex-shrink the bottom of the aside footer
+     and the canvas site footer get cut off on shorter screens. The aside scroll and
+     canvas then handle any overflow internally. */
+  flex: 0 1 auto;
   height: 993px;
   min-height: 0;
   display: flex;
