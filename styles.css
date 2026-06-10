@@ -2531,7 +2531,7 @@ a:focus-visible {
   min-height: 0;
   min-width: 0;
   width: 100%;
-  padding: 124px;
+  padding: clamp(32px, 5vh, 72px) clamp(48px, 6vw, 124px);
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -2554,8 +2554,13 @@ a:focus-visible {
 }
 
 .rewardsVideoCanvas__video {
-  width: 100%;
-  max-height: 100%;
+  /* On wide screens the video is width-bound, so its height is driven by the frame
+     width and it ends up hugging the top/bottom (vertical padding gets cancelled out
+     by the centering). Capping the height in vh guarantees real breathing room above
+     and below; `width: auto` keeps the true aspect ratio with no letterbox bars. */
+  max-width: 100%;
+  max-height: 74vh;
+  width: auto;
   height: auto;
   display: block;
   border-radius: 10px;
