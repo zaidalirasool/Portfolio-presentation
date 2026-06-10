@@ -5351,13 +5351,69 @@ function wireCaseFollowSlide7Canvas() {
     showThirdScreenApplyCreditsLoading();
   });
 
+  /**
+   * Uniformly scales the whole phone composition (frame + content) so it fits the
+   * available stage without clipping. Phones are authored at native size (453 × 980);
+   * `zoom` keeps the design pixel-perfect while shrinking everything together, so the
+   * content never overflows the frame the way a width-only resize would.
+   */
+  const CASE_FOLLOW_DESIGN_HEIGHT = 980;
+  let caseFollowFitRaf = 0;
+
+  function applyCaseFollowFit() {
+    caseFollowFitRaf = 0;
+    // Measure at native scale first.
+    compose.style.zoom = "1";
+    const cs = getComputedStyle(canvas);
+    const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    const availW = canvas.clientWidth - padX;
+    const availH = canvas.clientHeight - padY;
+    const naturalW = compose.scrollWidth || compose.offsetWidth;
+    const naturalH = compose.offsetHeight || CASE_FOLLOW_DESIGN_HEIGHT;
+    // Slide hidden (display:none) → dimensions are 0; leave at native and retry on show.
+    if (availW <= 0 || availH <= 0 || naturalW <= 0 || naturalH <= 0) {
+      compose.style.zoom = "";
+      return;
+    }
+    const scale = Math.min(1, availW / naturalW, availH / naturalH);
+    compose.style.zoom = scale >= 0.999 ? "" : String(Math.max(0.2, scale));
+  }
+
+  function scheduleCaseFollowFit() {
+    if (caseFollowFitRaf) return;
+    caseFollowFitRaf = requestAnimationFrame(applyCaseFollowFit);
+  }
+
+  if (typeof ResizeObserver === "function") {
+    // Observes the stage (canvas) — fires on window resize and when the slide
+    // toggles from display:none to visible. Never observes the compose itself,
+    // so writing `zoom` cannot retrigger it.
+    new ResizeObserver(scheduleCaseFollowFit).observe(canvas);
+  } else {
+    window.addEventListener("resize", scheduleCaseFollowFit);
+  }
+
+  // Layout-changing interactions (twin/third reveal toggles, spawned mocks) alter the
+  // composition's natural footprint — recompute so the fit stays correct.
+  new MutationObserver(scheduleCaseFollowFit).observe(compose, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  new MutationObserver(scheduleCaseFollowFit).observe(pair, { childList: true });
+
   document.addEventListener("slideshow:change", (e) => {
     if (!(e instanceof CustomEvent) || typeof e.detail?.index !== "number") return;
     if (e.detail.index !== REWARDS_VIDEO_SLIDE_INDEX) {
       resetSlide7Ui();
-      return;
+    }
+    if (e.detail.index === CASE_FOLLOW_SLIDE_INDEX) {
+      // Slide just became active; wait a frame for it to lay out, then fit.
+      requestAnimationFrame(scheduleCaseFollowFit);
     }
   });
+
+  scheduleCaseFollowFit();
 }
 
 wireCaseFollowSlide7Canvas();
